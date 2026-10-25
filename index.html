@@ -126,7 +126,28 @@ input,select{font-family:inherit;}
 .login-logos img{height:78px;}
 .org-context{color:var(--text-muted);font-size:11.5px;margin-top:10px;line-height:1.6;}
 .platform-badge{width:78px;height:78px;object-fit:contain;margin-top:14px;}
-.platform-logo-full{display:block;width:200px;max-width:70%;height:auto;margin:18px auto 10px;}
+.platform-logo-full{display:block;width:150px;max-width:50%;height:auto;margin:16px auto 8px;}
+@supports (height:100dvh){ #loginScreen{min-height:100dvh;} }
+body:not(.shell-on) .footer-note{display:none;}
+@media (max-height:620px){
+  #loginScreen .login-card{padding:16px 20px 16px;}
+  #loginScreen .login-logos img{height:40px;}
+  #loginScreen .platform-logo-full{width:88px;margin:6px auto 2px;}
+  #loginScreen .gold-rule{margin:8px auto 10px;}
+  #loginScreen .login-form input{margin-bottom:10px;}
+}
+@media (max-width:600px), (max-height:760px){
+  #loginScreen{padding:12px;}
+  .login-card{padding:22px 22px 20px;border-radius:18px;}
+  .login-logos img{height:50px;}
+  .org-context{font-size:10.5px;margin-top:6px;line-height:1.5;}
+  .platform-logo-full{width:112px;margin:10px auto 4px;}
+  .login-title{font-size:12px;}
+  .gold-rule{margin:10px auto 14px;}
+  .login-form label{margin-bottom:4px;font-size:12px;}
+  .login-form input{padding:10px 12px;margin-bottom:12px;font-size:16px;}
+  .login-submit-btn{padding:12px;}
+}
 .platform-name{
   font-family:'Cairo',sans-serif;font-weight:800;font-size:42px;color:var(--navy);
   margin-top:8px;letter-spacing:1px;
@@ -456,6 +477,9 @@ body.shell-on .dg-topbar{display:none !important;}
 .org-table th{font-size:12.5px;color:#566476;font-weight:700;text-align:start;padding:9px 10px;border-bottom:1px solid #E1E7EE;white-space:nowrap;}
 .org-table td{font-size:13.5px;padding:10px;border-bottom:1px solid #EDF1F5;vertical-align:middle;}
 .org-chip{display:inline-flex;align-items:center;font-size:12px;font-weight:700;padding:3px 10px;border-radius:999px;background:#E2F1F2;color:#1E5A60;}
+.ye-opt{display:inline-flex;gap:6px;align-items:center;border:1.5px solid #DAE2EB;border-radius:10px;padding:8px 12px;font-size:13.5px;cursor:pointer;background:#fff;}
+.ye-opt:has(input:checked){border-color:#1D6FAD;background:#EEF5FB;}
+.ye-banner{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;background:#EEF5FB;border:1px solid #B9D3EA;border-radius:14px;padding:12px 16px;margin-bottom:14px;}
 .tl-wrap{overflow-x:auto;padding:16px 18px 20px;}
 .tl-grid{display:grid;grid-template-columns:230px repeat(12,minmax(0,1fr));align-items:center;min-width:980px;}
 .tl-q{grid-column:span 3;text-align:center;font-weight:800;color:#0D2B47;background:#EAF1F7;border-radius:8px;padding:6px 0;margin:0 2px;font-size:13.5px;}
@@ -1581,6 +1605,26 @@ tr.rejected-row td{background:#FDF6F6;}
   </div>
 </div>
 
+<!-- ===================== قرار نهاية السنة ===================== -->
+<span id="yearEndBadgeSrc" class="hidden" aria-hidden="true" style="display:none !important;">0</span>
+<div id="yearEndScreen" class="hidden">
+  <div class="dash-wrap">
+    <div class="org-head">
+      <div><h1 class="org-title">قرار نهاية السنة</h1><div class="note-meta" style="font-size:13.5px;">لكل مشروع مفتوح: الاستمرار في خطة السنة التالية، أو الإغلاق لاكتماله، أو الإغلاق لأسباب أخرى</div></div>
+      <div class="org-head-tools"><select id="yeYear" class="org-select"></select></div>
+    </div>
+    <div id="yeStatus"></div>
+    <div id="yeSummary"></div>
+    <div id="yeList"></div>
+  </div>
+</div>
+<div id="yearEndMgrScreen" class="hidden">
+  <div class="dash-wrap">
+    <div class="org-head"><div><h1 class="org-title">قرار نهاية السنة</h1></div></div>
+    <div id="yeMgrContent"></div>
+  </div>
+</div>
+
 <!-- ===================== PERSISTENT ADMIN NAV BAR (ثابتة عند التنقل بين كل صفحات قسم التخطيط) ===================== -->
 <div id="adminPersistentNav" class="topbar sticky-topbar hidden">
   <div class="nav-primary-row">
@@ -2038,6 +2082,7 @@ tr.rejected-row td{background:#FDF6F6;}
     </div>
   </div>
   <div class="dash-wrap" id="mgrInputView">
+    <div id="mgrYearEndBanner"></div>
     <div class="section-title">أهداف دائرتي</div>
     <div class="section-desc">أضف مشروعًا أو مبادرة لكل هدف من أهداف دائرتك في سنة الخطة، وحدّد القسم المنفّذ إن وُجد</div>
     <div id="programsContainer"></div>
@@ -5446,9 +5491,9 @@ function toggleCountdownCustomFields(){
 }
 
 /* ---------------- Screens ---------------- */
-const ADMIN_CLUSTER_SCREENS = ["adminScreen","goalsScreen","meetingScreen","passwordsScreen","activityScreen","backupScreen","execSummaryScreen","decisionLogScreen","requestsScreen","weeklyReportScreen","programsAdminScreen","competitionReportScreen","fullMatrixScreen","spiScreen","analyticsScreen","planDocScreen"];
+const ADMIN_CLUSTER_SCREENS = ["adminScreen","goalsScreen","yearEndScreen","meetingScreen","passwordsScreen","activityScreen","backupScreen","execSummaryScreen","decisionLogScreen","requestsScreen","weeklyReportScreen","programsAdminScreen","competitionReportScreen","fullMatrixScreen","spiScreen","analyticsScreen","planDocScreen"];
 function showScreen(id){
-  ["loginScreen","managerScreen","projectManagerScreen","dgScreen","orgHomeScreen","deptScreen","timelineScreen",...ADMIN_CLUSTER_SCREENS].forEach(s=>{
+  ["loginScreen","managerScreen","projectManagerScreen","dgScreen","orgHomeScreen","deptScreen","timelineScreen","yearEndMgrScreen",...ADMIN_CLUSTER_SCREENS].forEach(s=>{
     document.getElementById(s).classList.toggle("hidden", s!==id);
   });
   document.getElementById("adminPersistentNav").classList.toggle("hidden", !ADMIN_CLUSTER_SCREENS.includes(id));
@@ -5519,6 +5564,7 @@ function resetLoginForm(){
 /* ---------------- Manager dashboard ---------------- */
 function enterManager(name){
   currentManager = name;
+  setTimeout(refreshYearEndIfVisible, 300);
   document.getElementById("managerWho").textContent = name;
   showScreen("managerScreen");
   switchMgrTab("input");
@@ -6859,7 +6905,7 @@ function renderYearPanel(panelEl, program){
               ${secTag(it)}
               ${it.closedNote ? `<div class="pnote">📌 ملاحظة الإغلاق: ${escapeHtml(it.closedNote)}</div>` : ""}
             </div>
-            <span class="locked-badge" style="background:#5B3EAF;color:#fff;" title="اكتمل هذا المشروع وأُغلق نهائيًا من قسم التخطيط">✅ مغلق ومكتمل</span>
+            <span class="locked-badge" style="background:${it.closureType==="continued"?"#1D6FAD":(it.closureType==="other"?"#8E1825":"#5B3EAF")};color:#fff;" title="${escapeAttr(it.closedNote||"")}">${it.closureType==="continued" ? `↪️ استمر في خطة ${Number(it.year)+1}` : (it.closureType==="other" ? "⛔ أُغلق لأسباب أخرى" : "✅ مغلق ومكتمل")}</span>
             ${detailBtn}
           </div>`;
         }else if(it.locked){
@@ -9431,8 +9477,15 @@ document.getElementById("closeProjectSubmit").onclick = ()=>{
   document.getElementById("closeProjectModal").classList.add("hidden");
 };
 function reopenProject(id){
+  const pr = ALL_PROJECTS.find(p=>p.id===id);
+  if(pr && pr.closureType==="continued"){
+    alert(`هذا المشروع نُقل إلى خطة ${Number(pr.year)+1} ويُتابَع هناك. لإلغاء النقل احذف نسخته في خطة ${Number(pr.year)+1} أولًا، ثم أعد فتحه.`);
+    if(!ALL_PROJECTS.some(p=>p.id===pr.continuedToId)){ if(!confirm("نسخة السنة التالية غير موجودة. هل تريد إعادة فتح المشروع الآن؟")) return; }
+    else return;
+  }
   if(confirm("هل تريد إعادة فتح هذا المشروع؟ سيصبح قابلاً للتعديل من مدير الدائرة مجددًا.")){
     setProjectClosed(id, false, "");
+    updateProject(id, { closureType: null, yearEndDecision: null, continuedToId: null });
   }
 }
 
@@ -12787,7 +12840,6 @@ const PD_OPT_GROUPS = [
   ]},
   { title:"بطاقة هدف الدائرة", items:[
     { k:"pg_exec", l:"مدير الدائرة (بالمحافظة)", d:1 },
-    { k:"pg_central", l:"المدير المركزي", d:1 },
     { k:"pc_desc", l:"وصف الهدف", d:1 },
     { k:"pc_mgr", l:"مدير الدائرة (من البطاقة)", d:0 },
     { k:"pc_cost", l:"التكلفة الإجمالية للهدف", d:0 },
@@ -12836,7 +12888,7 @@ const PD_BRIEF_GROUPS = [
     { k:"bf_cover", l:"صفحة الغلاف", d:1 },
     { k:"bf_stats", l:"الأرقام الرئيسية", d:1 },
     { k:"bf_charts", l:"الرسوم البيانية (بلا نسب إنجاز)", d:1 },
-    { k:"bf_sankey", l:"مخطط التدفق: أهداف المديرية ← مدراء الدوائر", d:1 },
+    { k:"bf_sankey", l:"مخطط التدفق: أهداف المديرية ← الدوائر", d:1 },
     { k:"bf_exec", l:"مدير الدائرة بجانب كل هدف", d:1 },
     { k:"bf_noproj", l:"إدراج الأهداف التي لا مشاريع لها (سطر واحد)", d:1 },
     { k:"bf_projects", l:"أسماء المشاريع تحت كل هدف", d:1 },
@@ -12986,7 +13038,7 @@ function buildPlanDocHTML(o, idp){
   const years = o.years;
   const selProgs = new Set(o.programs);
   const title = (o.text.pdTitle||"").trim() || "الخطط السنوية لدوائر المديرية";
-  const subtitle = (o.text.pdSubtitle||"").trim() || ("الخطة التنفيذية " + pdYearsLabel(years));
+  const subtitle = (o.text.pdSubtitle||"").trim() || ("الخطة السنوية " + pdYearsLabel(years));
   const issuer = (o.text.pdIssuer||"").trim() || "قسم التخطيط والدراسات";
   const version = (o.text.pdVersion||"").trim();
   const dateTxt = pdFmtDate(o.date);
@@ -13089,6 +13141,10 @@ function pdProgramHTML(prog, projects, goal, f, years, idp, showGoalTag, counter
   const card = ALL_PROGRAM_CARDS.find(c=>c.id===prog.code) || {};
   const emp = f.showEmpty ? `<span class="pd-na">—</span>` : "";
   const meta = [];
+  if(prog.deptId) meta.push(["الدائرة", escapeHtml(deptName(prog.deptId))]);
+  { const pm = programMetrics(prog, years && years.length===1 ? years[0] : null);
+    if(!pm.noData) meta.push(["الأداء (تلقائي)", `المستهدف ${pm.planned}% · المحقق ${pm.actual}% · SPI ${pm.spi==null?"—":pm.spi.toFixed(2)} — ${PERF_STATUS[perfStatusKey(pm)].label}`]); }
+  if(programGoalIds(prog).length>1) meta.push(["ينعكس على أهداف المديرية", escapeHtml(programGoalsLabel(prog))]);
   if(f.pg_exec && prog.govManager) meta.push(["مدير الدائرة", escapeHtml(prog.govManager)]);
   if(f.pg_central && prog.central && prog.central.name) meta.push(["المدير المركزي", escapeHtml(prog.central.name) + (prog.central.title ? ` <small>(${escapeHtml(prog.central.title)})</small>` : "")]);
   if(f.pc_mgr && pdVal(card.programManager)) meta.push(["مدير الدائرة", pdVal(card.programManager)]);
@@ -13231,7 +13287,7 @@ function pdDonutHTML(a, b, labelA, labelB){
 function buildBriefHTML(o, idp){
   const f = o.flags, years = o.years, selProgs = new Set(o.programs);
   const title = (o.text.pdTitle||"").trim() || "الخطط السنوية لدوائر المديرية";
-  const subtitle = (o.text.pdSubtitle||"").trim() || ("الخطة التنفيذية — تقرير مختصر " + pdYearsLabel(years));
+  const subtitle = (o.text.pdSubtitle||"").trim() || ("الخطة السنوية — تقرير مختصر " + pdYearsLabel(years));
   const issuer = (o.text.pdIssuer||"").trim() || "قسم التخطيط والدراسات";
   const version = (o.text.pdVersion||"").trim();
   const dateTxt = pdFmtDate(o.date);
@@ -13339,11 +13395,17 @@ function pdWrapAr(txt, max){
 }
 function pdSankeyHTML(rows, goalsUsed){
   const flows = {}; const mgrTot = {}; const goalTot = {};
+  // مسار: التدفق من أهداف المديرية إلى الدوائر — هدف الدائرة المرتبط بأكثر من هدف مديرية يُوزَّع على كل أهدافه
+  const usedIds = new Set(goalsUsed.map(g=>g.id));
+  const seenProg = new Set();
   rows.forEach(r=>{
     const v = r.projects.length; if(!v) return;
-    const m = r.prog.govManager || "غير محدد", g = r.prog.goalId;
-    flows[g+"|"+m] = (flows[g+"|"+m]||0) + v;
-    mgrTot[m] = (mgrTot[m]||0) + v; goalTot[g] = (goalTot[g]||0) + v;
+    if(seenProg.has(r.prog.code)) return; seenProg.add(r.prog.code);
+    const m = deptName(r.prog.deptId) || r.prog.govManager || "غير محدد";
+    programGoalIds(r.prog).filter(g=>usedIds.has(g)).forEach(g=>{
+      flows[g+"|"+m] = (flows[g+"|"+m]||0) + v;
+      mgrTot[m] = (mgrTot[m]||0) + v; goalTot[g] = (goalTot[g]||0) + v;
+    });
   });
   const T = Object.values(goalTot).reduce((a,b)=>a+b,0);
   if(!T) return "";
@@ -13385,7 +13447,7 @@ function pdSankeyHTML(rows, goalsUsed){
     labels += ml.map((ln,i)=>`<text x="${xM-6}" y="${mly0+i*11}" text-anchor="end" font-size="9.5" font-weight="700" fill="#133D64">${escapeHtml(ln)}${i===ml.length-1?`<tspan fill="#6B7688" font-weight="400"> (${mgrTot[m]})</tspan>`:""}</text>`).join("");
   });
   return `<svg class="pb-sankey-svg" viewBox="0 0 ${W} ${H}" width="100%" style="direction:ltr;font-family:'Cairo','Tajawal',sans-serif;display:block;">${ribbons}${nodes}${labels}</svg>
-    <div class="pb-sankey-note">سُمك كل شريط يمثّل عدد المشاريع؛ الأرقام بين الأقواس عدد مشاريع كل هدف ومدير دائرة.</div>`;
+    <div class="pb-sankey-note">من أهداف المديرية (يمين) إلى الدوائر (يسار) — سُمك كل شريط يمثّل عدد المشاريع؛ الأرقام بين الأقواس عدد المشاريع. هدف الدائرة المنعكس على أكثر من هدف يُحتسب في كل هدف.</div>`;
 }
 function pdEstimatePages(o){
   const probe = document.createElement("div");
@@ -13516,6 +13578,7 @@ function shellItems(role){
     { key:"requests", ico:"📮", label:"طلبات المدراء", act:()=> clickEl("navRequestsBtn"), badge:"requestsBadge" },
     { group:"الإدارة" },
     { key:"structure", ico:"🏢", label:"الهيكل والحسابات", act:()=> clickEl("navProgramsAdminBtn") },
+    { key:"yearend", ico:"🔚", label:"قرار نهاية السنة", act:()=> openYearEndScreen(), badge:"yearEndBadgeSrc" },
     { key:"passwords", ico:"🔑", label:"كلمات المرور", act:()=> clickEl("navPasswordsBtn") },
     { key:"activity", ico:"📜", label:"سجل النشاط", act:()=> clickEl("navActivityBtn") },
     { key:"backup", ico:"💾", label:"نسخة احتياطية", act:()=> clickEl("navBackupBtn") }
@@ -13540,6 +13603,7 @@ function shellItems(role){
     { key:"comms", ico:"📨", label:"الملاحظات والتحديات", act:roleScreenThen("managerScreen","mgrTabComms"), badge:"mgrCommsBadge", bottom:true, short:"الملاحظات" },
     { key:"spi", ico:"📈", label:"مؤشر الأداء الزمني SPI", act:roleScreenThen("managerScreen","mgrTabSPI") },
     { key:"analytics", ico:"🔬", label:"تحليلات متقدمة", act:roleScreenThen("managerScreen","mgrTabAnalytics") },
+    { key:"yearend", ico:"🔚", label:"قرار نهاية السنة", act:()=> openYearEndScreen(), badge:"yearEndBadgeSrc" },
     { group:"الحساب" },
     { key:"pw", ico:"🔑", label:"كلمة المرور", act:()=> clickEl("mgrChangePwBtn"), noActive:true }
   ];
@@ -13559,7 +13623,7 @@ function shellKeyForScreen(id){
   const role = currentRole();
   const map = { orgHomeScreen:"home", deptScreen: role==="manager" ? "dept" : "home", timelineScreen:"timeline", goalsScreen:"goals", adminScreen:"projects",
     meetingScreen:"meeting", weeklyReportScreen:"weekly", competitionReportScreen:"competition", fullMatrixScreen:"matrix", spiScreen:"spi", planDocScreen:"plandoc",
-    analyticsScreen:"analytics", decisionLogScreen:"decisions", requestsScreen:"requests", programsAdminScreen:"structure", passwordsScreen:"passwords", activityScreen:"activity", backupScreen:"backup" };
+    analyticsScreen:"analytics", yearEndScreen:"yearend", yearEndMgrScreen:"yearend", decisionLogScreen:"decisions", requestsScreen:"requests", programsAdminScreen:"structure", passwordsScreen:"passwords", activityScreen:"activity", backupScreen:"backup" };
   return map[id] || null;
 }
 function shellItemHTML(it, light){
@@ -13581,6 +13645,8 @@ function renderAppShell(){
     document.getElementById("appDrawer").classList.add("hidden");
     if(!it.noActive) SHELL_ACTIVE_KEY = key;
     it.act();
+    // إعادة رسم شاشة إدخال المشاريع عند العودة إليها حتى تظهر أي تغييرات حدثت أثناء التنقل (مثل قرارات نهاية السنة)
+    if(!document.getElementById("managerScreen").classList.contains("hidden") && key==="input") renderManagerPrograms();
     markShellActive();
   };
   document.querySelectorAll("#appNav [data-key], #appDrawerNav [data-key], #appBottomBar [data-key]").forEach(b=> b.onclick = ()=> run(b.dataset.key));
@@ -13899,6 +13965,216 @@ function refreshShellScreensIfVisible(){
   if(!document.getElementById("timelineScreen").classList.contains("hidden")) renderTimeline();
 }
 
+/* ==================== مسار: قرار نهاية السنة لكل مشروع ==================== */
+// يفتحه قسم التخطيط يدويًا لسنة محددة؛ لكل مشروع مفتوح ثلاثة خيارات: الاستمرار في خطة السنة التالية، أو الإغلاق لاكتماله، أو الإغلاق لسبب آخر
+let YEAR_END = { openYear: null };
+function listenToYearEnd(cb){
+  if(!firebaseReady){ cb(); return; }
+  try{
+    db.collection(SETTINGS_COLLECTION).doc("yearEnd").onSnapshot(doc=>{
+      YEAR_END = doc.exists ? { openYear: null, ...doc.data() } : { openYear: null };
+      cb();
+    }, err=>{ console.error(err); cb(); });
+  }catch(err){ console.error("listenToYearEnd error:", err); cb(); }
+}
+function setYearEndOpen(year){
+  return db.collection(SETTINGS_COLLECTION).doc("yearEnd").set({ openYear: year || null, updatedAt: firebase.firestore.FieldValue.serverTimestamp(), updatedBy: ADMIN_NAME }, { merge:true })
+    .then(()=>{ logActivity(ADMIN_NAME, year ? "open_year_end" : "close_year_end", year ? String(year) : ""); return true; })
+    .catch(err=>{ alert("تعذّر حفظ الإعداد: " + err.message); return false; });
+}
+const YE_TYPES = {
+  continue: { label:"استمرار في خطة السنة التالية", short:"استمرار", color:"#1D6FAD", bg:"#EEF5FB" },
+  complete: { label:"إغلاق لاكتماله", short:"مكتمل", color:"#1E7A3D", bg:"#E3F2E8" },
+  other:    { label:"إغلاق لأسباب أخرى", short:"أسباب أخرى", color:"#8E1825", bg:"#FBE3E5" }
+};
+// المشاريع التي تنتظر قرارًا: مشاريع سنة القرار غير المغلقة وبلا قرار سابق
+function yearEndPending(projects, year){
+  return projects.filter(p=> Number(p.year)===Number(year) && !p.closed && !(p.yearEndDecision && Number(p.yearEndDecision.year)===Number(year)));
+}
+function yearEndDecided(projects, year){
+  return projects.filter(p=> Number(p.year)===Number(year) && p.yearEndDecision && Number(p.yearEndDecision.year)===Number(year));
+}
+function myYearEndProjects(){
+  const role = currentRole();
+  if(role==="manager"){ const d = deptOfManager(currentManager); return ALL_PROJECTS.filter(p=> p.deptId===d || p.govManager===currentManager); }
+  return ALL_PROJECTS;
+}
+// هدف الدائرة المقابل في السنة التالية: يُعاد استخدامه إن وُجد، وإلا يُنشأ نسخة منه للسنة الجديدة (يربطها قسم التخطيط بأهداف مديرية تلك السنة)
+async function ensureNextYearProgram(program, nextYear){
+  const existing = PROGRAMS.find(p=> p.deptId===program.deptId && Number(p.year)===nextYear && (p.carriedFromCode===program.code || p.name===program.name));
+  if(existing) return existing;
+  const code = nextProgramCode(program.deptId);
+  const fields = { code, name: program.name, deptId: program.deptId, year: nextYear, goalIds: [], goalId: null, govManager: managerOfDept(program.deptId) || program.govManager || "", carriedFromCode: program.code };
+  await db.collection(PROGRAMS_COLLECTION).doc(code).set(fields);
+  PROGRAMS.push(fields); // حتى لا يُنشأ هدف مكرر إن نُقل أكثر من مشروع في نفس اللحظة
+  logActivity(ADMIN_NAME, "add_program", `${code} — ${program.name} (نُقل من ${program.code} لسنة ${nextYear})`);
+  return fields;
+}
+async function applyYearEndDecision(projectId, type, note, actor){
+  const pr = ALL_PROJECTS.find(p=>p.id===projectId);
+  if(!pr) return false;
+  const year = Number(pr.year);
+  note = (note||"").trim();
+  if(type==="other" && !note){ alert("اذكر سبب الإغلاق."); return false; }
+  const decision = { year, type, note, by: actor, at: new Date().toISOString() };
+  const now = firebase.firestore.FieldValue.serverTimestamp();
+  try{
+    if(type==="complete" || type==="other"){
+      await db.collection(COLLECTION_NAME).doc(projectId).update({
+        closed:true, locked:true, closedAt: now, closedType: type==="complete" ? "success" : "early",
+        closureType: type, closedNote: note || (type==="complete" ? `أُغلق لاكتماله — قرار نهاية سنة ${year}` : ""),
+        yearEndDecision: decision
+      });
+    }else if(type==="continue"){
+      const nextYear = year + 1;
+      if(!YEARS.includes(nextYear)){ alert(`لا توجد سنة ${nextYear} في المنصة لنقل المشروع إليها.`); return false; }
+      const program = PROGRAMS.find(p=>p.code===pr.programCode);
+      if(!program){ alert("هدف الدائرة لهذا المشروع غير موجود."); return false; }
+      const nextProg = await ensureNextYearProgram(program, nextYear);
+      const copy = {
+        programCode: nextProg.code, programName: nextProg.name, goalId: nextProg.goalId || null, goalIds: programGoalIds(nextProg), goalName: programGoalsLabel(nextProg),
+        govManager: pr.govManager || nextProg.govManager || "", deptId: pr.deptId || program.deptId || "", sectionId: pr.sectionId || "",
+        projectName: pr.projectName, notes: pr.notes || "", year: nextYear,
+        assignedProjectManagerIds: Array.isArray(pr.assignedProjectManagerIds) ? pr.assignedProjectManagerIds : [],
+        carriedFromId: pr.id, carriedFromYear: year, createdAt: now
+      };
+      const ref = await db.collection(COLLECTION_NAME).add(copy);
+      const detail = ALL_PROJECT_DETAILS.find(d=>d.id===pr.id);
+      if(detail){
+        const d2 = JSON.parse(JSON.stringify(detail));
+        ["id","spiBaseline","spiBaselineHistory","spiUnlockRequested","planningNotesList","challenges","structureLocked"].forEach(k=> delete d2[k]);
+        d2.carriedFromId = pr.id;
+        await db.collection(DETAILS_COLLECTION).doc(ref.id).set(d2);
+      }
+      await db.collection(COLLECTION_NAME).doc(projectId).update({
+        closed:true, locked:true, closedAt: now, closedType:"early", closureType:"continued",
+        closedNote: `استمر في خطة ${nextYear}${note ? " — " + note : ""}`, continuedToId: ref.id, yearEndDecision: decision
+      });
+    }
+    logActivity(actor, "year_end_decision", `${pr.projectName} — ${YE_TYPES[type].short}${note ? " — " + note.slice(0,60) : ""}`);
+    return true;
+  }catch(err){ console.error(err); alert("تعذّر تطبيق القرار: " + err.message); return false; }
+}
+function yearEndDecisionListHTML(projects, year){
+  const pending = yearEndPending(projects, year);
+  if(!pending.length) return `<div class="empty-note">✅ لا توجد مشاريع تنتظر قرارًا لسنة ${year}.</div>`;
+  const next = year + 1;
+  return pending.map(pr=>{
+    const m = projectMetrics(pr);
+    return `<div class="org-card ye-item" data-ye="${pr.id}" style="padding:14px 16px;margin-bottom:10px;">
+      <div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;align-items:center;">
+        <div><b style="font-size:15px;color:#0D2B47;">${escapeHtml(pr.projectName)}</b>
+          <div class="note-meta">${escapeHtml(deptName(pr.deptId)||"")}${pr.sectionId ? " › "+escapeHtml(sectionName(pr.sectionId)) : ""} · ${escapeHtml(pr.programCode)} — ${escapeHtml(pr.programName||"")}</div></div>
+        ${metricsChipHTML(m, true)}
+      </div>
+      <fieldset style="border:0;padding:0;margin:10px 0 0;display:flex;flex-wrap:wrap;gap:8px;">
+        <legend class="note-meta" style="margin-bottom:6px;">قرار نهاية سنة ${year}:</legend>
+        ${YEARS.includes(next) ? `<label class="ye-opt"><input type="radio" name="ye-${pr.id}" value="continue"> ${YE_TYPES.continue.label.replace("السنة التالية", next)}</label>` : ""}
+        <label class="ye-opt"><input type="radio" name="ye-${pr.id}" value="complete" ${m.actual>=100?"checked":""}> ${YE_TYPES.complete.label}</label>
+        <label class="ye-opt"><input type="radio" name="ye-${pr.id}" value="other"> ${YE_TYPES.other.label}</label>
+      </fieldset>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;align-items:center;">
+        <input type="text" class="ye-note" placeholder="ملاحظة (إلزامية عند الإغلاق لأسباب أخرى)" style="flex:1 1 280px;height:40px;border:1px solid #D3DCE6;border-radius:10px;padding:0 12px;font-family:inherit;font-size:13.5px;">
+        <button type="button" class="org-btn ye-apply" style="background:#1D6FAD;color:#fff;border-color:#1D6FAD;">اعتماد القرار</button>
+      </div>
+    </div>`;
+  }).join("");
+}
+function wireYearEndList(container, actor, after){
+  container.querySelectorAll(".ye-item").forEach(card=>{
+    card.querySelector(".ye-apply").onclick = async ()=>{
+      const sel = card.querySelector("input[type=radio]:checked");
+      if(!sel){ alert("اختر القرار أولًا."); return; }
+      const note = card.querySelector(".ye-note").value;
+      const pr = ALL_PROJECTS.find(p=>p.id===card.dataset.ye);
+      const msg = sel.value==="continue" ? `سيُنقل «${pr.projectName}» إلى خطة ${Number(pr.year)+1} بمراحله وحالة خطواته، ويُغلق في خطة ${pr.year}. متابعة؟`
+        : `سيُغلق «${pr.projectName}» (${YE_TYPES[sel.value].label}) ولن يمكن تعديله إلا بإعادة فتحه من قسم التخطيط. متابعة؟`;
+      if(!confirm(msg)) return;
+      card.querySelector(".ye-apply").disabled = true;
+      const ok = await applyYearEndDecision(card.dataset.ye, sel.value, note, actor);
+      if(!ok) card.querySelector(".ye-apply").disabled = false;
+      if(ok && after) setTimeout(after, 400);
+    };
+  });
+}
+function yearEndSummaryHTML(year){
+  const rows = DEPARTMENTS.map(d=>{
+    const projs = ALL_PROJECTS.filter(p=> p.deptId===d.id && Number(p.year)===Number(year));
+    const dec = yearEndDecided(projs, year);
+    const cnt = t=> dec.filter(p=>p.yearEndDecision.type===t).length;
+    return { d, total: projs.length, pending: yearEndPending(projs, year).length, cont: cnt("continue"), comp: cnt("complete"), oth: cnt("other"), pre: projs.filter(p=>p.closed && !p.yearEndDecision).length };
+  }).filter(r=>r.total);
+  if(!rows.length) return `<div class="empty-note">لا توجد مشاريع في خطة ${year}.</div>`;
+  const T = k=> rows.reduce((s,r)=>s+r[k],0);
+  return `<div class="org-card" style="overflow-x:auto;padding:6px 10px;margin-bottom:16px;"><table class="org-table">
+    <thead><tr><th>الدائرة</th><th>المشاريع</th><th>بانتظار القرار</th><th>استمرار</th><th>مكتمل</th><th>أسباب أخرى</th><th>مغلق مسبقًا</th></tr></thead>
+    <tbody>${rows.map(r=>`<tr><td style="font-weight:700;">${escapeHtml(r.d.name)}</td><td>${r.total}</td><td style="font-weight:800;color:${r.pending?"#A24A08":"#1E7A3D"};">${r.pending}</td><td>${r.cont}</td><td>${r.comp}</td><td>${r.oth}</td><td>${r.pre}</td></tr>`).join("")}
+      <tr style="background:#F5F8FB;font-weight:800;"><td>الإجمالي</td><td>${T("total")}</td><td>${T("pending")}</td><td>${T("cont")}</td><td>${T("comp")}</td><td>${T("oth")}</td><td>${T("pre")}</td></tr></tbody></table></div>`;
+}
+function renderYearEndAdmin(){
+  const ysel = document.getElementById("yeYear");
+  const prev = ysel.value;
+  ysel.innerHTML = YEARS.map(y=>`<option value="${y}">خطة ${y}</option>`).join("");
+  ysel.value = prev || String(YEAR_END.openYear || defaultPlanYear());
+  ysel.onchange = renderYearEndAdmin;
+  const y = Number(ysel.value);
+  const isOpen = Number(YEAR_END.openYear)===y;
+  document.getElementById("yeStatus").innerHTML = `
+    <div class="org-card" style="padding:14px 16px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <div><b style="color:#0D2B47;">${isOpen ? "🟢 قرار نهاية السنة مفتوح لمدراء الدوائر" : "⚪ قرار نهاية السنة مغلق"}</b>
+        <div class="note-meta">${isOpen ? `يرى كل مدير دائرة مشاريع دائرته لسنة ${y} مع خيارات القرار، ويظهر له تنبيه في القائمة.` : (YEAR_END.openYear ? `مفتوح حاليًا لسنة ${YEAR_END.openYear}.` : "عند الفتح يرى كل مدير دائرة مشاريع دائرته مع خيارات القرار.")}</div></div>
+      <button type="button" class="org-btn" id="yeToggle" style="${isOpen ? "" : "background:#1D6FAD;color:#fff;border-color:#1D6FAD;"}">${isOpen ? "إغلاق القرار" : `فتح قرار نهاية سنة ${y}`}</button>
+    </div>`;
+  document.getElementById("yeToggle").onclick = async ()=>{
+    if(!isOpen && !confirm(`فتح قرار نهاية سنة ${y} لكل مدراء الدوائر؟`)) return;
+    await setYearEndOpen(isOpen ? null : y);
+  };
+  document.getElementById("yeSummary").innerHTML = yearEndSummaryHTML(y);
+  const list = document.getElementById("yeList");
+  list.innerHTML = `<h2 class="org-h2" style="font-size:16px;">مشاريع تنتظر القرار <small>يمكن لقسم التخطيط اتخاذ القرار نيابة عن الدائرة</small></h2>` + yearEndDecisionListHTML(ALL_PROJECTS, y);
+  wireYearEndList(list, ADMIN_NAME, renderYearEndAdmin);
+}
+function renderYearEndManager(){
+  const y = Number(YEAR_END.openYear);
+  const box = document.getElementById("yeMgrContent");
+  if(!y){ box.innerHTML = `<div class="empty-note">قرار نهاية السنة غير مفتوح حاليًا — يفتحه قسم التخطيط والدراسات.</div>`; return; }
+  const projs = myYearEndProjects();
+  const dec = yearEndDecided(projs, y);
+  box.innerHTML = `<div class="note-meta" style="margin-bottom:12px;font-size:13.5px;">قرر لكل مشروع من مشاريع دائرتك في خطة ${y}: الاستمرار في خطة ${y+1} (يُنقل بمراحله وحالة خطواته)، أو الإغلاق لاكتماله، أو الإغلاق لأسباب أخرى مع ذكر السبب.</div>`
+    + yearEndDecisionListHTML(projs, y)
+    + (dec.length ? `<h2 class="org-h2" style="font-size:15px;margin-top:16px;">قرارات معتمدة (${dec.length})</h2>` + dec.map(p=>{ const t = YE_TYPES[p.yearEndDecision.type]; return `<div class="ga-proj"><span>${escapeHtml(p.projectName)}${p.yearEndDecision.note ? ` <span class="note-meta">— ${escapeHtml(p.yearEndDecision.note)}</span>` : ""}</span><span class="perf-chip" style="background:${t.bg};color:${t.color};">${t.short}</span></div>`; }).join("") : "");
+  wireYearEndList(box, currentManager, renderYearEndManager);
+}
+function openYearEndScreen(){
+  if(currentRole()==="admin"){ showScreen("yearEndScreen"); renderYearEndAdmin(); }
+  else { showScreen("yearEndMgrScreen"); renderYearEndManager(); }
+}
+function updateYearEndBadge(){
+  const el = document.getElementById("yearEndBadgeSrc");
+  if(!el) return;
+  let n = 0;
+  if(YEAR_END.openYear){
+    const role = currentRole();
+    if(role==="manager") n = yearEndPending(myYearEndProjects(), YEAR_END.openYear).length;
+    else if(role==="admin") n = yearEndPending(ALL_PROJECTS, YEAR_END.openYear).length;
+  }
+  el.textContent = n; el.classList.toggle("hidden", !n);
+}
+function renderMgrYearEndBanner(){
+  const el = document.getElementById("mgrYearEndBanner");
+  if(!el) return;
+  const y = YEAR_END.openYear;
+  const n = (y && currentManager) ? yearEndPending(myYearEndProjects(), y).length : 0;
+  el.innerHTML = n ? `<div class="ye-banner"><div><b style="color:#0D2B47;">🔚 قرار نهاية سنة ${y} مفتوح</b><div class="note-meta">لديك ${n} مشروعًا ينتظر قرارك: استمرار، أو إغلاق لاكتماله، أو إغلاق لأسباب أخرى.</div></div><button type="button" class="org-btn" id="mgrYeGo" style="background:#1D6FAD;color:#fff;border-color:#1D6FAD;">اتخاذ القرارات</button></div>` : "";
+  const b = document.getElementById("mgrYeGo"); if(b) b.onclick = ()=>{ SHELL_ACTIVE_KEY = "yearend"; openYearEndScreen(); };
+}
+function refreshYearEndIfVisible(){
+  updateYearEndBadge();
+  renderMgrYearEndBanner();
+  if(!document.getElementById("yearEndScreen").classList.contains("hidden")) renderYearEndAdmin();
+  if(!document.getElementById("yearEndMgrScreen").classList.contains("hidden")) renderYearEndManager();
+}
+
 /* ---------------- Init ---------------- */
 wireDetailModalStaticEvents();
 wireProgramCardEvents();
@@ -13932,10 +14208,12 @@ function rerenderStructureDependents(){
   if(!document.getElementById("adminScreen").classList.contains("hidden")) renderAdmin();
 }
 listenToDepartments(rerenderStructureDependents);
+listenToYearEnd(refreshYearEndIfVisible);
 listenToSections(rerenderStructureDependents);
 listenToDirGoals(rerenderStructureDependents);
 listenToProjects(()=>{
   refreshFollowUpIfVisible();
+  refreshYearEndIfVisible();
   refreshGoalsViewsIfVisible();
   if(!document.getElementById("managerScreen").classList.contains("hidden")) renderManagerPrograms();
   if(!document.getElementById("adminScreen").classList.contains("hidden")) renderAdmin();
