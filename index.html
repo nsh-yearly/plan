@@ -430,14 +430,23 @@ body.shell-on .role-tabs-wrap,
 body.shell-on .dg-topbar{display:none !important;}
 @media (min-width:900px){
   body.shell-on{padding-right:260px;}
+  /* شريط تمرير الصفحة على الطرف الأيسر، وشريط القائمة الجانبية على حافتها اليمنى */
+  html.shell-scroll{height:100%;overflow:hidden;}
+  html.shell-scroll body.shell-on{height:100vh;overflow-y:auto;box-sizing:border-box;}
 }
+.app-sidebar{direction:ltr;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.28) transparent;}
+.app-sidebar > *{direction:rtl;}
+.app-sidebar::-webkit-scrollbar{width:8px;}
+.app-sidebar::-webkit-scrollbar-track{background:transparent;}
+.app-sidebar::-webkit-scrollbar-thumb{background:rgba(255,255,255,.28);border-radius:8px;}
+.app-sidebar::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,.45);}
 @media (max-width:899px){
   body.shell-on .app-sidebar{display:none !important;}
   body.shell-on .app-bottombar:not(.hidden){display:flex;}
   body.shell-on .app-topbar:not(.hidden){display:flex;}
   body.shell-on{padding-bottom:76px;}
 }
-@media print{ .app-sidebar,.app-bottombar,.app-drawer{display:none !important;} body.shell-on{padding:0 !important;} }
+@media print{ .app-sidebar,.app-bottombar,.app-drawer{display:none !important;} body.shell-on{padding:0 !important;height:auto !important;overflow:visible !important;} html.shell-scroll{height:auto !important;overflow:visible !important;} }
 .org-head{display:flex;flex-wrap:wrap;gap:12px 16px;align-items:center;justify-content:space-between;margin:6px 0 18px;}
 .org-title{font-family:'Cairo',sans-serif;font-size:26px;font-weight:800;color:#0D2B47;margin:2px 0 0;}
 .org-head-tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
@@ -5545,7 +5554,7 @@ function showScreen(id){
   });
   document.getElementById("adminPersistentNav").classList.toggle("hidden", !ADMIN_CLUSTER_SCREENS.includes(id));
   document.getElementById("navCollapsible").classList.remove("nav-open");
-  window.scrollTo(0,0);
+  window.scrollTo(0,0); document.body.scrollTop=0;
   if(typeof updateAppShell==="function") updateAppShell(id);
 }
 
@@ -13625,8 +13634,8 @@ function shellItems(role){
     { key:"decisions", ico:"📝", label:"الملاحظات والقرارات والتحديات", short:"الملاحظات", act:()=> clickEl("navDecisionLogBtn"), badge:"navChallengesBadge", bottom:true },
     { key:"requests", ico:"📮", label:"طلبات المدراء", act:()=> clickEl("navRequestsBtn"), badge:"requestsBadge" },
     { group:"الإدارة" },
-    { key:"structure", ico:"🏢", label:"الهيكل والحسابات", act:()=> clickEl("navProgramsAdminBtn") },
     { key:"yearend", ico:"🔚", label:"قرار نهاية السنة", act:()=> openYearEndScreen(), badge:"yearEndBadgeSrc" },
+    { key:"structure", ico:"🏢", label:"الهيكل والحسابات", act:()=> clickEl("navProgramsAdminBtn") },
     { key:"passwords", ico:"🔑", label:"كلمات المرور", act:()=> clickEl("navPasswordsBtn") },
     { key:"activity", ico:"📜", label:"سجل النشاط", act:()=> clickEl("navActivityBtn") },
     { key:"backup", ico:"💾", label:"نسخة احتياطية", act:()=> clickEl("navBackupBtn") }
@@ -13644,29 +13653,29 @@ function shellItems(role){
   ];
   if(role==="manager") return [
     { key:"input", ico:"📥", label:"إدخال المشاريع", short:"المشاريع", act:roleScreenThen("managerScreen","mgrTabInput"), bottom:true },
-    { key:"dept", ico:"🏢", label:"صفحة دائرتي", act:()=>{ const d = deptOfManager(currentManager); if(d) openDeptScreen(d); else alert("حسابك غير مُسنَد لدائرة بعد."); } },
-    { key:"goals", ico:"🎯", label:"تحقق أهداف دائرتي", short:"الأهداف", act:roleScreenThen("managerScreen","mgrTabGoals"), bottom:true },
-    { key:"timeline", ico:"🗓️", label:"الخط الزمني لدائرتي", short:"الخط الزمني", act:()=> openTimeline("dept"), bottom:true },
+    { key:"dept", ico:"🏢", label:"صفحة الدائرة", act:()=>{ const d = deptOfManager(currentManager); if(d) openDeptScreen(d); else alert("حسابك غير مُسنَد لدائرة بعد."); } },
+    { key:"goals", ico:"🎯", label:"تحقق أهداف الدائرة", short:"الأهداف", act:roleScreenThen("managerScreen","mgrTabGoals"), bottom:true },
+    { key:"timeline", ico:"🗓️", label:"الخط الزمني للدائرة", short:"الخط الزمني", act:()=> openTimeline("dept"), bottom:true },
     { key:"overview", ico:"📊", label:"لوحة المتابعة", act:roleScreenThen("managerScreen","mgrTabOverview") },
-    { key:"byprogram", ico:"📂", label:"مشاريعي حسب الهدف", act:roleScreenThen("managerScreen","mgrTabByProgram") },
+    { key:"byprogram", ico:"📂", label:"المشاريع حسب الهدف", act:roleScreenThen("managerScreen","mgrTabByProgram") },
     { key:"comms", ico:"📨", label:"الملاحظات والتحديات", act:roleScreenThen("managerScreen","mgrTabComms"), badge:"mgrCommsBadge", bottom:true, short:"الملاحظات" },
     { key:"spi", ico:"📈", label:"مؤشر الأداء الزمني SPI", act:roleScreenThen("managerScreen","mgrTabSPI") },
     { key:"analytics", ico:"🔬", label:"تحليلات متقدمة", act:roleScreenThen("managerScreen","mgrTabAnalytics") },
     { key:"yearend", ico:"🔚", label:"قرار نهاية السنة", act:()=> openYearEndScreen(), badge:"yearEndBadgeSrc" },
     { key:"ref", ico:"📚", label:"مرجع الأولويات", act:()=> openRefScreen() },
     { group:"الحساب" },
-    { key:"pw", ico:"🔑", label:"كلمة المرور", act:()=> clickEl("mgrChangePwBtn"), noActive:true }
+    { key:"pw", ico:"🔑", label:"تغيير كلمة المرور", act:()=> clickEl("mgrChangePwBtn"), noActive:true }
   ];
   return [
-    { key:"input", ico:"📥", label:"مشاريعي", act:roleScreenThen("projectManagerScreen","pmTabInput"), bottom:true },
-    { key:"timeline", ico:"🗓️", label:"الخط الزمني لمشاريعي", short:"الخط الزمني", act:()=> openTimeline("pm"), bottom:true },
+    { key:"input", ico:"📥", label:"المشاريع", act:roleScreenThen("projectManagerScreen","pmTabInput"), bottom:true },
+    { key:"timeline", ico:"🗓️", label:"الخط الزمني للمشاريع", short:"الخط الزمني", act:()=> openTimeline("pm"), bottom:true },
     { key:"overview", ico:"📊", label:"لوحة المتابعة", act:roleScreenThen("projectManagerScreen","pmTabOverview") },
     { key:"comms", ico:"📨", label:"الملاحظات والتحديات", act:roleScreenThen("projectManagerScreen","pmTabComms"), badge:"pmCommsBadge", bottom:true, short:"الملاحظات" },
     { key:"spi", ico:"📈", label:"مؤشر الأداء الزمني SPI", act:roleScreenThen("projectManagerScreen","pmTabSPI") },
     { key:"analytics", ico:"🔬", label:"تحليلات متقدمة", act:roleScreenThen("projectManagerScreen","pmTabAnalytics") },
     { key:"ref", ico:"📚", label:"مرجع الأولويات", act:()=> openRefScreen() },
     { group:"الحساب" },
-    { key:"pw", ico:"🔑", label:"كلمة المرور", act:()=> clickEl("pmChangePwBtn"), noActive:true }
+    { key:"pw", ico:"🔑", label:"تغيير كلمة المرور", act:()=> clickEl("pmChangePwBtn"), noActive:true }
   ];
 }
 // يستنتج العنصر النشط من الشاشة المعروضة حتى يبقى التحديد صحيحًا مهما كانت طريقة الانتقال
@@ -13731,6 +13740,7 @@ let shellRole = null;
 function updateAppShell(screenId){
   const on = screenId!=="loginScreen";
   document.body.classList.toggle("shell-on", on);
+  document.documentElement.classList.toggle("shell-scroll", on);
   ["appSidebar","appBottomBar","appTopBar"].forEach(id=> document.getElementById(id).classList.toggle("hidden", !on));
   document.getElementById("appDrawer").classList.add("hidden");
   if(!on){ shellRole = null; SHELL_ACTIVE_KEY = null; return; }
