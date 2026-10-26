@@ -504,6 +504,72 @@ body.shell-on .dg-topbar{display:none !important;}
 .ref-phase{font-weight:700;color:#133D64;margin-top:4px;}
 .ref-steps{margin:2px 0 4px;padding-inline-start:18px;}
 @media (max-width:600px){ .ref-f{grid-template-columns:1fr;gap:2px;} }
+/* ===== المؤشرات الصحية ===== */
+.ind-src{padding:12px 16px;margin-bottom:12px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;}
+.ind-src a.org-btn{text-decoration:none;display:inline-flex;align-items:center;}
+.ind-views{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}
+.ind-view{border:1px solid #CFDCE8;background:#fff;color:#133D64;border-radius:999px;padding:7px 16px;font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer;min-height:38px;}
+.ind-view.active{background:#133D64;color:#fff;border-color:#133D64;}
+#refIndView.v-sum .ind-only-cmp,#refIndView.v-sum .ind-only-fac,#refIndView.v-cmp .ind-only-fac,#refIndView.v-fac .ind-only-cmp{display:none;}
+.ind-kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:14px;}
+.ind-kpi{background:#fff;border:1px solid #E1E7EE;border-radius:14px;padding:12px 14px;border-inline-start:4px solid #74B5BB;}
+.ind-kpi .k{font-size:12.5px;color:#566476;font-weight:700;}
+.ind-kpi .v{font-size:22px;font-weight:800;color:#0D2B47;font-variant-numeric:tabular-nums;line-height:1.3;}
+.ind-kpi .s{font-size:12px;color:#237EC2;font-weight:700;}
+.ind-h{font-size:15.5px;font-weight:800;color:#0D2B47;margin:16px 0 8px;display:flex;flex-wrap:wrap;gap:6px 12px;align-items:baseline;}
+.ind-h .note-meta{font-weight:400;}
+.ind-tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid #E1E7EE;border-radius:12px;background:#fff;}
+.ind-tbl{width:100%;border-collapse:collapse;font-size:13px;white-space:nowrap;font-variant-numeric:tabular-nums;}
+.ind-tbl th{background:#F1F5F9;color:#133D64;font-weight:800;padding:8px 10px;text-align:center;position:sticky;top:0;}
+.ind-tbl th.sortable{cursor:pointer;}
+.ind-tbl th.sorted::after{content:" ▾";}
+.ind-tbl th.sorted.asc::after{content:" ▴";}
+.ind-tbl td{padding:7px 10px;border-top:1px solid #EEF2F7;text-align:center;}
+.ind-tbl td:first-child,.ind-tbl th:first-child{text-align:start;position:sticky;right:0;background:inherit;}
+.ind-tbl tbody tr{background:#fff;}
+.ind-tbl tbody tr:hover{background:#F7FAFC;}
+.ind-tbl tfoot td{background:#E9F4F5;font-weight:800;color:#0D2B47;}
+.ind-tbl td.na{color:#9AA7B4;}
+.ind-tbl td.hi{color:#1E7A3D;font-weight:800;}
+.ind-tbl td.lo{color:#B3202E;font-weight:800;}
+.ind-tbl td.warn{color:#A24A08;}
+.ind-flags{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;}
+.ind-flag{background:#fff;border:1px solid #E1E7EE;border-radius:12px;padding:10px 12px;}
+.ind-flag b{color:#0D2B47;font-size:13.5px;}
+.ind-flag .gov{font-size:12px;color:#566476;margin:2px 0 6px;}
+.ind-flag ol{margin:0;padding-inline-start:18px;font-size:13px;line-height:1.8;}
+.ind-flag ol li span{float:left;font-weight:800;color:#B3202E;font-variant-numeric:tabular-nums;}
+.ind-bars{background:#fff;border:1px solid #E1E7EE;border-radius:12px;padding:10px 12px;}
+.ind-bar{display:grid;grid-template-columns:minmax(130px,220px) 1fr 74px;gap:10px;align-items:center;padding:5px 0;font-size:13px;}
+.ind-bar .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ind-bar .nm small{color:#8593A3;}
+.ind-bar .tr{position:relative;height:16px;background:#F1F5F9;border-radius:8px;}
+.ind-bar .fl{position:absolute;inset-block:0;right:0;border-radius:8px;background:#237EC2;}
+.ind-bar .fl.hi{background:#2E9E5B;}
+.ind-bar .fl.lo{background:#D2563F;}
+.ind-bar .gl{position:absolute;inset-block:-3px;width:2px;background:#0D2B47;}
+.ind-bar .vl{font-weight:800;color:#0D2B47;font-variant-numeric:tabular-nums;text-align:end;}
+.ind-bar.na .vl{color:#9AA7B4;font-weight:400;}
+.ind-legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:#566476;margin:8px 0 2px;}
+.ind-legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-inline-end:4px;vertical-align:middle;}
+.ind-fac-head{padding:14px 16px;margin-bottom:12px;border-inline-start:5px solid #133D64;}
+.ind-fac-head h2{margin:0 0 4px;font-size:19px;color:#0D2B47;}
+.ind-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+.ind-tags span{background:#EEF5FB;color:#133D64;border-radius:999px;padding:2px 10px;font-size:12px;font-weight:700;}
+.ind-kv{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:8px;}
+.ind-kv > div{background:#fff;border:1px solid #E1E7EE;border-radius:10px;padding:8px 12px;display:flex;justify-content:space-between;gap:10px;align-items:baseline;font-size:13px;}
+.ind-kv .l{color:#566476;font-weight:700;}
+.ind-kv .r{text-align:end;}
+.ind-kv .r b{color:#0D2B47;font-variant-numeric:tabular-nums;}
+.ind-kv .r small{display:block;color:#8593A3;font-size:11.5px;}
+.ind-svc{display:flex;flex-wrap:wrap;gap:6px;}
+.ind-svc span{background:#F4F8F9;border:1px solid #D7E8EA;color:#1E5A60;border-radius:8px;padding:3px 10px;font-size:12.5px;}
+.ind-note{font-size:12px;color:#566476;margin-top:10px;line-height:1.7;}
+@media (max-width:600px){
+  .ind-bar{grid-template-columns:1fr 64px;gap:4px 8px;}
+  .ind-bar .nm{grid-column:1 / -1;}
+  .ind-kpi .v{font-size:19px;}
+}
 .ye-opt{display:inline-flex;gap:6px;align-items:center;border:1.5px solid #DAE2EB;border-radius:10px;padding:8px 12px;font-size:13.5px;cursor:pointer;background:#fff;}
 .ye-opt:has(input:checked){border-color:#1D6FAD;background:#EEF5FB;}
 .ye-banner{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;background:#EEF5FB;border:1px solid #B9D3EA;border-radius:14px;padding:12px 16px;margin-bottom:14px;}
@@ -1656,7 +1722,27 @@ tr.rejected-row td{background:#FDF6F6;}
       <div id="refContent"></div>
     </div>
     <div id="refIndView" class="hidden">
-      <div class="empty-note">قريبًا: المؤشرات الصحية على مستوى المؤسسات الصحية والمحافظة والمستوى الوطني.</div>
+      <div id="indEmpty" class="empty-note hidden">لم تُحمَّل بيانات المؤشرات الصحية بعد.</div>
+      <div id="indWrap">
+        <div class="org-card ind-src">
+          <div><b id="indTitle" style="color:#0D2B47;"></b><div class="note-meta" id="indSrcMeta"></div></div>
+          <a class="org-btn" id="indPdfLink" href="#" download>⬇️ تحميل التقرير الأصلي PDF</a>
+        </div>
+        <div class="ind-views" role="tablist">
+          <button class="ind-view active" data-v="sum">ملخص المحافظة</button>
+          <button class="ind-view" data-v="cmp">مقارنة المؤسسات</button>
+          <button class="ind-view" data-v="fac">بطاقة المؤسسة</button>
+        </div>
+        <div class="org-head-tools" style="margin-bottom:12px;">
+          <select id="indWilaya" class="org-select" aria-label="الولاية"></select>
+          <select id="indKind" class="org-select" aria-label="نوع المؤسسة">
+            <option value="">كل المؤسسات</option><option value="hosp">المستشفيات</option><option value="center">المراكز الصحية</option>
+          </select>
+          <select id="indMetric" class="org-select ind-only-cmp" aria-label="المؤشر"></select>
+          <select id="indFacility" class="org-select ind-only-fac" aria-label="المؤسسة"></select>
+        </div>
+        <div id="indContent"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -3117,6 +3203,7 @@ tr.rejected-row td{background:#FDF6F6;}
 <div class="footer-note">المديرية العامة للخدمات الصحية - محافظة شمال الشرقية | دائرة التخطيط والتنظيم الصحي</div>
 
 <script src="data.js"></script>
+<script src="health-ind.js"></script>
 <script>
 /* =========================================================================
    إعداد Firebase — يجب استبدال القيم أدناه بإعدادات مشروعك الخاص في Firebase
@@ -14398,8 +14485,279 @@ document.getElementById("refSearch").oninput = ()=> renderRefScreen();
 document.getElementById("refGoal").onchange = ()=> renderRefScreen();
 document.getElementById("refYear").onchange = ()=> renderRefScreen();
 document.getElementById("refFile").onchange = (e)=>{ const f = e.target.files[0]; e.target.value = ""; uploadRasdRef(f); };
+// ==================== المؤشرات الصحية (مرجع الأولويات) ====================
+const IND_STATE = { view:"sum", wilaya:"", kind:"", metric:"firstTriPct", facility:"", sortKey:"pop", sortAsc:false, cmpAsc:false };
+function indReport(){ return (typeof HEALTH_IND_REPORTS!=="undefined" && HEALTH_IND_REPORTS.length) ? HEALTH_IND_REPORTS[0] : null; }
+function indIsHosp(f){ return /مستشفى/.test(f.type) || /مستشفى/.test(f.name); }
+function indFiltered(){
+  const r = indReport(); if(!r) return [];
+  return r.facilities.filter(f => (!IND_STATE.wilaya || f.wilaya===IND_STATE.wilaya) && (!IND_STATE.kind || (IND_STATE.kind==="hosp" ? indIsHosp(f) : !indIsHosp(f))));
+}
+const indNum = (v, d)=> (v===null || v===undefined || isNaN(v)) ? "—" : Number(v).toLocaleString("en-US", { maximumFractionDigits: d===undefined ? 1 : d, minimumFractionDigits: 0 });
+const indPct = (v, d)=> (v===null || v===undefined || isNaN(v)) ? "—" : indNum(v, d===undefined?1:d) + "%";
+const indShortName = n => String(n||"").replace(/الصحي$/,"").replace(/^مركز /,"").replace(/^مستشفى ومركز /,"م. ").replace(/^مستشفى /,"م. ").trim();
+const indP = f => f.perf || {};
+
+// تعريف المؤشرات: val قيمة المؤسسة، agg طريقة حساب قيمة المجموعة، better اتجاه الأفضل (1 أعلى أفضل، -1 أقل أفضل، 0 محايد)
+const IND_DEFS = [
+  { g:"السكان", key:"pop", label:"إجمالي السكان المخدومين", val:f=>f.pop.total, agg:"sum", d:0, better:0 },
+  { g:"السكان", key:"omaniPct", label:"نسبة المواطنين من المخدومين", val:f=>f.pop.omaniPct, w:f=>f.pop.total, pct:true, better:0 },
+  { g:"السكان", key:"under5Pct", label:"الأطفال دون 5 سنوات", val:f=>f.pop.under5Pct, w:f=>f.pop.total, pct:true, better:0 },
+  { g:"السكان", key:"wraPct", label:"النساء في سن الإنجاب (15–49)", val:f=>f.pop.wraPct, w:f=>f.pop.total, pct:true, better:0 },
+  { g:"السكان", key:"elderlyPct", label:"كبار السن (60 سنة فأكثر)", val:f=>f.pop.elderly60Pct, w:f=>f.pop.total, pct:true, better:0 },
+  { g:"القوى العاملة", key:"staff", label:"إجمالي الكوادر", val:f=>f.staffTotal, agg:"sum", d:0, better:0 },
+  { g:"القوى العاملة", key:"staff10k", label:"الكوادر لكل 10 آلاف نسمة", val:f=>f.pop.total ? f.staffTotal/f.pop.total*1e4 : null, ratio:[f=>f.staffTotal, f=>f.pop.total, 1e4], better:1 },
+  { g:"القوى العاملة", key:"doc10k", label:"الأطباء لكل 10 آلاف نسمة", val:f=>f.pop.total ? (f.staffGroups.doctors||0)/f.pop.total*1e4 : null, ratio:[f=>f.staffGroups.doctors||0, f=>f.pop.total, 1e4], better:1 },
+  { g:"القوى العاملة", key:"nurse10k", label:"التمريض لكل 10 آلاف نسمة", val:f=>f.pop.total ? (f.staffGroups.nursing||0)/f.pop.total*1e4 : null, ratio:[f=>f.staffGroups.nursing||0, f=>f.pop.total, 1e4], better:1 },
+  { g:"القوى العاملة", key:"omanization", label:"نسبة التعمين", val:f=>f.omanization, ratio:[f=>f.omaniTotal, f=>f.staffTotal, 100], pct:true, better:1 },
+  { g:"الأداء والخدمات", key:"visits", label:"إجمالي الزيارات", val:f=>indP(f).visits, agg:"sum", d:0, better:0 },
+  { g:"الأداء والخدمات", key:"visitsPc", label:"الزيارات للفرد سنويًا", val:f=>f.pop.total && indP(f).visits!=null ? indP(f).visits/f.pop.total : null, ratio:[f=>indP(f).visits, f=>f.pop.total, 1], d:2, better:0 },
+  { g:"الأداء والخدمات", key:"visitsDaily", label:"متوسط الزيارات اليومية", val:f=>indP(f).visitsDaily, agg:"sum", d:0, better:0 },
+  { g:"الأداء والخدمات", key:"lab", label:"الفحوصات المخبرية", val:f=>indP(f).lab, agg:"sum", d:0, better:0 },
+  { g:"الأداء والخدمات", key:"radiology", label:"فحوصات الأشعة", val:f=>indP(f).radiology, agg:"sum", d:0, better:0 },
+  { g:"الأداء والخدمات", key:"dental", label:"زيارات الأسنان", val:f=>indP(f).dental, agg:"sum", d:0, better:0 },
+  { g:"صحة الأم والطفل", key:"births", label:"المواليد (MR2)", val:f=>indP(f).births, agg:"sum", d:0, better:0 },
+  { g:"صحة الأم والطفل", key:"hearingPct", label:"فحص السمع للمواليد", val:f=>indP(f).hearingPct, w:f=>indP(f).births, pct:true, better:1 },
+  { g:"صحة الأم والطفل", key:"pregnant", label:"الحوامل المسجلات", val:f=>indP(f).pregnant, agg:"sum", d:0, better:0 },
+  { g:"صحة الأم والطفل", key:"firstTriPct", label:"التسجيل في الثلث الأول من الحمل", val:f=>indP(f).firstTriPct, ratio:[f=>indP(f).firstTri, f=>indP(f).firstTri!=null ? indP(f).pregnant : null, 100], pct:true, better:1 },
+  { g:"صحة الأم والطفل", key:"anemiaPct", label:"فقر الدم بين الحوامل (أقل من 11)", val:f=>indP(f).anemiaPct, w:f=>indP(f).pregnant, pct:true, better:-1 },
+  { g:"صحة الأم والطفل", key:"spacingPct", label:"المباعدة 3 سنوات فأكثر", val:f=>indP(f).spacingPct, agg:"mean", pct:true, better:1 },
+  { g:"الأمراض المزمنة وكبار السن", key:"earlyDetectPct", label:"الاكتشاف المبكر للأمراض المزمنة (+35)", val:f=>indP(f).earlyDetectPct, ratio:[f=>indP(f).earlyDetect, f=>indP(f).earlyDetectPct ? indP(f).earlyDetect/(indP(f).earlyDetectPct/100) : null, 100], pct:true, better:1 },
+  { g:"الأمراض المزمنة وكبار السن", key:"elderlyCarePct", label:"تغطية رعاية المسنين (+60)", val:f=>indP(f).elderlyCarePct, ratio:[f=>indP(f).elderlyCare, f=>indP(f).elderlyCarePct ? indP(f).elderlyCare/(indP(f).elderlyCarePct/100) : null, 100], pct:true, better:1 },
+  { g:"الأمراض المزمنة وكبار السن", key:"dmRate", label:"مرضى السكري بالسجل (لكل 100)", val:f=>indP(f).dmRate, agg:"mean", better:0 },
+  { g:"الأمراض المزمنة وكبار السن", key:"htnRate", label:"مرضى ضغط الدم بالسجل (لكل 100)", val:f=>indP(f).htnRate, agg:"mean", better:0 },
+  { g:"الأمراض المزمنة وكبار السن", key:"asthmaRate", label:"مرضى الربو بالسجل (لكل 1000)", val:f=>indP(f).asthmaRate, agg:"mean", d:2, better:0 },
+  { g:"الأمراض المزمنة وكبار السن", key:"asthmaNew", label:"حالات الربو الجديدة", val:f=>indP(f).asthmaNew, agg:"sum", d:0, better:0 },
+  { g:"التنويم والطوارئ", key:"beds", label:"الأسرة التنويمية", val:f=>f.beds, agg:"sum", d:0, better:0 },
+  { g:"التنويم والطوارئ", key:"bor", label:"نسبة إشغال الأسرة (BOR)", val:f=>indP(f).bor, w:f=>f.beds, pct:true, better:0 },
+  { g:"التنويم والطوارئ", key:"alos", label:"متوسط مدة الإقامة (يوم)", val:f=>indP(f).alos, w:f=>indP(f).discharges, d:2, better:0 },
+  { g:"التنويم والطوارئ", key:"discharges", label:"خروج التنويم", val:f=>indP(f).discharges, agg:"sum", d:0, better:0 },
+  { g:"التنويم والطوارئ", key:"ambulances", label:"سيارات الإسعاف", val:f=>f.ambulances, agg:"sum", d:0, better:0 },
+  { g:"التنويم والطوارئ", key:"distance", label:"المسافة من إبراء (كم)", val:f=>f.distanceKm, agg:"mean", d:0, better:0 }
+];
+const indDef = k => IND_DEFS.find(x=>x.key===k);
+function indVal(def, f){ const v = def.val(f); return (v===null || v===undefined || isNaN(v)) ? null : Number(v); }
+function indAgg(def, list){
+  const has = list.filter(f=> indVal(def,f)!==null);
+  if(!has.length) return null;
+  if(def.agg==="sum") return has.reduce((a,f)=>a+indVal(def,f),0);
+  if(def.ratio){
+    let n=0, d=0;
+    has.forEach(f=>{ const a=def.ratio[0](f), b=def.ratio[1](f); if(a!=null && b){ n+=Number(a); d+=Number(b); } });
+    return d ? n/d*def.ratio[2] : null;
+  }
+  if(def.w){
+    let s=0, w=0;
+    has.forEach(f=>{ const ww = Number(def.w(f))||0; s += indVal(def,f)*ww; w += ww; });
+    return w ? s/w : has.reduce((a,f)=>a+indVal(def,f),0)/has.length;
+  }
+  return has.reduce((a,f)=>a+indVal(def,f),0)/has.length;
+}
+const indFmt = (def, v)=> def.pct ? indPct(v, def.d) : indNum(v, def.d);
+
+function indFillControls(){
+  const r = indReport(); if(!r) return;
+  const ws = [...new Set(r.facilities.map(f=>f.wilaya))];
+  const wSel = document.getElementById("indWilaya");
+  wSel.innerHTML = `<option value="">كل الولايات</option>` + ws.map(w=>`<option value="${escapeHtml(w)}">${escapeHtml(w)}</option>`).join("");
+  wSel.value = IND_STATE.wilaya;
+  document.getElementById("indKind").value = IND_STATE.kind;
+  const mSel = document.getElementById("indMetric");
+  const groups = [...new Set(IND_DEFS.map(d=>d.g))];
+  mSel.innerHTML = groups.map(g=>`<optgroup label="${g}">${IND_DEFS.filter(d=>d.g===g).map(d=>`<option value="${d.key}">${d.label}</option>`).join("")}</optgroup>`).join("");
+  mSel.value = IND_STATE.metric;
+  indFillFacilitySelect();
+}
+function indFillFacilitySelect(){
+  const list = indFiltered();
+  const fSel = document.getElementById("indFacility");
+  if(!list.find(f=>f.id===IND_STATE.facility)) IND_STATE.facility = list.length ? list[0].id : "";
+  fSel.innerHTML = list.map(f=>`<option value="${f.id}">${escapeHtml(f.name)}</option>`).join("");
+  fSel.value = IND_STATE.facility;
+}
+
+function renderHealthInd(){
+  const r = indReport();
+  document.getElementById("indEmpty").classList.toggle("hidden", !!r);
+  document.getElementById("indWrap").classList.toggle("hidden", !r);
+  if(!r) return;
+  const view = document.getElementById("refIndView");
+  view.classList.remove("v-sum","v-cmp","v-fac"); view.classList.add("v-" + IND_STATE.view);
+  document.querySelectorAll("#refIndView .ind-view").forEach(b=> b.classList.toggle("active", b.dataset.v===IND_STATE.view));
+  document.getElementById("indTitle").textContent = r.title;
+  document.getElementById("indSrcMeta").textContent = `المرجع: ${r.ref} • تاريخ الإصدار: ${r.issued} • بيانات السكان ${r.popYear}م ومؤشرات الأداء ${r.dataYear}م • ${r.facilities.length} مؤسسة صحية — ${r.note}`;
+  const pdf = document.getElementById("indPdfLink");
+  pdf.href = r.pdf; pdf.classList.toggle("hidden", !r.pdf);
+  const list = indFiltered();
+  const box = document.getElementById("indContent");
+  if(!list.length){ box.innerHTML = `<div class="empty-note">لا توجد مؤسسات مطابقة للتصفية.</div>`; return; }
+  if(IND_STATE.view==="sum") box.innerHTML = indSummaryHTML(list, r);
+  else if(IND_STATE.view==="cmp") box.innerHTML = indCompareHTML(list, r);
+  else box.innerHTML = indFacilityHTML(list.find(f=>f.id===IND_STATE.facility) || list[0], r);
+  box.querySelectorAll("th.sortable").forEach(th=> th.onclick = ()=>{
+    const k = th.dataset.k;
+    if(IND_STATE.sortKey===k) IND_STATE.sortAsc = !IND_STATE.sortAsc; else { IND_STATE.sortKey = k; IND_STATE.sortAsc = false; }
+    renderHealthInd();
+  });
+  box.querySelectorAll("[data-open-fac]").forEach(el=> el.onclick = ()=>{ IND_STATE.facility = el.dataset.openFac; IND_STATE.view = "fac"; indFillFacilitySelect(); renderHealthInd(); window.scrollTo(0,0); document.body.scrollTop = 0; });
+  const sortBtn = document.getElementById("indCmpSort");
+  if(sortBtn) sortBtn.onclick = ()=>{ IND_STATE.cmpAsc = !IND_STATE.cmpAsc; renderHealthInd(); };
+}
+
+function indKpi(k, v, s){ return `<div class="ind-kpi"><div class="k">${k}</div><div class="v">${v}</div>${s?`<div class="s">${s}</div>`:""}</div>`; }
+
+// المؤسسات الأضعف في المؤشرات ذات الاتجاه الواضح (للمساعدة في تحديد الأولويات)
+function indFlags(list){
+  const keys = ["firstTriPct","anemiaPct","earlyDetectPct","elderlyCarePct","spacingPct","omanization","doc10k","hearingPct"];
+  return keys.map(k=>{
+    const def = indDef(k);
+    const vals = list.map(f=>({ f, v:indVal(def,f) })).filter(x=>x.v!==null);
+    if(vals.length<2) return "";
+    vals.sort((a,b)=> def.better>0 ? a.v-b.v : b.v-a.v);
+    const worst = vals.slice(0, Math.min(3, vals.length-1));
+    return `<div class="ind-flag"><b>${def.label}</b><div class="gov">${def.better>0?"الأدنى":"الأعلى"} بين المؤسسات • قيمة المجموعة: <b>${indFmt(def, indAgg(def,list))}</b></div>
+      <ol>${worst.map(x=>`<li><a href="#" data-open-fac="${x.f.id}" onclick="return false;" style="color:inherit;">${escapeHtml(x.f.name)}</a><span>${indFmt(def,x.v)}</span></li>`).join("")}</ol></div>`;
+  }).join("");
+}
+
+function indSummaryHTML(list, r){
+  const A = k => indAgg(indDef(k), list);
+  const hosp = list.filter(indIsHosp).length;
+  let h = `<div class="ind-kpis">
+    ${indKpi("المؤسسات الصحية", list.length, `${hosp} مستشفى • ${list.length-hosp} مركز`)}
+    ${indKpi("السكان المخدومون", indNum(A("pop"),0), `مواطنون ${indPct(A("omaniPct"))}`)}
+    ${indKpi("الكوادر والقوى العاملة", indNum(A("staff"),0), `تعمين ${indPct(A("omanization"))} • ${indNum(A("staff10k"))} لكل 10 آلاف`)}
+    ${indKpi("الزيارات السنوية", indNum(A("visits"),0), `${indNum(A("visitsPc"),2)} زيارة للفرد`)}
+    ${indKpi("الأسرة التنويمية", indNum(A("beds"),0), `${indNum(A("ambulances"),0)} سيارة إسعاف`)}
+    ${indKpi("المواليد (MR2)", indNum(A("births"),0), `فحص السمع ${indPct(A("hearingPct"))}`)}
+    ${indKpi("الحوامل المسجلات", indNum(A("pregnant"),0), `الثلث الأول ${indPct(A("firstTriPct"))} • فقر الدم ${indPct(A("anemiaPct"))}`)}
+    ${indKpi("الاكتشاف المبكر للمزمنة", indPct(A("earlyDetectPct")), `رعاية المسنين ${indPct(A("elderlyCarePct"))}`)}
+  </div>`;
+  // حسب الولاية
+  const ws = [...new Set(list.map(f=>f.wilaya))];
+  const cols = [["pop","السكان"],["staff","الكوادر"],["staff10k","كادر/10 آلاف"],["omanization","التعمين"],["visits","الزيارات"],["visitsPc","زيارة/فرد"],["births","المواليد"],["pregnant","الحوامل"],["firstTriPct","الثلث الأول"],["anemiaPct","فقر الدم"],["earlyDetectPct","الكشف المبكر"]];
+  h += `<div class="ind-h">التوزيع حسب الولاية</div>
+  <div class="ind-tbl-wrap"><table class="ind-tbl"><thead><tr><th>الولاية</th><th>المؤسسات</th>${cols.map(c=>`<th>${c[1]}</th>`).join("")}</tr></thead><tbody>
+  ${ws.map(w=>{ const l = list.filter(f=>f.wilaya===w); return `<tr><td><b>${escapeHtml(w)}</b></td><td>${l.length}</td>${cols.map(c=>{ const d=indDef(c[0]); return `<td>${indFmt(d, indAgg(d,l))}</td>`; }).join("")}</tr>`; }).join("")}
+  </tbody><tfoot><tr><td>${IND_STATE.wilaya||IND_STATE.kind ? "المجموع (حسب التصفية)" : "المحافظة"}</td><td>${list.length}</td>${cols.map(c=>{ const d=indDef(c[0]); return `<td>${indFmt(d, indAgg(d,list))}</td>`; }).join("")}</tr></tfoot></table></div>`;
+  h += `<div class="ind-h">مؤشرات تستحق الانتباه عند تحديد الأولويات <span class="note-meta">المؤسسات الثلاث الأضعف في كل مؤشر — اضغط اسم المؤسسة لفتح بطاقتها</span></div>
+  <div class="ind-flags">${indFlags(list)}</div>`;
+  h += indNotesHTML(list);
+  return h;
+}
+
+function indNotesHTML(list){
+  const over = ["earlyDetectPct","elderlyCarePct","firstTriPct"].map(k=>{ const d=indDef(k); const c=list.filter(f=>{ const v=indVal(d,f); return v!==null && v>100; }).length; return c ? `${d.label.split(" (")[0]} في ${c} ${c===1?"مؤسسة":c===2?"مؤسستين":"مؤسسات"}` : ""; }).filter(Boolean);
+  const noData = list.filter(f=> indP(f).pregnant===0 || (indP(f).pregnant==null)).map(f=>f.name);
+  return `<div class="ind-note">
+    • القيم كما وردت في التقرير الأصلي، و«قيمة المجموعة» محسوبة من مجاميع المؤسسات (مرجّحة بالمقام عند توفره، وإلا متوسط بسيط).<br>
+    ${over.length ? `• نسب تتجاوز 100%: ${escapeHtml(over.join("، "))} — يُرجَّح أن المقام هو المستهدف السنوي وليس إجمالي الفئة، لذا لا تُعدّ القيم فوق 100% «الأفضل» في التلوين.<br>` : ""}
+    ${noData.length ? `• مؤسسات بلا بيانات لرعاية الحوامل في التقرير: ${escapeHtml(noData.join("، "))}.<br>` : ""}
+    • مجموع الفئات المفصّلة في مصفوفة الكوادر قد يقل عن إجمالي الكوادر الرسمي؛ الفرق فئات غير مفصّلة في التقرير.
+  </div>`;
+}
+
+function indCompareHTML(list, r){
+  const def = indDef(IND_STATE.metric) || IND_DEFS[0];
+  const gov = indAgg(def, list);
+  const rows = list.map(f=>({ f, v:indVal(def,f) }));
+  const withV = rows.filter(x=>x.v!==null).sort((a,b)=> IND_STATE.cmpAsc ? a.v-b.v : b.v-a.v);
+  const noV = rows.filter(x=>x.v===null);
+  const max = Math.max(...withV.map(x=>x.v), gov||0, 0.0001);
+  const ranked = [...withV].filter(x=> !(def.pct && def.better>0 && x.v>100)).sort((a,b)=> b.v-a.v);
+  const n = ranked.length, k = n>=6 ? 3 : (n>=4 ? 1 : 0);
+  const top = new Set(ranked.slice(0,k).map(x=>x.f.id)), bot = new Set(ranked.slice(n-k).map(x=>x.f.id));
+  const cls = id => !def.better ? "" : (top.has(id) ? (def.better>0?"hi":"lo") : bot.has(id) ? (def.better>0?"lo":"hi") : "");
+  let h = `<div class="ind-h">${def.label} <span class="note-meta">${def.g} • قيمة المجموعة: <b>${indFmt(def,gov)}</b></span>
+    <button class="org-btn" id="indCmpSort" style="margin-inline-start:auto;padding:4px 12px;min-height:32px;">${IND_STATE.cmpAsc ? "⬆️ تصاعدي" : "⬇️ تنازلي"}</button></div>
+  <div class="ind-bars">
+    ${withV.map(x=>`<div class="ind-bar"><div class="nm"><a href="#" data-open-fac="${x.f.id}" onclick="return false;" style="color:#0D2B47;">${escapeHtml(x.f.name)}</a> <small>${escapeHtml(x.f.wilaya.replace("ولاية ",""))}</small></div>
+      <div class="tr"><div class="fl ${cls(x.f.id)}" style="width:${Math.max(1.5, x.v/max*100).toFixed(1)}%"></div>${gov!==null && def.agg!=="sum" ? `<div class="gl" style="right:${(gov/max*100).toFixed(1)}%" title="قيمة المجموعة"></div>` : ""}</div>
+      <div class="vl">${indFmt(def,x.v)}</div></div>`).join("")}
+    ${noV.map(x=>`<div class="ind-bar na"><div class="nm">${escapeHtml(x.f.name)} <small>${escapeHtml(x.f.wilaya.replace("ولاية ",""))}</small></div><div class="tr"></div><div class="vl">لا بيانات</div></div>`).join("")}
+    <div class="ind-legend">${def.better ? `<span><i style="background:#2E9E5B"></i>الأفضل</span><span><i style="background:#D2563F"></i>الأضعف</span>` : `<span>مؤشر وصفي (بلا اتجاه أفضل)</span>`}${def.agg!=="sum" ? `<span><i style="background:#0D2B47;width:3px"></i>قيمة المجموعة</span>` : ""}</div>
+  </div>`;
+  // الجدول الشامل
+  const cols = ["pop","staff","staff10k","omanization","visits","visitsPc","births","firstTriPct","anemiaPct","earlyDetectPct","elderlyCarePct","dmRate","htnRate"];
+  const sk = indDef(IND_STATE.sortKey) ? IND_STATE.sortKey : "pop";
+  const sdef = indDef(sk);
+  const sorted = [...list].sort((a,b)=>{ const va=indVal(sdef,a), vb=indVal(sdef,b); if(va===null) return 1; if(vb===null) return -1; return IND_STATE.sortAsc ? va-vb : vb-va; });
+  const ext = {};
+  cols.forEach(c=>{ const d=indDef(c); if(!d.better) return; const vs = list.map(f=>indVal(d,f)).filter(v=>v!==null); if(vs.length<3) return; const vb = d.pct && d.better>0 ? vs.filter(v=>v<=100) : vs; ext[c] = { best: vb.length ? (d.better>0?Math.max(...vb):Math.min(...vb)) : null, worst: d.better>0?Math.min(...vs):Math.max(...vs) }; });
+  h += `<div class="ind-h">الجدول الشامل <span class="note-meta">اضغط عنوان العمود للترتيب • الأخضر الأفضل والأحمر الأضعف في المؤشرات ذات الاتجاه</span></div>
+  <div class="ind-tbl-wrap"><table class="ind-tbl"><thead><tr><th>المؤسسة</th>${cols.map(c=>`<th class="sortable ${c===sk?"sorted"+(IND_STATE.sortAsc?" asc":""):""}" data-k="${c}" title="${indDef(c).label}">${indDef(c).label.replace(/ \(.*\)$/,"").replace("الاكتشاف المبكر للأمراض المزمنة","الكشف المبكر").replace("التسجيل في الثلث الأول من الحمل","الثلث الأول").replace("إجمالي السكان المخدومين","السكان").replace("الكوادر لكل 10 آلاف نسمة","كادر/10 آلاف").replace("الزيارات للفرد سنويًا","زيارة/فرد").replace("تغطية رعاية المسنين","رعاية المسنين").replace("مرضى السكري بالسجل","السكري/100").replace("مرضى ضغط الدم بالسجل","الضغط/100").replace("فقر الدم بين الحوامل","فقر الدم").replace("إجمالي ","")}</th>`).join("")}</tr></thead>
+  <tbody>${sorted.map(f=>`<tr><td><a href="#" data-open-fac="${f.id}" onclick="return false;" style="color:#0D2B47;font-weight:700;">${escapeHtml(f.name)}</a></td>${cols.map(c=>{ const d=indDef(c), v=indVal(d,f); const e=ext[c]; const cl = v===null ? "na" : e ? (v===e.best?"hi":v===e.worst?"lo":"") : ""; return `<td class="${cl}">${indFmt(d,v)}</td>`; }).join("")}</tr>`).join("")}</tbody>
+  <tfoot><tr><td>${IND_STATE.wilaya||IND_STATE.kind ? "المجموعة" : "المحافظة"}</td>${cols.map(c=>{ const d=indDef(c); return `<td>${indFmt(d, indAgg(d,list))}</td>`; }).join("")}</tr></tfoot></table></div>`;
+  return h;
+}
+
+function indFacilityHTML(f, r){
+  if(!f) return "";
+  const p = indP(f), all = r.facilities;
+  const govOf = k => indAgg(indDef(k), all);
+  const cmp = (k)=>{ const d=indDef(k); const g=govOf(k); return g===null ? "" : `<small>المحافظة: ${indFmt(d,g)}</small>`; };
+  const kv = (l, v, sub)=> `<div><span class="l">${l}</span><span class="r"><b>${v}</b>${sub||""}</span></div>`;
+  const cnt = (n, pct, unit)=> pct===null || pct===undefined ? "—" : `${indPct(pct,0)}${n!=null ? ` <small style="display:inline;">(${indNum(n,0)} ${unit||""})</small>` : ""}`;
+  const isH = indIsHosp(f) || f.beds>0;
+  let h = `<div class="org-card ind-fac-head"><h2>${escapeHtml(f.name)}</h2>
+    <div class="note-meta">${escapeHtml(f.wilaya)} • ${escapeHtml(f.type)}${f.code?` • الرمز: ${escapeHtml(f.code)}`:""}</div>
+    <div class="ind-tags"><span>🕘 ${escapeHtml(f.hours||"—")}</span><span>💻 ${escapeHtml(f.system||"—")}</span><span>🛏️ ${f.beds} سرير</span><span>🚑 ${f.ambulances} إسعاف</span>${f.distanceKm!=null?`<span>📍 ${f.distanceKm} كم من إبراء</span>`:""}</div></div>`;
+  const pop = f.pop;
+  h += `<div class="ind-h">1. السكان المخدومون <span class="note-meta">${r.popYear}م</span></div><div class="ind-kpis">
+    ${indKpi("إجمالي السكان المخدومين", indNum(pop.total,0), `حصة المحافظة ${indPct(pop.total/all.reduce((a,x)=>a+x.pop.total,0)*100,1)}`)}
+    ${indKpi("المواطنون العُمانيون", indNum(pop.omani,0), `${indPct(pop.omaniPct)} من المخدومين`)}
+    ${indKpi("المقيمون والوافدون", indNum(pop.expat,0), `${indPct(pop.expatPct)} من المخدومين`)}
+    ${indKpi("القرى والمدارس", `${indNum(pop.villages,0)} قرية`, `${indNum(pop.schools,0)} مدرسة حكومية`)}
+    ${indKpi("الأطفال دون 5 سنوات", indNum(pop.under5,0), indPct(pop.under5Pct))}
+    ${indKpi("النساء في سن الإنجاب", indNum(pop.wra,0), indPct(pop.wraPct))}
+    ${indKpi("الفحص الدوري (40–59)", indNum(pop.age40_59,0), indPct(pop.age40_59Pct))}
+    ${indKpi("كبار السن (60+)", indNum(pop.elderly60,0), indPct(pop.elderly60Pct))}
+  </div>`;
+  const st = f.staff||[];
+  const sum = k => st.reduce((a,x)=>a+(x[k]||0),0);
+  const diff = { total: f.staffTotal - sum("total"), omani: f.omaniTotal - sum("omani"), expat: (f.staffTotal - f.omaniTotal) - sum("expat") };
+  h += `<div class="ind-h">2. القوى العاملة <span class="note-meta">إجمالي ${f.staffTotal} • تعمين ${indPct(f.omanization)} (المحافظة ${indPct(govOf("omanization"))}) • ${indNum(indVal(indDef("staff10k"),f))} كادر لكل 10 آلاف نسمة</span></div>
+  <div class="ind-tbl-wrap"><table class="ind-tbl"><thead><tr><th>الفئة الوظيفية</th><th>عُماني ذكور</th><th>عُماني إناث</th><th>مجموع العُمانيين</th><th>وافد ذكور</th><th>وافد إناث</th><th>مجموع الوافدين</th><th>المجموع</th><th>التعمين</th></tr></thead><tbody>
+  ${st.map(x=>`<tr><td>${escapeHtml(x.cat)} <span class="note-meta">${escapeHtml(x.en)}</span></td><td>${x.omM}</td><td>${x.omF}</td><td><b>${x.omani}</b></td><td>${x.expM}</td><td>${x.expF}</td><td><b>${x.expat}</b></td><td><b>${x.total}</b></td><td class="${x.omanPct<50?"lo":x.omanPct>=100?"hi":""}">${indPct(x.omanPct)}</td></tr>`).join("")}
+  ${diff.total>0 ? `<tr><td class="na">فئات أخرى غير مفصّلة في التقرير</td><td class="na">—</td><td class="na">—</td><td class="na">${diff.omani>0?diff.omani:"—"}</td><td class="na">—</td><td class="na">—</td><td class="na">${diff.expat>0?diff.expat:"—"}</td><td class="na">${diff.total}</td><td class="na">—</td></tr>` : ""}
+  </tbody><tfoot><tr><td>الإجمالي الرسمي</td><td>—</td><td>—</td><td>${f.omaniTotal}</td><td>—</td><td>—</td><td>${f.staffTotal-f.omaniTotal}</td><td>${f.staffTotal}</td><td>${indPct(f.omanization)}</td></tr></tfoot></table></div>`;
+  h += `<div class="ind-h">3. مؤشرات الأداء الصحي والتشغيلي <span class="note-meta">سنة البيانات ${f.dataYear||r.dataYear}م</span></div><div class="ind-kv">
+    ${kv("إجمالي الزيارات", indNum(p.visits,0), `<small>متوسط يومي ${indNum(p.visitsDaily,0)} • ${indNum(indVal(indDef("visitsPc"),f),2)} زيارة للفرد</small>`)}
+    ${kv("الزيارات الصباحية", indNum(p.morning,0), p.morningAvg?`<small>معدل يومي ${p.morningAvg}</small>`:"")}
+    ${kv("زيارات بعد الظهر", indNum(p.afternoon,0), p.afternoonAvg?`<small>معدل يومي ${p.afternoonAvg}</small>`:"")}
+    ${kv("الزيارات المسائية", p.evening ? indNum(p.evening,0) : "غير مفعّل")}
+    ${kv("زيارات الأسنان", indNum(p.dental,0), p.dentalDaily?`<small>${p.dentalDaily} يوميًا</small>`:"")}
+    ${kv("الفحوصات المخبرية", indNum(p.lab,0), p.labPer100?`<small>${p.labPer100} لكل 100 مريض</small>`:"")}
+    ${kv("فحوصات الأشعة", indNum(p.radiology,0))}
+    ${kv("المواليد (MR2)", indNum(p.births,0), p.hearingPct!=null?`<small>فحص السمع ${indPct(p.hearingPct,0)}</small>`:"")}
+    ${kv("إجمالي الحوامل المسجلات", indNum(p.pregnant,0))}
+    ${kv("التسجيل بالثلث الأول", cnt(p.firstTri, p.firstTriPct, "حامل"), cmp("firstTriPct"))}
+    ${kv("فقر الدم بين الحوامل (<11)", indPct(p.anemiaPct,0), cmp("anemiaPct"))}
+    ${kv("المباعدة 3 سنوات فأكثر", indPct(p.spacingPct,0), cmp("spacingPct"))}
+    ${kv("الاكتشاف المبكر للمزمنة (+35)", cnt(p.earlyDetect, p.earlyDetectPct, "مفحوص"), cmp("earlyDetectPct"))}
+    ${kv("رعاية وصحة المسنين (+60)", cnt(p.elderlyCare, p.elderlyCarePct, "مسن"), cmp("elderlyCarePct"))}
+    ${kv("مرضى السكري بالسجل الوطني", indNum(p.dm,0), p.dmRate!=null?`<small>${p.dmRate} لكل 100 • متوسط المؤسسات ${indNum(govOf("dmRate"))}</small>`:"")}
+    ${kv("مرضى ضغط الدم بالسجل", indNum(p.htn,0), p.htnRate!=null?`<small>${p.htnRate} لكل 100 • متوسط المؤسسات ${indNum(govOf("htnRate"))}</small>`:"")}
+    ${kv("مرضى الربو بالسجل", indNum(p.asthma,0), p.asthmaRate!=null?`<small>${p.asthmaRate} لكل 1000</small>`:"")}
+    ${kv("حالات الربو الجديدة", indNum(p.asthmaNew,0))}
+    ${isH ? kv("خروج التنويم", indNum(p.discharges,0)) + kv("نسبة إشغال الأسرة (BOR)", indPct(p.bor)) + kv("متوسط مدة الإقامة", p.alos!=null ? indNum(p.alos,2)+" يوم" : "—") + kv("معدل دوران السرير السنوي", indNum(p.turnover,0)) : ""}
+  </div>`;
+  if((f.services||[]).length) h += `<div class="ind-h">العيادات والخدمات المعتمدة</div><div class="ind-svc">${f.services.map(s=>`<span>✓ ${escapeHtml(s)}</span>`).join("")}</div>`;
+  return h;
+}
+
+function initHealthInd(){
+  if(initHealthInd.done) return; initHealthInd.done = true;
+  indFillControls();
+  document.querySelectorAll("#refIndView .ind-view").forEach(b=> b.onclick = ()=>{ IND_STATE.view = b.dataset.v; renderHealthInd(); });
+  document.getElementById("indWilaya").onchange = e=>{ IND_STATE.wilaya = e.target.value; indFillFacilitySelect(); renderHealthInd(); };
+  document.getElementById("indKind").onchange = e=>{ IND_STATE.kind = e.target.value; indFillFacilitySelect(); renderHealthInd(); };
+  document.getElementById("indMetric").onchange = e=>{ IND_STATE.metric = e.target.value; renderHealthInd(); };
+  document.getElementById("indFacility").onchange = e=>{ IND_STATE.facility = e.target.value; renderHealthInd(); };
+}
+
 document.getElementById("refTabPlan").onclick = ()=>{ document.getElementById("refTabPlan").classList.add("active"); document.getElementById("refTabInd").classList.remove("active"); document.getElementById("refPlanView").classList.remove("hidden"); document.getElementById("refIndView").classList.add("hidden"); };
-document.getElementById("refTabInd").onclick = ()=>{ document.getElementById("refTabInd").classList.add("active"); document.getElementById("refTabPlan").classList.remove("active"); document.getElementById("refIndView").classList.remove("hidden"); document.getElementById("refPlanView").classList.add("hidden"); };
+document.getElementById("refTabInd").onclick = ()=>{ document.getElementById("refTabInd").classList.add("active"); document.getElementById("refTabPlan").classList.remove("active"); document.getElementById("refIndView").classList.remove("hidden"); document.getElementById("refPlanView").classList.add("hidden"); initHealthInd(); renderHealthInd(); };
 
 /* ---------------- Init ---------------- */
 wireDetailModalStaticEvents();
