@@ -15222,14 +15222,7 @@ function openPriorityForm(id){
     <div class="pr-fld"><label for="pfDesc">الوصف والأسباب المحتملة</label><textarea id="pfDesc" placeholder="ما المشكلة؟ ما أسبابها المحتملة؟ من يتأثر بها؟">${escapeHtml(p?p.description||"":"")}</textarea></div>
     <div class="pr-fld"><label>الاتجاهات الاستراتيجية للمديرية التي تخدمها</label><div class="pr-chips" id="pfDirs">${DIRECTIONS.map(d=>`<button type="button" class="pr-pick dir ${st.dirs.includes(String(d.id))?"on":""}" data-v="${d.id}">${escapeHtml(d.name)}</button>`).join("")}</div></div>
     ${r ? `<div class="pr-fld"><label>المؤسسات المتأثرة <span style="font-weight:400;color:#8593A3;">(اختياري)</span></label><div class="pr-chips" id="pfFacs">${r.facilities.map(f=>`<button type="button" class="pr-pick ${st.facs.includes(f.id)?"on":""}" data-v="${f.id}">${escapeHtml(indShortName(f.name))}</button>`).join("")}</div></div>
-    <div class="pr-2col">
-      <div class="pr-fld"><label for="pfInd">الدليل: مؤشر من «المؤشرات الصحية»</label><select id="pfInd">${indMetricOptions(p?p.indicatorKey||"":"")}</select></div>
-      <div class="pr-fld"><label for="pfIndFac">مستوى المؤشر</label><select id="pfIndFac"><option value="">المحافظة</option>${r.facilities.map(f=>`<option value="${f.id}" ${p&&p.indicatorFacility===f.id?"selected":""}>${escapeHtml(f.name)}</option>`).join("")}</select></div>
-    </div><div id="pfEv"></div>` : ""}
-    <div class="pr-2col">
-      <div class="pr-fld"><label for="pfEvidence">مصدر أو دليل آخر <span style="font-weight:400;color:#8593A3;">(اختياري)</span></label><input type="text" id="pfEvidence" value="${escapeAttr(p?p.evidence||"":"")}" placeholder="تقرير تدقيق، شكاوى، مسح ميداني…"></div>
-      <div class="pr-fld"><label for="pfTarget">القيمة المستهدفة <span style="font-weight:400;color:#8593A3;">(اختياري)</span></label><input type="text" id="pfTarget" value="${escapeAttr(p?p.target||"":"")}" placeholder="مثل: خفض النسبة إلى 15%"></div>
-    </div>
+` : ""}
   </div>
   <div class="pr-sec"><div class="pr-sec-h"><span class="n">2</span><b>تقييم الأولوية</b><span class="note-meta">اختر من 1 إلى 5 لكل معيار — 2 و4 للحالات بين المستويات</span></div>
     ${PRIO_CRITERIA.map((c,i)=>`<div class="pr-crit" data-c="${c.k}">
@@ -15237,7 +15230,6 @@ function openPriorityForm(id){
       <div class="q">${c.q}</div>
       <div class="pr-scale">${[1,2,3,4,5].map(v=>`<button type="button" class="pr-lv l${v}" data-v="${v}" aria-label="${c.name}: ${v}">${v}<small>${PRIO_LV_LABEL[v]}</small></button>`).join("")}</div>
       <div class="pr-anch">${[1,3,5].map(v=>`<div data-a="${v}"><b>${v} — ${PRIO_LV_LABEL[v]}</b>${c.a[v]}</div>`).join("")}</div>
-      ${c.k==="g" ? `<div class="pr-gap-ev"></div>` : ""}
     </div>`).join("")}
   </div>`;
   const foot = `<div class="pr-live"><div class="pr-ring" id="pfRing"><span id="pfTot">0</span></div>
@@ -15253,13 +15245,6 @@ function openPriorityForm(id){
     else{ const v = b.dataset.v; st[arrKey] = st[arrKey].includes(v) ? st[arrKey].filter(x=>x!==v) : [...st[arrKey], v]; b.classList.toggle("on"); }
   });
   toggle("#pfType","type",true); toggle("#pfDirs","dirs"); toggle("#pfFacs","facs");
-  const refreshEv = ()=>{
-    const k = $("#pfInd") ? $("#pfInd").value : ""; const f = $("#pfIndFac") ? $("#pfIndFac").value : "";
-    const html = prioEvidenceHTML(k, f);
-    if($("#pfEv")) $("#pfEv").innerHTML = html;
-    const g = $(".pr-gap-ev"); if(g) g.innerHTML = html ? html.replace('class="pr-ev"','class="pr-ev" style="margin-top:8px;"') : "";
-  };
-  if($("#pfInd")){ $("#pfInd").onchange = refreshEv; $("#pfIndFac").onchange = refreshEv; refreshEv(); }
   const refreshScore = ()=>{
     ov.querySelectorAll(".pr-crit").forEach(cd=>{
       const v = Number(st.scores[cd.dataset.c])||0;
@@ -15298,8 +15283,6 @@ function openPriorityForm(id){
     const fields = {
       title, deptId, year: Number($("#pfYear").value), type: st.type, domain: $("#pfDomain").value,
       description: $("#pfDesc").value.trim(), directionIds: st.dirs, facilityIds: st.facs,
-      indicatorKey: $("#pfInd") ? $("#pfInd").value : "", indicatorFacility: $("#pfIndFac") ? $("#pfIndFac").value : "",
-      evidence: $("#pfEvidence").value.trim(), target: $("#pfTarget").value.trim(),
       scores: { ...st.scores }, total: prioTotal({ scores: st.scores }),
       status: publish ? "published" : (p && p.status==="published" ? "published" : "draft")
     };
@@ -15331,10 +15314,7 @@ function openPriorityDetail(id){
       ${PRIO_CRITERIA.map(c=>{ const v = Number((p.scores||{})[c.k])||0; const near = v>=4?5:v<=2?1:3; return `<div class="pr-sb"><span>${c.name}</span><div class="tr"><i style="width:${v*20}%"></i></div><b>${v||"—"}</b>${v ? `<small>${c.a[near]}</small>` : ""}</div>`; }).join("")}
     </div>
     ${p.description ? `<div class="pr-sec"><div class="pr-sec-h"><b>الوصف والأسباب</b></div><div class="pr-txt">${escapeHtml(p.description)}</div></div>` : ""}
-    <div class="pr-sec"><div class="pr-sec-h"><b>الدليل والارتباط</b></div>
-      ${p.indicatorKey ? prioEvidenceHTML(p.indicatorKey, p.indicatorFacility) : ""}
-      ${p.evidence ? `<div class="pr-txt" style="margin-top:6px;">📎 ${escapeHtml(p.evidence)}</div>` : ""}
-      ${p.target ? `<div class="pr-txt">🎯 المستهدف: ${escapeHtml(p.target)}</div>` : ""}
+    <div class="pr-sec"><div class="pr-sec-h"><b>الارتباط</b></div>
       ${facNames.length ? `<div class="pr-txt">📍 المؤسسات المتأثرة: ${facNames.map(escapeHtml).join("، ")}</div>` : ""}
       <div class="pr-chips" style="margin-top:8px;">${(p.directionIds||[]).length ? p.directionIds.map(d=>`<span class="pr-chip dir">🧭 ${escapeHtml(directionName(d))}</span>`).join("") : `<span class="note-meta">لم تُربط باتجاه استراتيجي.</span>`}</div>
     </div>
