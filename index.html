@@ -424,6 +424,9 @@ details.cd-full summary{cursor:pointer;font-size:12.5px;font-weight:700;color:va
 .app-nav-light .app-nav-item:hover{background:#F4F7FA;color:#133D64;}
 .app-nav-light .app-nav-item.active{background:#133D64;color:#fff;}
 .app-nav-light .app-nav-group{color:#566476;}
+body.shell-on .modal-overlay{z-index:1000 !important;}
+body.shell-on #detailModalOverlay,body.shell-on #cardModalOverlay{z-index:1010 !important;}
+body.shell-on #importPreviewModal{z-index:1020 !important;}
 body.shell-on #adminPersistentNav,
 body.shell-on .role-topbar,
 body.shell-on .role-tabs-wrap,
@@ -694,6 +697,10 @@ body.shell-on .dg-topbar{display:none !important;}
 .pr-dirrow{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;padding:8px 4px;border-top:1px solid #EEF2F7;}
 .pr-dirrow b{flex:1 1 220px;color:#0D2B47;font-size:14px;}
 .pr-dirrow .n{width:24px;height:24px;border-radius:7px;background:#E2F1F2;color:#1E5A60;font-weight:800;display:flex;align-items:center;justify-content:center;font-size:12px;}
+.pr-imposed{display:flex;gap:10px;align-items:flex-start;background:#F4F2FE;border:1px solid #CECBF6;border-radius:12px;padding:10px 12px;margin-bottom:12px;cursor:pointer;}
+.pr-imposed input{width:18px;height:18px;margin-top:3px;flex:none;}
+.pr-imposed b{display:block;color:#3C3489;font-size:13.5px;}
+.pr-imposed small{color:#534AB7;font-size:12px;}
 .pr-pk-row{display:flex;gap:10px;align-items:flex-start;padding:9px 6px;border-top:1px solid #EEF2F7;cursor:pointer;}
 .pr-pk-row:first-child{border-top:0;}
 .pr-pk-row input{margin-top:4px;width:18px;height:18px;flex:none;}
@@ -7232,7 +7239,6 @@ function renderYearPanel(panelEl, program){
               ${it.notes ? `<div class="pnote">📝 ${escapeHtml(it.notes)}</div>` : ""}
             </div>
             ${detailBtn}
-            <button class="pr-tag-btn prio-pick-btn" data-id="${it.id}" title="الأولويات التي يعالجها المشروع">🧭${(it.priorityIds||[]).length ? " " + it.priorityIds.length : ""}</button>
             <button class="edit-btn" data-id="${it.id}" title="تعديل">✎</button>
             <button class="del-btn" data-id="${it.id}" title="حذف">✕</button>
           </div>`;
@@ -7245,7 +7251,6 @@ function renderYearPanel(panelEl, program){
       <input type="text" placeholder="اسم المشروع / المبادرة" class="newProjName">
       <input type="text" placeholder="ملاحظات (اختياري)" class="newProjNotes">
       ${secs.length ? `<select class="newProjSection">${secOptions("")}</select>` : ""}
-      <button type="button" class="pr-tag-btn newProjPrio" title="الأولويات التي يعالجها المشروع (اختياري)">🧭 الأولويات${(PRIO_PENDING[program.code+"_"+y]||[]).length ? " (" + PRIO_PENDING[program.code+"_"+y].length + ")" : ""}</button>
       <button class="add-btn">إضافة</button>
     </div>`;
   panelEl.innerHTML = html;
@@ -7260,14 +7265,6 @@ function renderYearPanel(panelEl, program){
       }
     };
   });
-  panelEl.querySelectorAll(".prio-pick-btn").forEach(btn=>{
-    btn.onclick = ()=>{
-      const pr = ALL_PROJECTS.find(x=>x.id===btn.dataset.id); if(!pr) return;
-      openProjectPriorityPicker(pr.deptId || program.deptId, y, pr.priorityIds||[], ids=>{ updateProject(pr.id, { priorityIds: ids }); logActivity(getActorName(), "link_priority_projects", pr.projectName); });
-    };
-  });
-  const newPrioBtn = panelEl.querySelector(".newProjPrio");
-  if(newPrioBtn) newPrioBtn.onclick = ()=> openProjectPriorityPicker(program.deptId || deptOfManager(currentManager), y, PRIO_PENDING[program.code+"_"+y]||[], ids=>{ PRIO_PENDING[program.code+"_"+y] = ids; newPrioBtn.textContent = "🧭 الأولويات" + (ids.length ? " (" + ids.length + ")" : ""); });
   panelEl.querySelectorAll(".edit-btn").forEach(btn=>{
     btn.onclick = ()=>{ editingProjectId = btn.dataset.id; renderManagerPrograms(); };
   });
@@ -7305,11 +7302,9 @@ function renderYearPanel(panelEl, program){
       sectionId: secInput ? secInput.value : "",
       projectName: nm,
       notes: notesInput.value.trim(),
-      priorityIds: PRIO_PENDING[program.code+"_"+y] || [],
       year: y
     });
     nameInput.value=""; notesInput.value=""; if(secInput) secInput.value="";
-    PRIO_PENDING[program.code+"_"+y] = []; if(newPrioBtn) newPrioBtn.textContent = "🧭 الأولويات";
   };
   addBtn.onclick = doAdd;
   nameInput.addEventListener("keydown", e=>{ if(e.key==="Enter") doAdd(); });
@@ -11666,6 +11661,7 @@ function openProjectDetailForm(projectId, highlightPhaseIdx, highlightStepIdx, s
     }
   }
 
+  if(typeof projectPriorityBoxHTML==="function") bodyHtml += `<div id="projPrioBox">${projectPriorityBoxHTML(project)}</div>`;
   // سجل تحديات المشروع — مدير المشروع يرفع، مدير الدائرة يعالج/يحل/يُصعِّد، المدير العام يحل المُصعَّد، قسم التخطيط دوره إشرافي فقط
   const challengesList = Array.isArray(existing.challengesList) ? existing.challengesList : [];
   if(isAdminContext){
@@ -11767,6 +11763,7 @@ function openProjectDetailForm(projectId, highlightPhaseIdx, highlightStepIdx, s
       </div>`;
   }
   document.getElementById("detailModalBody").innerHTML = bodyHtml;
+  if(typeof bindProjectPriorityBox==="function") bindProjectPriorityBox(project.id);
   const overlay = document.getElementById("detailModalOverlay");
   overlay.dataset.projectId = projectId;
   overlay.classList.remove("hidden");
@@ -14971,7 +14968,8 @@ function prioTotal(p){ return prioScores(p).reduce((a,v)=>a+v,0); }
 function prioImpact(p){ const s = p.scores||{}; return ((Number(s.m)||0)+(Number(s.s)||0)+(Number(s.g)||0))/3; }
 function prioFeas(p){ return Number((p.scores||{}).f)||0; }
 function prioQuad(p){ const hi = prioImpact(p)>=3, fe = prioFeas(p)>=3; return hi ? (fe?"q1":"q2") : (fe?"q3":"q4"); }
-function prioSort(a,b){ return prioTotal(b)-prioTotal(a) || (Number((b.scores||{}).s)||0)-(Number((a.scores||{}).s)||0) || (Number((b.scores||{}).g)||0)-(Number((a.scores||{}).g)||0) || String(a.title).localeCompare(String(b.title),"ar"); }
+function prioSort(a,b){ if(prioIsImposed(a)!==prioIsImposed(b)) return prioIsImposed(a) ? -1 : 1; return prioTotal(b)-prioTotal(a) || (Number((b.scores||{}).s)||0)-(Number((a.scores||{}).s)||0) || (Number((b.scores||{}).g)||0)-(Number((a.scores||{}).g)||0) || String(a.title).localeCompare(String(b.title),"ar"); }
+function prioIsImposed(p){ return !!(p && p.imposed); }
 function prioById(id){ return PRIORITIES.find(p=>p.id===id) || null; }
 function getDirection(id){ return DIRECTIONS.find(d=> String(d.id)===String(id)) || null; }
 function directionName(id){ const d = getDirection(id); return d ? d.name : ""; }
@@ -15086,7 +15084,10 @@ function prioScope(){
   const y = PRIO_STATE.year;
   let list = PRIORITIES.filter(p=> Number(p.year)===y && prioVisible(p));
   if(PRIO_STATE.view==="mine"){ const md = myDeptIdForPrio(); list = list.filter(p=> p.deptId===md || prioIsPartner(p, md)); }
-  else if(PRIO_STATE.dept) list = list.filter(p=> p.deptId===PRIO_STATE.dept);
+  else{
+    if(PRIO_STATE.view==="all" && currentRole()==="manager" && myDeptIdForPrio()) list = list.filter(p=> p.deptId!==myDeptIdForPrio());
+    if(PRIO_STATE.dept) list = list.filter(p=> p.deptId===PRIO_STATE.dept);
+  }
   return list.sort(prioSort);
 }
 function renderPriorities(){
@@ -15109,19 +15110,20 @@ function renderPriorities(){
       <div class="ind-views" style="margin:0;">${views.map(v=>`<button class="ind-view ${PRIO_STATE.view===v[0]?"active":""}" data-pv="${v[0]}">${v[1]}</button>`).join("")}</div>
       <span class="sp"></span>
       <select id="prioYear" class="org-select" aria-label="سنة الخطة">${prioYears().map(y=>`<option value="${y}" ${y===PRIO_STATE.year?"selected":""}>خطة ${y}</option>`).join("")}</select>
-      ${PRIO_STATE.view!=="mine" ? `<select id="prioDept" class="org-select" aria-label="الدائرة"><option value="">كل الدوائر</option>${DEPARTMENTS.map(d=>`<option value="${d.id}" ${d.id===PRIO_STATE.dept?"selected":""}>${escapeHtml(d.name)}${deptsUsed.includes(d.id)?"":" (لا أولويات)"}</option>`).join("")}</select>` : ""}
+      ${PRIO_STATE.view!=="mine" ? `<select id="prioDept" class="org-select" aria-label="الدائرة"><option value="">كل الدوائر</option>${DEPARTMENTS.filter(d=> !(role==="manager" && d.id===myDept)).map(d=>`<option value="${d.id}" ${d.id===PRIO_STATE.dept?"selected":""}>${escapeHtml(d.name)}${deptsUsed.includes(d.id)?"":" (لا أولويات)"}</option>`).join("")}</select>` : ""}
       ${prioCanCreate() ? `<button class="pr-add" id="prioAddBtn">＋ إضافة أولوية</button>` : ""}
     </div>`;
   // المؤشرات الموجزة
-  const q = k=> list.filter(p=>prioQuad(p)===k).length;
+  const ranked = list.filter(p=> !prioIsImposed(p)), imposedN = list.length - ranked.length;
+  const q = k=> ranked.filter(p=>prioQuad(p)===k).length;
   const linked = list.filter(p=> projectsOfPriority(p.id).length).length;
-  const avg = list.length ? list.reduce((a,p)=>a+prioTotal(p),0)/list.length : 0;
+  const avg = ranked.length ? ranked.reduce((a,p)=>a+prioTotal(p),0)/ranked.length : 0;
   let noPrioProjects = null;
   if(PRIO_STATE.view==="mine"){
     noPrioProjects = ALL_PROJECTS.filter(pr=> pr.deptId===myDept && Number(pr.year)===PRIO_STATE.year && !pr.closed && !(pr.priorityIds||[]).length).length;
   }
   h += `<div class="pr-kpis">
-    <div class="pr-kpi"><div class="k">الأولويات</div><div class="v">${list.length}</div><div class="s">متوسط الدرجة ${list.length ? indNum(avg,1) : "—"} من 25</div></div>
+    <div class="pr-kpi"><div class="k">الأولويات</div><div class="v">${list.length}</div><div class="s">متوسط الدرجة ${ranked.length ? indNum(avg,1) : "—"} من 25${imposedN ? ` • ${imposedN} مفروضة` : ""}</div></div>
     <div class="pr-kpi" style="border-inline-start:4px solid #B3202E;"><div class="k">أولوية قصوى</div><div class="v">${q("q1")}</div><div class="s">أثر عالٍ وجدوى عالية</div></div>
     <div class="pr-kpi" style="border-inline-start:4px solid #C2410C;"><div class="k">تحتاج دعمًا</div><div class="v">${q("q2")}</div><div class="s">تظهر للمدير العام</div></div>
     <div class="pr-kpi"><div class="k">مرتبطة بمشاريع</div><div class="v">${linked}<span style="font-size:14px;color:#8593A3;"> / ${list.length}</span></div><div class="s">${list.length-linked} بلا مشروع بعد</div></div>
@@ -15141,8 +15143,8 @@ function renderPriorities(){
   }else{
     h += `<div class="pr-grid">
       <div class="pr-card"><div class="pr-card-h"><b>الأولويات مرتبة حسب الدرجة</b><span class="note-meta">من الأعلى للأقل • اضغط للتفاصيل</span></div>
-        <div class="pr-list">${list.map((p,i)=>prioRowHTML(p,i+1, PRIO_STATE.view!=="mine")).join("")}</div></div>
-      <div class="pr-card"><div class="pr-card-h"><b>المصفوفة الرباعية</b><span class="note-meta">الأثر × الجدوى</span></div>${prioMatrixHTML(list)}</div>
+        <div class="pr-list">${list.map((p,i)=>prioRowHTML(p, prioIsImposed(p) ? 0 : i+1-imposedN, PRIO_STATE.view!=="mine")).join("")}</div></div>
+      <div class="pr-card"><div class="pr-card-h"><b>المصفوفة الرباعية</b><span class="note-meta">الأثر × الجدوى</span></div>${prioMatrixHTML(ranked)}${imposedN ? `<div class="note-meta" style="margin-top:6px;">🏛️ ${imposedN} أولوية مفروضة من الوزارة لا تظهر في المصفوفة لأنها بلا تقييم.</div>` : ""}</div>
     </div>`;
     if(PRIO_STATE.view==="all") h += prioPartnershipsHTML(PRIO_STATE.year);
   }
@@ -15159,9 +15161,9 @@ function renderPriorities(){
   });
 }
 function prioRowHTML(p, rank, showDept){
-  const qk = prioQuad(p), tot = prioTotal(p), projs = projectsOfPriority(p.id).length;
+  const qk = prioQuad(p), tot = prioTotal(p), projs = projectsOfPriority(p.id).length, imp = prioIsImposed(p);
   return `<div class="pr-row" data-prio="${p.id}">
-    <div class="pr-rank ${qk}">${rank}</div>
+    <div class="pr-rank ${imp ? "" : qk}" ${imp ? `style="background:#5B3EAF;" title="مفروضة من الوزارة"` : ""}>${imp ? "🏛️" : (rank||"•")}</div>
     <div><div class="pr-t">${escapeHtml(p.title)}</div>
       <div class="pr-m">
         ${showDept ? `<span>🏢 ${escapeHtml(deptName(p.deptId)||"—")}</span>` : ""}
@@ -15173,7 +15175,7 @@ function prioRowHTML(p, rank, showDept){
         ${p.status!=="published" ? `<span class="pr-chip draft">مسودة</span>` : ""}
         ${p.outcome && p.outcome!=="open" ? `<span class="pr-chip out">${PRIO_OUTCOMES[p.outcome]}</span>` : ""}
       </div></div>
-    <div class="pr-score"><b>${tot}<span style="font-size:11px;color:#8593A3;">/25</span></b><div class="bar"><i style="width:${(tot/25*100).toFixed(0)}%"></i></div><span class="pr-qb ${qk}">${PRIO_QUAD[qk].name}</span></div>
+    ${imp ? `<div class="pr-score"><span class="pr-qb" style="background:#EEEDFE;color:#3C3489;">مفروضة من الوزارة</span></div>` : `<div class="pr-score"><b>${tot}<span style="font-size:11px;color:#8593A3;">/25</span></b><div class="bar"><i style="width:${(tot/25*100).toFixed(0)}%"></i></div><span class="pr-qb ${qk}">${PRIO_QUAD[qk].name}</span></div>`}
   </div>`;
 }
 function prioDotPos(imp, f){ return { right: 8 + (5-f)/4*84, top: 8 + (5-imp)/4*84 }; }
@@ -15213,28 +15215,30 @@ function prioModalShell(title, body, foot){
   ov.addEventListener("click", e=>{ if(e.target===ov) prioCloseModal(); });
   return ov;
 }
-function openPriorityForm(id){
+function openPriorityForm(id, opts){
+  opts = opts || {};
   const p = id ? prioById(id) : null;
   if(p && !prioCanEdit(p)) return;
-  const st = { scores: { ...(p ? p.scores : {}) }, type: p ? p.type : "", dirs: (p ? (p.directionIds||[]) : []).map(String), facs: p ? (p.facilityIds||[]) : [] };
+  const st = { imposed: p ? !!p.imposed : !!opts.imposed, scores: { ...(p ? p.scores : {}) }, type: p ? p.type : (opts.imposed ? "متطلب وزاري أو تنظيمي" : ""), dirs: (p ? (p.directionIds||[]) : []).map(String), facs: p ? (p.facilityIds||[]) : [] };
   const r = indReport();
   const isAdmin = currentRole()==="admin";
-  const deptSel = isAdmin ? `<div class="pr-fld"><label>الدائرة</label><select id="pfDept">${DEPARTMENTS.map(d=>`<option value="${d.id}" ${p&&p.deptId===d.id?"selected":""}>${escapeHtml(d.name)}</option>`).join("")}</select></div>` : "";
+  const deptSel = isAdmin ? `<div class="pr-fld"><label>الدائرة</label><select id="pfDept">${DEPARTMENTS.map(d=>`<option value="${d.id}" ${(p ? p.deptId : opts.deptId)===d.id?"selected":""}>${escapeHtml(d.name)}</option>`).join("")}</select></div>` : "";
   const body = `
   <div class="pr-sec"><div class="pr-sec-h"><span class="n">1</span><b>تعريف الأولوية</b></div>
     ${deptSel}
+    <label class="pr-imposed"><input type="checkbox" id="pfImposed" ${st.imposed?"checked":""}><span><b>🏛️ أولوية مفروضة من الوزارة أو جهة عليا</b><small>لا تحتاج تقييمًا بالمعايير الخمسة، وتظهر أعلى القائمة بوسم «مفروضة» دون ترتيب في المصفوفة</small></span></label>
     <div class="pr-fld"><label for="pfTitle">عنوان الأولوية أو التحدي</label><input type="text" id="pfTitle" maxlength="160" value="${escapeAttr(p?p.title:"")}" placeholder="مثل: ارتفاع فقر الدم بين الحوامل في ولاية وادي بني خالد"><div id="pfSimilar"></div></div>
     <div class="pr-fld"><label>نوع الأولوية</label><div class="pr-chips" id="pfType">${PRIO_TYPES.map(t=>`<button type="button" class="pr-pick ${st.type===t?"on":""}" data-v="${escapeAttr(t)}">${t}</button>`).join("")}</div></div>
     <div class="pr-2col">
       <div class="pr-fld"><label for="pfDomain">المجال</label><select id="pfDomain"><option value="">— اختر المجال —</option>${PRIO_DOMAINS.map(d=>`<option ${p&&p.domain===d?"selected":""}>${d}</option>`).join("")}</select></div>
-      <div class="pr-fld"><label for="pfYear">سنة الخطة</label><select id="pfYear">${prioYears().map(y=>`<option value="${y}" ${(p?Number(p.year):PRIO_STATE.year)===y?"selected":""}>${y}</option>`).join("")}</select></div>
+      <div class="pr-fld"><label for="pfYear">سنة الخطة</label><select id="pfYear">${prioYears().map(y=>`<option value="${y}" ${(p?Number(p.year):(opts.year ? Number(opts.year) : PRIO_STATE.year))===y?"selected":""}>${y}</option>`).join("")}</select></div>
     </div>
     <div class="pr-fld"><label for="pfDesc">الوصف والأسباب المحتملة</label><textarea id="pfDesc" placeholder="ما المشكلة؟ ما أسبابها المحتملة؟ من يتأثر بها؟">${escapeHtml(p?p.description||"":"")}</textarea></div>
     <div class="pr-fld"><label>الاتجاهات الاستراتيجية للمديرية التي تخدمها</label><div class="pr-chips" id="pfDirs">${DIRECTIONS.map(d=>`<button type="button" class="pr-pick dir ${st.dirs.includes(String(d.id))?"on":""}" data-v="${d.id}">${escapeHtml(d.name)}</button>`).join("")}</div></div>
     ${r ? `<div class="pr-fld"><label>المؤسسات المتأثرة <span style="font-weight:400;color:#8593A3;">(اختياري)</span></label><div class="pr-chips" id="pfFacs">${r.facilities.map(f=>`<button type="button" class="pr-pick ${st.facs.includes(f.id)?"on":""}" data-v="${f.id}">${escapeHtml(indShortName(f.name))}</button>`).join("")}</div></div>
 ` : ""}
   </div>
-  <div class="pr-sec"><div class="pr-sec-h"><span class="n">2</span><b>تقييم الأولوية</b><span class="note-meta">اختر من 1 إلى 5 لكل معيار — 2 و4 للحالات بين المستويات</span></div>
+  <div class="pr-sec" id="pfScoreSec"><div class="pr-sec-h"><span class="n">2</span><b>تقييم الأولوية</b><span class="note-meta">اختر من 1 إلى 5 لكل معيار — 2 و4 للحالات بين المستويات</span></div>
     ${PRIO_CRITERIA.map((c,i)=>`<div class="pr-crit" data-c="${c.k}">
       <div class="pr-crit-h"><span class="nm"><i>${i+1}</i>${c.name}</span><span class="ax">يدخل في: ${c.ax}</span></div>
       <div class="q">${c.q}</div>
@@ -15265,6 +15269,8 @@ function openPriorityForm(id){
     });
     const tmp = { scores: st.scores };
     const tot = prioTotal(tmp), done = prioComplete(tmp);
+    $("#pfScoreSec").style.display = st.imposed ? "none" : "";
+    ov.querySelector(".pr-live").style.visibility = st.imposed ? "hidden" : "";
     $("#pfTot").textContent = tot;
     $("#pfRing").style.setProperty("--p", (tot/25*100).toFixed(0));
     const dot = ov.querySelector("#pfMini .d");
@@ -15283,6 +15289,7 @@ function openPriorityForm(id){
   };
   ov.querySelectorAll(".pr-crit").forEach(cd=> cd.querySelectorAll(".pr-lv").forEach(b=> b.onclick = ()=>{ st.scores[cd.dataset.c] = Number(b.dataset.v); $("#pfErr").textContent = ""; refreshScore(); }));
   refreshScore();
+  $("#pfImposed").onchange = e=>{ st.imposed = e.target.checked; if(st.imposed && !st.type){ st.type = "متطلب وزاري أو تنظيمي"; ov.querySelectorAll("#pfType .pr-pick").forEach(x=> x.classList.toggle("on", x.dataset.v===st.type)); } $("#pfErr").textContent = ""; refreshScore(); };
   let simT = null;
   const refreshSimilar = ()=>{
     const box = $("#pfSimilar"); if(!box || p || currentRole()!=="manager") return;
@@ -15296,13 +15303,13 @@ function openPriorityForm(id){
   const doSave = async (publish)=>{
     const title = $("#pfTitle").value.trim();
     if(!title){ $("#pfErr").textContent = "اكتب عنوان الأولوية أولًا"; $("#pfTitle").focus(); return; }
-    if(publish && !prioComplete({ scores: st.scores })){ $("#pfErr").textContent = "أكمل تقييم المعايير الخمسة قبل النشر"; return; }
-    const deptId = isAdmin ? $("#pfDept").value : (p ? p.deptId : myDeptIdForPrio());
+    if(publish && !st.imposed && !prioComplete({ scores: st.scores })){ $("#pfErr").textContent = "أكمل تقييم المعايير الخمسة قبل النشر"; return; }
+    const deptId = isAdmin ? $("#pfDept").value : (p ? p.deptId : (opts.deptId || myDeptIdForPrio()));
     if(!deptId){ $("#pfErr").textContent = "حسابك غير مُسنَد لدائرة"; return; }
     const fields = {
       title, deptId, year: Number($("#pfYear").value), type: st.type, domain: $("#pfDomain").value,
       description: $("#pfDesc").value.trim(), directionIds: st.dirs, facilityIds: st.facs,
-      scores: { ...st.scores }, total: prioTotal({ scores: st.scores }),
+      imposed: st.imposed, scores: st.imposed ? {} : { ...st.scores }, total: st.imposed ? 0 : prioTotal({ scores: st.scores }),
       status: publish ? "published" : (p && p.status==="published" ? "published" : "draft")
     };
     if(!p) fields.outcome = "open";
@@ -15310,7 +15317,7 @@ function openPriorityForm(id){
     const btns = ov.querySelectorAll(".pr-mf .pr-btn"); btns.forEach(b=>b.disabled=true);
     const sid = await savePriority(p ? p.id : null, fields);
     btns.forEach(b=>b.disabled=false);
-    if(sid){ PRIO_STATE.year = fields.year; prioCloseModal(); renderPriorities(); }
+    if(sid){ PRIO_STATE.year = fields.year; prioCloseModal(); renderPriorities(); if(opts.onSaved) opts.onSaved(sid); }
   };
   $("#pfDraft").onclick = ()=> doSave(false);
   $("#pfPub").onclick = ()=> doSave(true);
@@ -15325,13 +15332,13 @@ function openPriorityDetail(id){
   const r = indReport();
   const facNames = (p.facilityIds||[]).map(fid=> r ? (r.facilities.find(f=>f.id===fid)||{}).name : "").filter(Boolean);
   const body = `
-    <div class="pr-dh"><span class="pr-qb ${qk}" style="font-size:12.5px;padding:3px 12px;">${PRIO_QUAD[qk].name}</span>
+    <div class="pr-dh">${prioIsImposed(p) ? `<span class="pr-qb" style="font-size:12.5px;padding:3px 12px;background:#EEEDFE;color:#3C3489;">مفروضة من الوزارة</span>` : `<span class="pr-qb ${qk}" style="font-size:12.5px;padding:3px 12px;">${PRIO_QUAD[qk].name}</span>`}
       <span class="pr-chip">🏢 ${escapeHtml(deptName(p.deptId)||"—")}</span><span class="pr-chip">خطة ${p.year}</span>
       ${p.type ? `<span class="pr-chip">${escapeHtml(p.type)}</span>` : ""}${p.domain ? `<span class="pr-chip">${escapeHtml(p.domain)}</span>` : ""}
       ${p.status!=="published" ? `<span class="pr-chip draft">مسودة — لا تظهر لغير دائرتك وقسم التخطيط</span>` : ""}</div>
-    <div class="pr-sec"><div class="pr-sec-h"><div class="pr-ring" style="--p:${(tot/25*100).toFixed(0)}"><span>${tot}</span></div><div><b>الدرجة ${tot} من 25</b><div class="note-meta">الأثر ${indNum(prioImpact(p),1)} • الجدوى ${prioFeas(p)} — ${PRIO_QUAD[qk].hint}</div></div></div>
+    ${prioIsImposed(p) ? `<div class="pr-sec"><div class="pr-sec-h"><b>🏛️ أولوية مفروضة من الوزارة أو جهة عليا</b></div><div class="note-meta">لا تُقيَّم بالمعايير الخمسة، وتظهر أعلى قائمة أولويات الدائرة.</div></div>` : `<div class="pr-sec"><div class="pr-sec-h"><div class="pr-ring" style="--p:${(tot/25*100).toFixed(0)}"><span>${tot}</span></div><div><b>الدرجة ${tot} من 25</b><div class="note-meta">الأثر ${indNum(prioImpact(p),1)} • الجدوى ${prioFeas(p)} — ${PRIO_QUAD[qk].hint}</div></div></div>
       ${PRIO_CRITERIA.map(c=>{ const v = Number((p.scores||{})[c.k])||0; const near = v>=4?5:v<=2?1:3; return `<div class="pr-sb"><span>${c.name}</span><div class="tr"><i style="width:${v*20}%"></i></div><b>${v||"—"}</b>${v ? `<small>${c.a[near]}</small>` : ""}</div>`; }).join("")}
-    </div>
+    </div>`}
     ${p.description ? `<div class="pr-sec"><div class="pr-sec-h"><b>الوصف والأسباب</b></div><div class="pr-txt">${escapeHtml(p.description)}</div></div>` : ""}
     <div class="pr-sec"><div class="pr-sec-h"><b>الارتباط</b></div>
       ${facNames.length ? `<div class="pr-txt">📍 المؤسسات المتأثرة: ${facNames.map(escapeHtml).join("، ")}</div>` : ""}
@@ -15357,7 +15364,7 @@ function openPriorityDetail(id){
   if(!can) return;
   ov.querySelector("#pdEdit").onclick = ()=> openPriorityForm(p.id);
   ov.querySelector("#pdPub").onclick = async ()=>{
-    if(p.status!=="published" && !prioComplete(p)){ alert("أكمل تقييم المعايير الخمسة قبل النشر."); openPriorityForm(p.id); return; }
+    if(p.status!=="published" && !prioIsImposed(p) && !prioComplete(p)){ alert("أكمل تقييم المعايير الخمسة قبل النشر."); openPriorityForm(p.id); return; }
     if(await savePriority(p.id, { status: p.status==="published" ? "draft" : "published" })){ prioCloseModal(); renderPriorities(); }
   };
   ov.querySelector("#pdOutcome").onchange = async e=>{ await savePriority(p.id, { outcome: e.target.value }); };
@@ -15395,13 +15402,51 @@ function openPriorityProjectsPicker(p, deptId){
 }
 // اختيار الأولويات من صف المشروع (الربط اختياري)
 function openProjectPriorityPicker(deptId, year, selected, onSave){
-  const list = PRIORITIES.filter(p=> (p.deptId===deptId || prioIsPartner(p, deptId)) && Number(p.year)===Number(year)).sort(prioSort);
-  let sel = [...(selected||[])];
-  const body = list.length ? list.map(p=>`<label class="pr-pk-row"><input type="checkbox" value="${p.id}" ${sel.includes(p.id)?"checked":""}><span style="flex:1;"><b>${escapeHtml(p.title)}</b><div class="pr-m"><span class="pr-qb ${prioQuad(p)}">${PRIO_QUAD[prioQuad(p)].name}</span><span>${prioTotal(p)}/25</span>${p.deptId!==deptId ? `<span class="pr-chip warn">🤝 شريك — ${escapeHtml(deptName(p.deptId))}</span>` : ""}${p.status!=="published"?`<span class="pr-chip draft">مسودة</span>`:""}</div></span></label>`).join("")
-    : `<div class="empty-note">لا توجد أولويات لدائرتك في خطة ${year}. أضفها من «مرجع الأولويات» ← «مصفوفة الأولويات».</div>`;
-  const ov = prioModalShell("الأولويات التي يعالجها المشروع", `<div class="note-meta" style="margin-bottom:8px;">الربط اختياري — اترك الكل دون اختيار إن كان المشروع تشغيليًا أو مستمرًا بلا أولوية.</div>${body}`, list.length ? `<span style="flex:1"></span><button class="pr-btn pri" id="ppOk">تم</button>` : "");
+  const list = PRIORITIES.filter(p=> (p.deptId===deptId || prioIsPartner(p, deptId)) && Number(p.year)===Number(year) && prioVisible(p)).sort(prioSort);
+  const sel = [...(selected||[])];
+  const canAdd = prioCanCreate() && (currentRole()==="admin" || deptId===myDeptIdForPrio());
+  const body = `<div class="note-meta" style="margin-bottom:8px;">اختر أولوية أو أكثر يعالجها المشروع. الربط اختياري — اترك الكل دون اختيار إن كان المشروع تشغيليًا أو مستمرًا.</div>
+    ${list.length ? list.map(p=>`<label class="pr-pk-row"><input type="checkbox" value="${p.id}" ${sel.includes(p.id)?"checked":""}><span style="flex:1;"><b>${escapeHtml(p.title)}</b><div class="pr-m">${prioIsImposed(p) ? `<span class="pr-qb" style="background:#EEEDFE;color:#3C3489;">🏛️ مفروضة من الوزارة</span>` : `<span class="pr-qb ${prioQuad(p)}">${PRIO_QUAD[prioQuad(p)].name}</span><span>${prioTotal(p)}/25</span>`}${p.deptId!==deptId ? `<span class="pr-chip warn">🤝 شريك — ${escapeHtml(deptName(p.deptId))}</span>` : ""}${p.status!=="published"?`<span class="pr-chip draft">مسودة</span>`:""}</div></span></label>`).join("")
+      : `<div class="empty-note">لا توجد أولويات لدائرتك في خطة ${year} بعد.</div>`}`;
+  const foot = `${canAdd ? `<button class="pr-btn" id="ppNew">＋ أولوية جديدة</button><button class="pr-btn" id="ppNewImp">🏛️ أولوية مفروضة من الوزارة</button>` : ""}<span style="flex:1"></span>${list.length ? `<button class="pr-btn pri" id="ppOk">حفظ</button>` : ""}`;
+  const ov = prioModalShell("الأولويات التي يعالجها المشروع", body, foot);
+  const cur = ()=> [...ov.querySelectorAll("input:checked")].map(i=>i.value);
   const ok = ov.querySelector("#ppOk");
-  if(ok) ok.onclick = ()=>{ sel = [...ov.querySelectorAll("input:checked")].map(i=>i.value); prioCloseModal(); onSave(sel); };
+  if(ok) ok.onclick = ()=>{ const v = cur(); prioCloseModal(); onSave(v); };
+  const addNew = (imposed)=>{
+    const keep = cur();
+    openPriorityForm(null, { deptId, year, imposed, onSaved: nid=>{
+      let n = 0;
+      const reopen = ()=>{ if(!prioById(nid) && n++ < 20){ setTimeout(reopen, 150); return; } openProjectPriorityPicker(deptId, year, [...keep, nid], onSave); };
+      reopen();
+    } });
+  };
+  const n1 = ov.querySelector("#ppNew"); if(n1) n1.onclick = ()=> addNew(false);
+  const n2 = ov.querySelector("#ppNewImp"); if(n2) n2.onclick = ()=> addNew(true);
+}
+// صندوق الأولويات داخل نافذة الخطة التفصيلية للمشروع
+function projectPriorityBoxHTML(project){
+  const ids = Array.isArray(project.priorityIds) ? project.priorityIds : [];
+  const items = ids.map(prioById).filter(Boolean);
+  const canEdit = (currentRole()==="admin" || (currentRole()==="manager" && project.deptId===myDeptIdForPrio())) && !project.closed;
+  return `<div class="planning-notes-box readonly" style="background:#F0F7F8;border-color:#BFE0E3;">
+    <label style="color:#1E5A60;">🧭 الأولويات التي يعالجها المشروع <span style="font-weight:400;color:var(--text-muted);">(اختياري — من مصفوفة أولويات الدائرة أو أولوية مفروضة من الوزارة)</span></label>
+    ${items.length ? `<div style="display:flex;flex-direction:column;gap:6px;margin:6px 0;">${items.map(p=>`<div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:13.5px;"><b style="color:#0D2B47;">${escapeHtml(p.title)}</b>${prioIsImposed(p) ? `<span class="pr-qb" style="background:#EEEDFE;color:#3C3489;">🏛️ مفروضة</span>` : `<span class="pr-qb ${prioQuad(p)}">${PRIO_QUAD[prioQuad(p)].name} • ${prioTotal(p)}/25</span>`}${p.deptId!==project.deptId ? `<span class="pr-chip warn">🤝 ${escapeHtml(deptName(p.deptId))}</span>` : ""}</div>`).join("")}</div>`
+      : `<div class="note-meta" style="margin:6px 0;">لم يُربط المشروع بأي أولوية — يُعدّ مشروعًا تشغيليًا أو مستمرًا.</div>`}
+    ${canEdit ? `<button type="button" class="pr-tag-btn" id="projPrioPickBtn" style="padding:7px 14px;font-size:13px;">🧭 ${items.length ? "تعديل الأولويات" : "اختيار الأولويات"}</button>` : ""}
+  </div>`;
+}
+function bindProjectPriorityBox(projectId){
+  const btn = document.getElementById("projPrioPickBtn"); if(!btn) return;
+  btn.onclick = ()=>{
+    const pr = ALL_PROJECTS.find(x=>x.id===projectId); if(!pr) return;
+    openProjectPriorityPicker(pr.deptId, pr.year, pr.priorityIds||[], ids=>{
+      updateProject(pr.id, { priorityIds: ids });
+      logActivity(getActorName(), "link_priority_projects", pr.projectName);
+      const box = document.getElementById("projPrioBox");
+      if(box){ box.innerHTML = projectPriorityBoxHTML({ ...pr, priorityIds: ids }); bindProjectPriorityBox(projectId); }
+    });
+  };
 }
 
 /* ---------- إدارة الاتجاهات ومؤشر الأثر لأهداف المديرية (شاشة الهيكل) ---------- */
