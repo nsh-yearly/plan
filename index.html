@@ -1895,6 +1895,7 @@ tr.rejected-row td{background:#FDF6F6;}
 </div>
 
 <!-- ===================== قرار نهاية السنة ===================== -->
+<span id="prioPartnerBadgeSrc" aria-hidden="true" style="display:none !important;">0</span>
 <span id="yearEndBadgeSrc" class="hidden" aria-hidden="true" style="display:none !important;">0</span>
 <div id="yearEndScreen" class="hidden">
   <div class="dash-wrap">
@@ -5867,6 +5868,7 @@ function enterManager(name){
   updateMgrCommsBadge();
   pickSessionMotivationalPhrases();
   logActivity(name, "login", "");
+  setTimeout(()=>{ updatePartnerBadge(); maybeShowPartnershipPopup(); }, 2500);
   setTimeout(checkAndShowLateStepsPopup, 500);
 }
 document.getElementById("mgrLogout").onclick = ()=>{
@@ -13884,7 +13886,7 @@ function shellItems(role){
     { key:"timeline", ico:"🗓️", label:"الخط الزمني السنوي", short:"الخط الزمني", act:()=> openTimeline("all"), bottom:true },
     { key:"goals", ico:"🎯", label:"تحقق الأهداف", act:()=> clickEl("navGoalsBtn"), bottom:true },
     { key:"projects", ico:"📊", label:"استعراض المشاريع", act:()=> clickEl("navHomeBtn") },
-    { key:"ref", ico:"📚", label:"مرجع الأولويات", act:()=> openRefScreen() },
+    { key:"ref", ico:"📚", label:"مرجع الأولويات", act:()=>{ openRefScreen(); if(Number((document.getElementById("prioPartnerBadgeSrc")||{}).textContent)>0) showRefTab("refTabPrio"); }, badge:"prioPartnerBadgeSrc" },
     { group:"التقارير والتحليل" },
     { key:"meeting", ico:"📋", label:"الخطة المفصلة", act:()=> clickEl("navMeetingBtn") },
     { key:"weekly", ico:"📑", label:"تقرير المشاريع", act:()=> clickEl("navWeeklyReportBtn") },
@@ -13910,7 +13912,7 @@ function shellItems(role){
     { key:"overview", ico:"📊", label:"نظرة عامة على المشاريع", act:roleScreenThen("dgScreen","dgTabOverviewBtn") },
     { key:"challenges", ico:"🚨", label:"التحديات", act:roleScreenThen("dgScreen","dgTabChallengesBtn"), badge:"dgChallengesBadge", bottom:true },
     { key:"spi", ico:"📈", label:"مؤشر الأداء الزمني SPI", act:roleScreenThen("dgScreen","dgTabSPIBtn") },
-    { key:"ref", ico:"📚", label:"مرجع الأولويات", act:()=> openRefScreen() },
+    { key:"ref", ico:"📚", label:"مرجع الأولويات", act:()=>{ openRefScreen(); if(Number((document.getElementById("prioPartnerBadgeSrc")||{}).textContent)>0) showRefTab("refTabPrio"); }, badge:"prioPartnerBadgeSrc" },
     { group:"الحساب" },
     { key:"pw", ico:"🔑", label:"تغيير كلمة المرور", act:()=> clickEl("dgChangePasswordBtn"), noActive:true }
   ];
@@ -13925,7 +13927,7 @@ function shellItems(role){
     { key:"spi", ico:"📈", label:"مؤشر الأداء الزمني SPI", act:roleScreenThen("managerScreen","mgrTabSPI") },
     { key:"analytics", ico:"🔬", label:"تحليلات متقدمة", act:roleScreenThen("managerScreen","mgrTabAnalytics") },
     { key:"yearend", ico:"🔚", label:"قرار نهاية السنة", act:()=> openYearEndScreen(), badge:"yearEndBadgeSrc" },
-    { key:"ref", ico:"📚", label:"مرجع الأولويات", act:()=> openRefScreen() },
+    { key:"ref", ico:"📚", label:"مرجع الأولويات", act:()=>{ openRefScreen(); if(Number((document.getElementById("prioPartnerBadgeSrc")||{}).textContent)>0) showRefTab("refTabPrio"); }, badge:"prioPartnerBadgeSrc" },
     { group:"الحساب" },
     { key:"pw", ico:"🔑", label:"تغيير كلمة المرور", act:()=> clickEl("mgrChangePwBtn"), noActive:true }
   ];
@@ -13936,7 +13938,7 @@ function shellItems(role){
     { key:"comms", ico:"📨", label:"الملاحظات والتحديات", act:roleScreenThen("projectManagerScreen","pmTabComms"), badge:"pmCommsBadge", bottom:true, short:"الملاحظات" },
     { key:"spi", ico:"📈", label:"مؤشر الأداء الزمني SPI", act:roleScreenThen("projectManagerScreen","pmTabSPI") },
     { key:"analytics", ico:"🔬", label:"تحليلات متقدمة", act:roleScreenThen("projectManagerScreen","pmTabAnalytics") },
-    { key:"ref", ico:"📚", label:"مرجع الأولويات", act:()=> openRefScreen() },
+    { key:"ref", ico:"📚", label:"مرجع الأولويات", act:()=>{ openRefScreen(); if(Number((document.getElementById("prioPartnerBadgeSrc")||{}).textContent)>0) showRefTab("refTabPrio"); }, badge:"prioPartnerBadgeSrc" },
     { group:"الحساب" },
     { key:"pw", ico:"🔑", label:"تغيير كلمة المرور", act:()=> clickEl("pmChangePwBtn"), noActive:true }
   ];
@@ -13992,6 +13994,7 @@ function markShellActive(){
   document.querySelectorAll("#appNav [data-key], #appDrawerNav [data-key], #appBottomBar [data-key]").forEach(b=> b.classList.toggle("active", b.dataset.key===SHELL_ACTIVE_KEY));
 }
 function syncShellBadges(){
+  if(typeof updatePartnerBadge==="function") updatePartnerBadge();
   document.querySelectorAll("[data-badge-src]").forEach(el=>{
     const src = document.getElementById(el.dataset.badgeSrc);
     const show = src && !src.classList.contains("hidden") && String(src.textContent||"").trim() && String(src.textContent).trim()!=="0";
@@ -15082,13 +15085,15 @@ function prioDefaultView(){ return currentRole()==="manager" && myDeptIdForPrio(
 function prioScope(){
   const y = PRIO_STATE.year;
   let list = PRIORITIES.filter(p=> Number(p.year)===y && prioVisible(p));
-  if(PRIO_STATE.view==="mine") list = list.filter(p=> p.deptId===myDeptIdForPrio());
+  if(PRIO_STATE.view==="mine"){ const md = myDeptIdForPrio(); list = list.filter(p=> p.deptId===md || prioIsPartner(p, md)); }
   else if(PRIO_STATE.dept) list = list.filter(p=> p.deptId===PRIO_STATE.dept);
   return list.sort(prioSort);
 }
 function renderPriorities(){
   const box = document.getElementById("refPrioView");
   if(!box) return;
+  const who = currentRole() + "|" + (currentManager||"");
+  if(PRIO_STATE.who!==who){ PRIO_STATE.who = who; PRIO_STATE.view = ""; PRIO_STATE.dept = ""; }
   if(!PRIO_STATE.view) PRIO_STATE.view = prioDefaultView();
   if(!PRIO_STATE.year) PRIO_STATE.year = defaultPlanYear();
   const role = currentRole();
@@ -15120,6 +15125,7 @@ function renderPriorities(){
     <div class="pr-kpi" style="border-inline-start:4px solid #B3202E;"><div class="k">أولوية قصوى</div><div class="v">${q("q1")}</div><div class="s">أثر عالٍ وجدوى عالية</div></div>
     <div class="pr-kpi" style="border-inline-start:4px solid #C2410C;"><div class="k">تحتاج دعمًا</div><div class="v">${q("q2")}</div><div class="s">تظهر للمدير العام</div></div>
     <div class="pr-kpi"><div class="k">مرتبطة بمشاريع</div><div class="v">${linked}<span style="font-size:14px;color:#8593A3;"> / ${list.length}</span></div><div class="s">${list.length-linked} بلا مشروع بعد</div></div>
+    <div class="pr-kpi"><div class="k">أولويات مشتركة</div><div class="v">${list.filter(p=> prioPartners(p).some(x=>x.status==="accepted")).length}</div><div class="s">بشراكة بين دائرتين أو أكثر</div></div>
     ${noPrioProjects!==null ? `<div class="pr-kpi"><div class="k">مشاريع الدائرة بلا أولوية</div><div class="v">${noPrioProjects}</div><div class="s">مشاريع ${PRIO_STATE.year} القائمة</div></div>` : ""}
   </div>`;
   if(!list.length){
@@ -15138,12 +15144,14 @@ function renderPriorities(){
         <div class="pr-list">${list.map((p,i)=>prioRowHTML(p,i+1, PRIO_STATE.view!=="mine")).join("")}</div></div>
       <div class="pr-card"><div class="pr-card-h"><b>المصفوفة الرباعية</b><span class="note-meta">الأثر × الجدوى</span></div>${prioMatrixHTML(list)}</div>
     </div>`;
+    if(PRIO_STATE.view==="all") h += prioPartnershipsHTML(PRIO_STATE.year);
   }
   box.innerHTML = h;
   box.querySelectorAll("[data-pv]").forEach(b=> b.onclick = ()=>{ PRIO_STATE.view = b.dataset.pv; renderPriorities(); });
   const ys = document.getElementById("prioYear"); if(ys) ys.onchange = e=>{ PRIO_STATE.year = Number(e.target.value); renderPriorities(); };
   const ds = document.getElementById("prioDept"); if(ds) ds.onchange = e=>{ PRIO_STATE.dept = e.target.value; renderPriorities(); };
   const ab = document.getElementById("prioAddBtn"); if(ab) ab.onclick = ()=> openPriorityForm(null);
+  box.querySelectorAll("[data-wa2]").forEach(b=> b.onclick = ()=>{ const [pid,d] = b.dataset.wa2.split("|"); const p = prioById(pid); const x = p && prioPartnerOf(p,d); if(x) prioSendPartnerWhatsApp(p,x); });
   box.querySelectorAll("[data-prio]").forEach(el=>{
     el.onclick = ()=> openPriorityDetail(el.dataset.prio);
     el.onmouseenter = ()=> box.querySelectorAll(`[data-prio="${el.dataset.prio}"]`).forEach(x=>x.classList.add("hl"));
@@ -15160,6 +15168,8 @@ function prioRowHTML(p, rank, showDept){
         ${p.type ? `<span>${escapeHtml(p.type)}</span>` : ""}
         ${(p.directionIds||[]).map(d=>`<span class="pr-chip dir">${escapeHtml(directionName(d))}</span>`).join("")}
         <span class="pr-chip">${projs ? `🔗 ${projs} ${projs===1?"مشروع":"مشاريع"}` : "بلا مشروع"}</span>
+        ${prioIsPartner(p, myDeptIdForPrio()) && p.deptId!==myDeptIdForPrio() ? `<span class="pr-chip warn">🤝 شريك — ${escapeHtml(deptName(p.deptId))}</span>` : ""}
+        ${prioPartners(p).filter(x=>x.status==="accepted").length ? `<span class="pr-chip dir">🤝 ${prioPartners(p).filter(x=>x.status==="accepted").length} ${prioPartners(p).filter(x=>x.status==="accepted").length===1?"دائرة شريكة":"دوائر شريكة"}</span>` : ""}
         ${p.status!=="published" ? `<span class="pr-chip draft">مسودة</span>` : ""}
         ${p.outcome && p.outcome!=="open" ? `<span class="pr-chip out">${PRIO_OUTCOMES[p.outcome]}</span>` : ""}
       </div></div>
@@ -15213,7 +15223,7 @@ function openPriorityForm(id){
   const body = `
   <div class="pr-sec"><div class="pr-sec-h"><span class="n">1</span><b>تعريف الأولوية</b></div>
     ${deptSel}
-    <div class="pr-fld"><label for="pfTitle">عنوان الأولوية أو التحدي</label><input type="text" id="pfTitle" maxlength="160" value="${escapeAttr(p?p.title:"")}" placeholder="مثل: ارتفاع فقر الدم بين الحوامل في ولاية وادي بني خالد"></div>
+    <div class="pr-fld"><label for="pfTitle">عنوان الأولوية أو التحدي</label><input type="text" id="pfTitle" maxlength="160" value="${escapeAttr(p?p.title:"")}" placeholder="مثل: ارتفاع فقر الدم بين الحوامل في ولاية وادي بني خالد"><div id="pfSimilar"></div></div>
     <div class="pr-fld"><label>نوع الأولوية</label><div class="pr-chips" id="pfType">${PRIO_TYPES.map(t=>`<button type="button" class="pr-pick ${st.type===t?"on":""}" data-v="${escapeAttr(t)}">${t}</button>`).join("")}</div></div>
     <div class="pr-2col">
       <div class="pr-fld"><label for="pfDomain">المجال</label><select id="pfDomain"><option value="">— اختر المجال —</option>${PRIO_DOMAINS.map(d=>`<option ${p&&p.domain===d?"selected":""}>${d}</option>`).join("")}</select></div>
@@ -15273,7 +15283,16 @@ function openPriorityForm(id){
   };
   ov.querySelectorAll(".pr-crit").forEach(cd=> cd.querySelectorAll(".pr-lv").forEach(b=> b.onclick = ()=>{ st.scores[cd.dataset.c] = Number(b.dataset.v); $("#pfErr").textContent = ""; refreshScore(); }));
   refreshScore();
-  $("#pfTitle").oninput = ()=> $("#pfErr").textContent = "";
+  let simT = null;
+  const refreshSimilar = ()=>{
+    const box = $("#pfSimilar"); if(!box || p || currentRole()!=="manager") return;
+    const sims = prioSimilar($("#pfTitle").value, myDeptIdForPrio(), Number($("#pfYear").value), null).filter(x=> !prioIsPartner(x, myDeptIdForPrio()));
+    box.innerHTML = sims.length ? `<div class="pr-ev" style="margin-top:8px;background:#FFF8EC;border-color:#F3C98B;color:#7A3706;"><b>💡 أولويات مشابهة سجّلتها دوائر أخرى</b> — بدل التكرار يمكنك طلب الانضمام كشريك:
+      ${sims.map(x=>`<div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:6px;"><span style="flex:1 1 220px;color:#0D2B47;"><b>«${escapeHtml(x.title)}»</b> — ${escapeHtml(deptName(x.deptId))} <span class="note-meta">(${prioTotal(x)}/25)</span></span><button type="button" class="pr-tag-btn" data-join="${x.id}">🤝 طلب الانضمام كشريك</button></div>`).join("")}</div>` : "";
+    box.querySelectorAll("[data-join]").forEach(b=> b.onclick = ()=>{ const x = prioById(b.dataset.join); if(x){ prioCloseModal(); openPartnershipModal(x, "request"); } });
+  };
+  $("#pfTitle").oninput = ()=>{ $("#pfErr").textContent = ""; clearTimeout(simT); simT = setTimeout(refreshSimilar, 350); };
+  $("#pfYear").addEventListener("change", refreshSimilar);
   const doSave = async (publish)=>{
     const title = $("#pfTitle").value.trim();
     if(!title){ $("#pfErr").textContent = "اكتب عنوان الأولوية أولًا"; $("#pfTitle").focus(); return; }
@@ -15320,8 +15339,9 @@ function openPriorityDetail(id){
     </div>
     <div class="pr-sec"><div class="pr-sec-h"><b>المشاريع التي تعالجها</b><span class="note-meta">${projs.length}</span></div>
       ${projs.length ? projs.map(pr=>`<div class="pr-proj">📌 <span style="flex:1;">${escapeHtml(pr.projectName)} <span class="note-meta">— ${escapeHtml(deptName(pr.deptId))} • ${pr.year}</span></span>${metricsChipHTML(projectMetrics(pr), true)}</div>`).join("") : `<div class="note-meta">لم يُربط بها أي مشروع بعد.</div>`}
-      ${can ? `<button class="pr-btn" id="pdLink" style="margin-top:10px;">🔗 ربط مشاريع الدائرة بهذه الأولوية</button>` : ""}
+      ${can || prioIsPartner(p, myDeptIdForPrio()) ? `<button class="pr-btn" id="pdLink" style="margin-top:10px;">🔗 ربط مشاريع ${can && currentRole()==="admin" ? "الدائرة" : "دائرتي"} بهذه الأولوية</button>` : ""}
     </div>
+    ${prioPartnersSectionHTML(p)}
     <div class="pr-sec"><div class="pr-sec-h"><b>وضع المعالجة</b></div>
       ${can ? `<select id="pdOutcome" class="org-select">${Object.entries(PRIO_OUTCOMES).map(([k,v])=>`<option value="${k}" ${(p.outcome||"open")===k?"selected":""}>${v}</option>`).join("")}</select>
         <div class="note-meta" style="margin-top:6px;">حدّثه عند نهاية السنة: عولجت، أو عولجت جزئيًا وتنتقل للسنة التالية، أو لم تُعالج.</div>` : `<b>${PRIO_OUTCOMES[p.outcome||"open"]}</b>`}
@@ -15331,6 +15351,9 @@ function openPriorityDetail(id){
     ${(p.outcome==="partial"||p.outcome==="unresolved") ? `<button class="pr-btn" id="pdCarry">↪️ نسخ لخطة ${Number(p.year)+1}</button>` : ""}
     <span style="flex:1"></span><button class="pr-btn dang" id="pdDel">🗑️ حذف</button>` : "";
   const ov = prioModalShell(escapeHtml(p.title), body, foot);
+  bindPartnersSection(ov, p);
+  const lk = ov.querySelector("#pdLink");
+  if(lk) lk.onclick = ()=> openPriorityProjectsPicker(p, can && currentRole()==="admin" ? p.deptId : (prioIsPartner(p, myDeptIdForPrio()) && p.deptId!==myDeptIdForPrio() ? myDeptIdForPrio() : p.deptId));
   if(!can) return;
   ov.querySelector("#pdEdit").onclick = ()=> openPriorityForm(p.id);
   ov.querySelector("#pdPub").onclick = async ()=>{
@@ -15350,10 +15373,10 @@ function openPriorityDetail(id){
     const nid = await savePriority(null, { ...rest, year: ny, outcome:"open", status:"draft", carriedFromId: p.id });
     if(nid){ alert(`نُسخت الأولوية كمسودة في خطة ${ny}. راجع تقييمها ثم انشرها.`); PRIO_STATE.year = ny; prioCloseModal(); renderPriorities(); }
   };
-  ov.querySelector("#pdLink").onclick = ()=> openPriorityProjectsPicker(p);
 }
-function openPriorityProjectsPicker(p){
-  const projs = ALL_PROJECTS.filter(pr=> pr.deptId===p.deptId && Number(pr.year)===Number(p.year));
+function openPriorityProjectsPicker(p, deptId){
+  deptId = deptId || p.deptId;
+  const projs = ALL_PROJECTS.filter(pr=> pr.deptId===deptId && Number(pr.year)===Number(p.year));
   const body = projs.length ? projs.map(pr=>`<label class="pr-pk-row"><input type="checkbox" value="${pr.id}" ${(pr.priorityIds||[]).includes(p.id)?"checked":""}><span><b>${escapeHtml(pr.projectName)}</b><div class="note-meta">${escapeHtml(pr.programName||"")}${pr.closed ? " • مغلق" : ""}</div></span></label>`).join("")
     : `<div class="empty-note">لا توجد مشاريع لدائرتك في خطة ${p.year} بعد.</div>`;
   const ov = prioModalShell(`ربط المشاريع بـ «${escapeHtml(p.title)}»`, body, projs.length ? `<span class="note-meta" style="flex:1;">اختر مشروعًا أو أكثر يعالج هذه الأولوية</span><button class="pr-btn pri" id="ppSave">حفظ الربط</button>` : "");
@@ -15372,9 +15395,9 @@ function openPriorityProjectsPicker(p){
 }
 // اختيار الأولويات من صف المشروع (الربط اختياري)
 function openProjectPriorityPicker(deptId, year, selected, onSave){
-  const list = PRIORITIES.filter(p=> p.deptId===deptId && Number(p.year)===Number(year)).sort(prioSort);
+  const list = PRIORITIES.filter(p=> (p.deptId===deptId || prioIsPartner(p, deptId)) && Number(p.year)===Number(year)).sort(prioSort);
   let sel = [...(selected||[])];
-  const body = list.length ? list.map(p=>`<label class="pr-pk-row"><input type="checkbox" value="${p.id}" ${sel.includes(p.id)?"checked":""}><span style="flex:1;"><b>${escapeHtml(p.title)}</b><div class="pr-m"><span class="pr-qb ${prioQuad(p)}">${PRIO_QUAD[prioQuad(p)].name}</span><span>${prioTotal(p)}/25</span>${p.status!=="published"?`<span class="pr-chip draft">مسودة</span>`:""}</div></span></label>`).join("")
+  const body = list.length ? list.map(p=>`<label class="pr-pk-row"><input type="checkbox" value="${p.id}" ${sel.includes(p.id)?"checked":""}><span style="flex:1;"><b>${escapeHtml(p.title)}</b><div class="pr-m"><span class="pr-qb ${prioQuad(p)}">${PRIO_QUAD[prioQuad(p)].name}</span><span>${prioTotal(p)}/25</span>${p.deptId!==deptId ? `<span class="pr-chip warn">🤝 شريك — ${escapeHtml(deptName(p.deptId))}</span>` : ""}${p.status!=="published"?`<span class="pr-chip draft">مسودة</span>`:""}</div></span></label>`).join("")
     : `<div class="empty-note">لا توجد أولويات لدائرتك في خطة ${year}. أضفها من «مرجع الأولويات» ← «مصفوفة الأولويات».</div>`;
   const ov = prioModalShell("الأولويات التي يعالجها المشروع", `<div class="note-meta" style="margin-bottom:8px;">الربط اختياري — اترك الكل دون اختيار إن كان المشروع تشغيليًا أو مستمرًا بلا أولوية.</div>${body}`, list.length ? `<span style="flex:1"></span><button class="pr-btn pri" id="ppOk">تم</button>` : "");
   const ok = ov.querySelector("#ppOk");
@@ -15429,12 +15452,181 @@ function openGoalImpactModal(g){
   ov.querySelector("#giClear").onclick = async ()=>{ if(await saveDirGoal(g.id, { impactKey:"", impactBase:null, impactBaseReport:"", impactTarget:"" })){ prioCloseModal(); renderProgramsAdminScreen(); } };
 }
 
+/* ---------- الشراكة بين الدوائر في الأولويات ---------- */
+const PRIO_PARTNER_ROLES = ["تنفيذ مشترك","دعم فني","كوادر وموارد","بيانات ومتابعة"];
+function prioPartners(p){ return Array.isArray(p.partners) ? p.partners : []; }
+function prioPartnerOf(p, deptId){ return prioPartners(p).find(x=> x.deptId===deptId) || null; }
+function prioIsPartner(p, deptId){ const x = deptId && prioPartnerOf(p, deptId); return !!(x && x.status==="accepted"); }
+// الدائرة المطلوب منها الرد: صاحب الأولوية إن بادر الشريك بالطلب، والدائرة المدعوّة إن بادر صاحب الأولوية
+function prioResponderDept(p, x){ return x.initiatedBy==="owner" ? x.deptId : p.deptId; }
+function prioInitiatorDept(p, x){ return x.initiatedBy==="owner" ? p.deptId : x.deptId; }
+function prioPendingFor(deptId){
+  if(!deptId) return [];
+  const out = [];
+  PRIORITIES.forEach(p=> prioPartners(p).forEach(x=>{ if(x.status==="pending" && prioResponderDept(p,x)===deptId) out.push({ p, x }); }));
+  return out;
+}
+function prioAllPending(){ const out = []; PRIORITIES.forEach(p=> prioPartners(p).forEach(x=>{ if(x.status==="pending") out.push({ p, x }); })); return out; }
+// ردود على طلبات بادرت بها دائرتي ولم أُبلَّغ بها بعد
+function prioResponsesFor(deptId){
+  if(!deptId) return [];
+  const out = [];
+  PRIORITIES.forEach(p=> prioPartners(p).forEach(x=>{ if((x.status==="accepted"||x.status==="declined") && !x.initiatorNotified && prioInitiatorDept(p,x)===deptId) out.push({ p, x }); }));
+  return out;
+}
+async function savePartners(p, partners, logAction){
+  const ok = await savePriority(p.id, { partners });
+  if(ok && logAction) logActivity(getActorName(), logAction, p.title);
+  return ok;
+}
+async function prioRequestPartnership(p, deptId, role, note, initiatedBy){
+  const list = prioPartners(p).filter(x=> x.deptId!==deptId);
+  list.push({ deptId, role, note: note||"", status:"pending", initiatedBy, requestedAt: Date.now(), requestedBy: getActorName(), initiatorNotified:false });
+  return savePartners(p, list, initiatedBy==="owner" ? "invite_partner" : "request_partnership");
+}
+async function prioRespondPartnership(p, deptId, accept, responseNote){
+  const list = prioPartners(p).map(x=> x.deptId===deptId ? { ...x, status: accept ? "accepted" : "declined", respondedAt: Date.now(), respondedBy: getActorName(), responseNote: responseNote||"", initiatorNotified:false } : x);
+  return savePartners(p, list, accept ? "accept_partnership" : "decline_partnership");
+}
+async function prioEndPartnership(p, deptId){
+  const linked = projectsOfPriority(p.id).filter(pr=> pr.deptId===deptId);
+  if(!confirm(`إنهاء شراكة ${deptName(deptId)} في «${p.title}»؟${linked.length ? `\nسيُفك ربط ${linked.length} من مشاريعها بهذه الأولوية.` : ""}`)) return false;
+  linked.forEach(pr=> updateProject(pr.id, { priorityIds: pr.priorityIds.filter(x=>x!==p.id) }));
+  return savePartners(p, prioPartners(p).filter(x=> x.deptId!==deptId), "end_partnership");
+}
+function prioMarkNotified(items){
+  const byP = {};
+  items.forEach(({p,x})=>{ (byP[p.id] = byP[p.id] || { p, ds:[] }).ds.push(x.deptId); });
+  Object.values(byP).forEach(({p,ds})=> savePriority(p.id, { partners: prioPartners(p).map(x=> ds.includes(x.deptId) ? { ...x, initiatorNotified:true } : x) }));
+}
+function partnerStatusLabel(x){ return x.status==="accepted" ? "شريك" : x.status==="declined" ? "اعتذر" : "بانتظار الرد"; }
+
+// نافذة طلب الشراكة أو دعوة دائرة
+function openPartnershipModal(p, mode){
+  const myDept = myDeptIdForPrio();
+  const isInvite = mode==="invite";
+  const taken = new Set([p.deptId, ...prioPartners(p).filter(x=>x.status!=="declined").map(x=>x.deptId)]);
+  const depts = DEPARTMENTS.filter(d=> !taken.has(d.id));
+  if(isInvite && !depts.length){ alert("كل الدوائر شريكة أو مدعوّة بالفعل."); return; }
+  let role = "";
+  const body = `<div class="pr-ev" style="margin:0 0 12px;">${isInvite ? "تدعو دائرة أخرى للمشاركة في معالجة هذه الأولوية. بعد قبولها تستطيع ربط مشاريعها بها، ويبقى التقييم والتعديل لدائرتك." : `تطلب من ${escapeHtml(deptName(p.deptId))} المشاركة في معالجة هذه الأولوية. بعد قبولها تظهر في «أولويات دائرتي» وتستطيع ربط مشاريعك بها.`}</div>
+    ${isInvite ? `<div class="pr-fld"><label for="psDept">الدائرة المدعوّة</label><select id="psDept">${depts.map(d=>`<option value="${d.id}">${escapeHtml(d.name)}</option>`).join("")}</select></div>` : ""}
+    <div class="pr-fld"><label>نوع المشاركة</label><div class="pr-chips" id="psRole">${PRIO_PARTNER_ROLES.map(r=>`<button type="button" class="pr-pick" data-v="${r}">${r}</button>`).join("")}</div></div>
+    <div class="pr-fld"><label for="psNote">ملاحظة <span style="font-weight:400;color:#8593A3;">(اختياري)</span></label><textarea id="psNote" placeholder="ماذا ستقدّم دائرتك أو ماذا تطلب من الدائرة الأخرى؟"></textarea></div>`;
+  const ov = prioModalShell(isInvite ? `دعوة دائرة شريكة — ${escapeHtml(p.title)}` : `طلب شراكة — ${escapeHtml(p.title)}`, body, `<span class="pr-err" id="psErr" style="flex:1;"></span><button class="pr-btn pri" id="psSend">${isInvite ? "إرسال الدعوة" : "إرسال الطلب"}</button>`);
+  ov.querySelectorAll("#psRole .pr-pick").forEach(b=> b.onclick = ()=>{ role = b.dataset.v; ov.querySelectorAll("#psRole .pr-pick").forEach(x=>x.classList.toggle("on", x===b)); ov.querySelector("#psErr").textContent = ""; });
+  ov.querySelector("#psSend").onclick = async ()=>{
+    if(!role){ ov.querySelector("#psErr").textContent = "اختر نوع المشاركة"; return; }
+    const deptId = isInvite ? ov.querySelector("#psDept").value : myDept;
+    if(!deptId){ ov.querySelector("#psErr").textContent = "حسابك غير مُسنَد لدائرة"; return; }
+    if(await prioRequestPartnership(p, deptId, role, ov.querySelector("#psNote").value.trim(), isInvite ? "owner" : "partner")){
+      prioCloseModal(); alert(isInvite ? "أُرسلت الدعوة، وستظهر لمدير الدائرة المدعوّة عند دخوله." : "أُرسل الطلب، وسيظهر لمدير الدائرة صاحبة الأولوية عند دخوله."); renderPriorities();
+    }
+  };
+}
+// قسم الشركاء داخل بطاقة الأولوية
+function prioPartnersSectionHTML(p){
+  const myDept = myDeptIdForPrio(), isOwner = prioCanEdit(p) && (currentRole()==="admin" || p.deptId===myDept);
+  const parts = prioPartners(p).filter(x=> x.status!=="declined" || isOwner || x.deptId===myDept);
+  const mine = myDept ? prioPartnerOf(p, myDept) : null;
+  const rows = parts.map(x=>{
+    const responder = prioResponderDept(p, x);
+    const canRespond = x.status==="pending" && responder===myDept;
+    const canEnd = x.status==="accepted" && (isOwner || x.deptId===myDept);
+    const waBtn = currentRole()==="admin" && x.status==="pending" ? `<button class="pr-tag-btn" data-wa="${x.deptId}">📲 تذكير واتساب</button>` : "";
+    return `<div class="pr-proj" style="flex-wrap:wrap;"><span style="flex:1 1 220px;">🤝 <b>${escapeHtml(deptName(x.deptId))}</b> <span class="note-meta">— ${escapeHtml(x.role||"")}${x.initiatedBy==="owner" ? " • بدعوة من صاحب الأولوية" : " • بطلب منها"}</span>
+      ${x.note ? `<div class="note-meta">💬 ${escapeHtml(x.note)}</div>` : ""}${x.responseNote ? `<div class="note-meta">↩️ ${escapeHtml(x.responseNote)}</div>` : ""}</span>
+      <span class="pr-chip ${x.status==="accepted"?"out":x.status==="pending"?"draft":"warn"}">${partnerStatusLabel(x)}</span>
+      ${canRespond ? `<button class="pr-tag-btn" data-acc="${x.deptId}">✔️ قبول</button><button class="pr-tag-btn" style="background:#FBE3E5;color:#8E1825;" data-dec="${x.deptId}">اعتذار</button>` : ""}
+      ${canEnd ? `<button class="pr-tag-btn" style="background:#F1F5F9;color:#566476;" data-end="${x.deptId}">إنهاء الشراكة</button>` : ""}${waBtn}</div>`;
+  }).join("");
+  const canRequest = currentRole()==="manager" && myDept && p.deptId!==myDept && p.status==="published" && (!mine || mine.status==="declined");
+  const canInvite = isOwner && p.status==="published";
+  return `<div class="pr-sec"><div class="pr-sec-h"><b>🤝 الدوائر الشريكة</b><span class="note-meta">${prioPartners(p).filter(x=>x.status==="accepted").length}</span></div>
+    ${rows || `<div class="note-meta">لا توجد دوائر شريكة في هذه الأولوية.</div>`}
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;">
+      ${canRequest ? `<button class="pr-btn pri" id="pdReqPartner">🤝 طلب شراكة</button>` : ""}
+      ${canInvite ? `<button class="pr-btn" id="pdInvite">🤝 دعوة دائرة شريكة</button>` : ""}
+      ${!canInvite && isOwner && p.status!=="published" ? `<span class="note-meta">انشر الأولوية أولًا لتتمكن من دعوة دوائر شريكة.</span>` : ""}
+    </div></div>`;
+}
+function bindPartnersSection(ov, p){
+  const req = ov.querySelector("#pdReqPartner"); if(req) req.onclick = ()=> openPartnershipModal(p, "request");
+  const inv = ov.querySelector("#pdInvite"); if(inv) inv.onclick = ()=> openPartnershipModal(p, "invite");
+  ov.querySelectorAll("[data-acc]").forEach(b=> b.onclick = async ()=>{ if(await prioRespondPartnership(p, b.dataset.acc, true, "")){ setTimeout(()=>{ openPriorityDetail(p.id); renderPriorities(); }, 300); } });
+  ov.querySelectorAll("[data-dec]").forEach(b=> b.onclick = async ()=>{ const n = prompt("سبب الاعتذار (اختياري):", ""); if(n===null) return; if(await prioRespondPartnership(p, b.dataset.dec, false, n.trim())){ setTimeout(()=>{ openPriorityDetail(p.id); renderPriorities(); }, 300); } });
+  ov.querySelectorAll("[data-end]").forEach(b=> b.onclick = async ()=>{ if(await prioEndPartnership(p, b.dataset.end)){ setTimeout(()=>{ openPriorityDetail(p.id); renderPriorities(); }, 300); } });
+  ov.querySelectorAll("[data-wa]").forEach(b=> b.onclick = ()=>{ const x = prioPartnerOf(p, b.dataset.wa); if(x) prioSendPartnerWhatsApp(p, x); });
+}
+// تذكير واتساب من قسم التخطيط لمدير الدائرة المطلوب منها الرد
+function prioSendPartnerWhatsApp(p, x){
+  const responder = prioResponderDept(p, x);
+  const mgr = managerOfDept(responder);
+  const auth = mgr ? (ALL_MANAGER_AUTH.find(a=>a.id===mgr) || {}) : {};
+  if(!mgr){ alert("لا يوجد مدير مُسنَد لهذه الدائرة."); return; }
+  if(!auth.phone){ alert(`لا يوجد رقم جوال مسجَّل لـ ${mgr}. أضفه من شاشة الهيكل والحسابات.`); return; }
+  const greeting = auth.gender==="female" ? "الفاضلة" : "الفاضل";
+  const what = x.initiatedBy==="owner"
+    ? `تدعوكم ${deptName(p.deptId)} للمشاركة (${x.role}) في معالجة الأولوية:\n«${p.title}»`
+    : `تطلب ${deptName(x.deptId)} المشاركة (${x.role}) في معالجة أولوية دائرتكم:\n«${p.title}»`;
+  const msg = `${greeting} ${mgr}،\n${what}${x.note ? `\nملاحظة: ${x.note}` : ""}\n\nنأمل الاطلاع والرد بالقبول أو الاعتذار من منصة «مسار» ← مرجع الأولويات ← مصفوفة الأولويات.\n${PLATFORM_URL}\n\nقسم التخطيط والدراسات`;
+  window.open(`https://api.whatsapp.com/send?phone=${cleanPhoneNumber(auth.phone)}&text=${encodeURIComponent(msg)}`, "_blank");
+  logActivity(ADMIN_NAME, "whatsapp_partnership", `${mgr} — ${p.title}`);
+}
+// الرسالة المنبثقة لمدير الدائرة: طلبات بانتظار رده + ردود على طلباته
+const PRIO_POPUP_SHOWN = new Set();
+function maybeShowPartnershipPopup(){
+  if(currentRole()!=="manager") return;
+  const myDept = myDeptIdForPrio(); if(!myDept) return;
+  if(document.getElementById("prioModal")) return;
+  const pend = prioPendingFor(myDept).filter(({p,x})=> !PRIO_POPUP_SHOWN.has(p.id+"|"+x.deptId+"|"+x.requestedAt));
+  const resp = prioResponsesFor(myDept);
+  if(!pend.length && !resp.length) return;
+  pend.forEach(({p,x})=> PRIO_POPUP_SHOWN.add(p.id+"|"+x.deptId+"|"+x.requestedAt));
+  const body = `${pend.length ? `<div class="pr-sec"><div class="pr-sec-h"><b>🤝 طلبات شراكة بانتظار ردّك</b><span class="note-meta">${pend.length}</span></div>
+      ${pend.map(({p,x})=>`<div class="pr-proj" style="flex-wrap:wrap;"><span style="flex:1 1 260px;">${x.initiatedBy==="owner" ? `تدعوك <b>${escapeHtml(deptName(p.deptId))}</b> للمشاركة في أولويتها` : `تطلب <b>${escapeHtml(deptName(x.deptId))}</b> المشاركة في أولوية دائرتك`}:<br><b style="color:#0D2B47;">«${escapeHtml(p.title)}»</b> <span class="note-meta">— ${escapeHtml(x.role||"")}</span>${x.note ? `<div class="note-meta">💬 ${escapeHtml(x.note)}</div>` : ""}</span>
+        <button class="pr-tag-btn" data-pacc="${p.id}|${x.deptId}">✔️ قبول</button><button class="pr-tag-btn" style="background:#FBE3E5;color:#8E1825;" data-pdec="${p.id}|${x.deptId}">اعتذار</button><button class="pr-tag-btn" style="background:#F1F5F9;color:#566476;" data-pview="${p.id}">التفاصيل</button></div>`).join("")}</div>` : ""}
+    ${resp.length ? `<div class="pr-sec"><div class="pr-sec-h"><b>↩️ ردود على طلباتك</b></div>
+      ${resp.map(({p,x})=>`<div class="pr-proj">${x.status==="accepted" ? "✅" : "⛔"} <span style="flex:1;">${escapeHtml(deptName(prioResponderDept(p,x)))} ${x.status==="accepted" ? "قبلت" : "اعتذرت عن"} الشراكة في «${escapeHtml(p.title)}»${x.responseNote ? ` <span class="note-meta">— ${escapeHtml(x.responseNote)}</span>` : ""}</span></div>`).join("")}</div>` : ""}`;
+  const ov = prioModalShell("🤝 الشراكة بين الدوائر", body, `<span style="flex:1"></span><button class="pr-btn pri" id="ppClose">تم</button>`);
+  if(resp.length) prioMarkNotified(resp);
+  ov.querySelector("#ppClose").onclick = prioCloseModal;
+  const find = v=>{ const [pid, d] = v.split("|"); return { p: prioById(pid), d }; };
+  ov.querySelectorAll("[data-pacc]").forEach(b=> b.onclick = async ()=>{ const { p, d } = find(b.dataset.pacc); if(p && await prioRespondPartnership(p, d, true, "")){ b.closest(".pr-proj").innerHTML = `✅ <span>قبلت الشراكة في «${escapeHtml(p.title)}»</span>`; } });
+  ov.querySelectorAll("[data-pdec]").forEach(b=> b.onclick = async ()=>{ const { p, d } = find(b.dataset.pdec); const n = prompt("سبب الاعتذار (اختياري):", ""); if(n===null) return; if(p && await prioRespondPartnership(p, d, false, n.trim())){ b.closest(".pr-proj").innerHTML = `⛔ <span>اعتذرت عن الشراكة في «${escapeHtml(p.title)}»</span>`; } });
+  ov.querySelectorAll("[data-pview]").forEach(b=> b.onclick = ()=> openPriorityDetail(b.dataset.pview));
+}
+function updatePartnerBadge(){
+  const el = document.getElementById("prioPartnerBadgeSrc"); if(!el) return;
+  const r = currentRole();
+  el.textContent = r==="manager" ? String(prioPendingFor(myDeptIdForPrio()).length) : r==="admin" ? String(prioAllPending().length) : "0";
+}
+// أولويات مشابهة لدى دوائر أخرى (لمنع التكرار) — تشابه الكلمات بعد إزالة «ال» والكلمات القصيرة
+const PRIO_STOP = new Set(["في","من","على","إلى","عن","مع","بين","لدى","حول","ضعف","نقص","ارتفاع","انخفاض","قلة","زيادة","عدم","المحافظة","الدائرة"]);
+function prioWords(t){ return String(t||"").replace(/[^؀-ۿ\s]/g," ").split(/\s+/).map(w=> w.replace(/^(وال|بال|كال|فال|لل|ال)/,"").replace(/[ةه]$/,"")).filter(w=> w.length>=3 && !PRIO_STOP.has(w)); }
+function prioSimilar(title, deptId, year, excludeId){
+  const a = new Set(prioWords(title)); if(a.size<1) return [];
+  return PRIORITIES.filter(p=> p.status==="published" && p.deptId!==deptId && p.id!==excludeId && Number(p.year)===Number(year))
+    .map(p=>{ const b = new Set(prioWords(p.title + " " + (p.domain||""))); let n = 0; a.forEach(w=>{ if([...b].some(v=> v===w || (w.length>=4 && (v.startsWith(w)||w.startsWith(v))))) n++; }); return { p, n, s: n/Math.min(a.size, Math.max(b.size,1)) }; })
+    .filter(r=> r.n>=1 && r.s>=0.5).sort((x,y)=> y.s-x.s || y.n-x.n).slice(0,3).map(r=>r.p);
+}
+function prioPartnershipsHTML(year){
+  const rows = [];
+  PRIORITIES.filter(p=> Number(p.year)===year).forEach(p=> prioPartners(p).filter(x=>x.status==="accepted").forEach(x=> rows.push({ p, x })));
+  const pend = prioAllPending().filter(({p})=> Number(p.year)===year);
+  if(!rows.length && !pend.length) return "";
+  return `<div class="pr-card" style="margin-top:14px;"><div class="pr-card-h"><b>🤝 الشراكات بين الدوائر</b><span class="note-meta">${rows.length} شراكة قائمة${pend.length ? ` • ${pend.length} طلب معلّق` : ""}</span></div>
+    ${rows.map(({p,x})=>`<div class="pr-proj" data-prio="${p.id}" style="cursor:pointer;"><span style="flex:1;"><b>${escapeHtml(deptName(p.deptId))}</b> ⇄ <b>${escapeHtml(deptName(x.deptId))}</b> <span class="note-meta">— ${escapeHtml(x.role||"")}</span><br>«${escapeHtml(p.title)}»</span><span class="pr-chip">🔗 ${projectsOfPriority(p.id).length}</span></div>`).join("")}
+    ${pend.map(({p,x})=>`<div class="pr-proj" style="flex-wrap:wrap;"><span style="flex:1 1 240px;">⏳ <b>${escapeHtml(deptName(prioInitiatorDept(p,x)))}</b> ← بانتظار رد <b>${escapeHtml(deptName(prioResponderDept(p,x)))}</b><br>«${escapeHtml(p.title)}»</span>${currentRole()==="admin" ? `<button class="pr-tag-btn" data-wa2="${p.id}|${x.deptId}">📲 تذكير واتساب</button>` : ""}</div>`).join("")}
+  </div>`;
+}
+
 function refreshPrioritiesIfVisible(){
   const v = document.getElementById("refPrioView");
   if(v && !v.classList.contains("hidden") && !document.getElementById("refScreen").classList.contains("hidden")) renderPriorities();
 }
 listenToDirections(()=>{ refreshPrioritiesIfVisible(); if(!document.getElementById("programsAdminScreen").classList.contains("hidden")) renderProgramsAdminScreen(); refreshGoalsViewsIfVisible(); });
-listenToPriorities(()=>{ refreshPrioritiesIfVisible(); if(!document.getElementById("managerScreen").classList.contains("hidden")) renderManagerPrograms(); });
+listenToPriorities(()=>{ refreshPrioritiesIfVisible(); updatePartnerBadge(); setTimeout(maybeShowPartnershipPopup, 1500); if(!document.getElementById("managerScreen").classList.contains("hidden")) renderManagerPrograms(); });
 
 const REF_TABS = [["refTabPlan","refPlanView"],["refTabInd","refIndView"],["refTabIbra","refIbraView"],["refTabPrio","refPrioView"]];
 function showRefTab(tabId){
