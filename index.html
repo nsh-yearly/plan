@@ -1893,13 +1893,7 @@ tr.rejected-row td{background:#FDF6F6;}
         <div id="indContent"></div>
       </div>
     </div>
-    <div id="refIbraView" class="hidden">
-      <div class="org-card" style="padding:28px 20px;text-align:center;">
-        <div style="font-size:40px;line-height:1;">🏥</div>
-        <h3 style="margin:10px 0 6px;color:#0D2B47;font-family:'Cairo',sans-serif;">مؤشرات مستشفى إبراء</h3>
-        <div class="note-meta" style="font-size:13.5px;line-height:1.9;">قريبًا: المؤشرات والتفاصيل الإحصائية لمستشفى إبراء — الأسرّة والتنويم والطوارئ والعمليات والعيادات التخصصية والقوى العاملة.</div>
-      </div>
-    </div>
+    <div id="refIbraView" class="hidden"></div>
     <div id="refPrioView" class="hidden"></div>
   </div>
 </div>
@@ -3364,6 +3358,7 @@ tr.rejected-row td{background:#FDF6F6;}
 
 <script src="data.js"></script>
 <script src="health-ind.js"></script>
+<script src="ibra-ind.js"></script>
 <script>
 /* =========================================================================
    إعداد Firebase — يجب استبدال القيم أدناه بإعدادات مشروعك الخاص في Firebase
@@ -15682,11 +15677,146 @@ function refreshPrioritiesIfVisible(){
 listenToDirections(()=>{ refreshPrioritiesIfVisible(); if(!document.getElementById("programsAdminScreen").classList.contains("hidden")) renderProgramsAdminScreen(); refreshGoalsViewsIfVisible(); });
 listenToPriorities(()=>{ refreshPrioritiesIfVisible(); updatePartnerBadge(); setTimeout(maybeShowPartnershipPopup, 1500); if(!document.getElementById("managerScreen").classList.contains("hidden")) renderManagerPrograms(); });
 
+// ==================== مؤشرات مستشفى إبراء ====================
+const IBRA_STATE = { view:"sum", refType:"routine", refMetric:"median" };
+function ibraReport(){ return (typeof IBRA_IND_REPORTS!=="undefined" && IBRA_IND_REPORTS.length) ? IBRA_IND_REPORTS[0] : null; }
+const ibN = (v,d)=> indNum(v, d===undefined ? 0 : d);
+const ibP = (v,d)=> indPct(v, d===undefined ? 1 : d);
+function ibChange(a, b, isPct){
+  if(a==null || b==null) return "—";
+  const d = b - a;
+  const txt = isPct ? `${d>=0?"+":""}${indNum(d,1)} نقطة` : `${d>=0?"+":""}${ibN(d)} (${d>=0?"+":""}${indNum(a ? d/a*100 : 0,1)}%)`;
+  return `<span style="color:${d>0?"#1E7A3D":d<0?"#B3202E":"#566476"};font-weight:700;">${txt}</span>`;
+}
+// أعمدة أفقية عامة: rows = [{name, v, sub, cls}]
+function ibBars(rows, fmt, opts){
+  opts = opts || {};
+  const max = Math.max(...rows.map(r=>r.v||0), opts.ref||0, 0.0001);
+  return `<div class="ind-bars">${rows.map(r=>`<div class="ind-bar"><div class="nm">${escapeHtml(r.name)}${r.sub ? ` <small>${escapeHtml(r.sub)}</small>` : ""}</div>
+    <div class="tr"><div class="fl ${r.cls||""}" style="width:${Math.max(1.5,(r.v||0)/max*100).toFixed(1)}%"></div>${opts.ref ? `<div class="gl" style="right:${(opts.ref/max*100).toFixed(1)}%" title="${escapeAttr(opts.refLabel||"")}"></div>` : ""}</div>
+    <div class="vl">${fmt(r.v)}</div></div>`).join("")}
+    ${opts.legend ? `<div class="ind-legend">${opts.legend}</div>` : ""}</div>`;
+}
+function ibraFlags(r){
+  const R = r.referrals, D = r.referralDepts, fl = [];
+  const iMax = R.routine.median.indexOf(Math.max(...R.routine.median));
+  fl.push(["⏳ أطول انتظار للإحالات الروتينية", `${D[iMax]}: الوسيط ${ibN(R.routine.median[iMax])} يومًا، و${ibP(R.routine.gt12w[iMax])} من الحالات تنتظر أكثر من 12 أسبوعًا`]);
+  const over = D.map((d,i)=>({ d, v:R.routine.gt12w[i] })).filter(x=>x.v>=30).sort((a,b)=>b.v-a.v).filter(x=>x.d!==D[iMax]);
+  if(over.length) fl.push(["⏳ أقسام تتجاوز فيها نسبة الانتظار أكثر من 12 أسبوعًا 30%", over.map(x=>`${x.d} ${ibP(x.v)}`).join("، ")]);
+  const urgSlow = D.map((d,i)=>({ d, v:R.urgent.median[i] })).filter(x=>x.v>=30).sort((a,b)=>b.v-a.v);
+  if(urgSlow.length) fl.push(["🚨 إحالات عاجلة بوسيط انتظار 30 يومًا فأكثر", urgSlow.map(x=>`${x.d} ${ibN(x.v,1)} يومًا`).join("، ")]);
+  fl.push(["🔁 إعادة الدخول خلال 28 يومًا", `${ibP(r.performance.readmission,2)} — الأعلى بين ${r.performance.hospitals} مستشفيات بالمحافظة`]);
+  const crit = r.occBySpecialty.filter(x=>x[2]>=90);
+  if(crit.length) fl.push(["🛏️ إشغال حرج (90% فأكثر)", crit.map(x=>`${x[0]}${x[1]!=="عام"&&x[1]!==x[0] ? " – " + x[1] : ""} ${ibP(x[2])}`).join("، ") + ` • إشغال المستشفى ${ibP(r.inpatient.occupancy[1])} مقابل ${ibP(r.inpatient.occNational)} وطنيًا`]);
+  const util = D.map((d,i)=>({ d, v: R.slots.given[i]/R.slots.total[i]*100 })).sort((a,b)=>a.v-b.v)[0];
+  fl.push(["📅 أدنى استغلال لمواعيد العيادات", `${util.d}: ${ibP(util.v,0)} من المواعيد المتاحة رغم ${util.d==="الجراحة العامة" ? "انخفاض الانتظار" : "الطلب"}`]);
+  const low = r.occBySpecialty.filter(x=>x[2]<40);
+  if(low.length) fl.push(["🛏️ إشغال منخفض (أقل من 40%)", low.map(x=>`${x[1]==="عام"?x[0]:x[1]} ${ibP(x[2])}`).join("، ")]);
+  return fl;
+}
+function renderIbra(){
+  const box = document.getElementById("refIbraView"); if(!box) return;
+  const r = ibraReport();
+  if(!r){ box.innerHTML = `<div class="empty-note">لم تُحمَّل بيانات مستشفى إبراء بعد.</div>`; return; }
+  const views = [["sum","نظرة عامة"],["ip","التنويم والإشغال"],["ot","العمليات والولادات والأشعة"],["ref","انتظار الإحالات والمواعيد"]];
+  let h = `<div class="org-card ind-src"><div><b style="color:#0D2B47;">🏥 ${escapeHtml(r.title)}</b><div class="note-meta">${r.sources.map(escapeHtml).join(" • ")}</div></div>
+      ${r.pdf ? `<a class="org-btn" href="${r.pdf}" download>⬇️ تقرير الإحالات PDF</a>` : ""}</div>
+    <div class="ind-views">${views.map(v=>`<button class="ind-view ${IBRA_STATE.view===v[0]?"active":""}" data-iv="${v[0]}">${v[1]}</button>`).join("")}</div>`;
+  const I = r.inpatient, S = r.summary, P = r.performance, Dl = r.deliveries, Sg = r.surgeries;
+  if(IBRA_STATE.view==="sum"){
+    h += `<div class="ind-kpis">
+      ${indKpi("إجمالي الزيارات", ibN(S.visits), `${ibN(S.dailyWork)} يوميًا في أيام العمل • ${ibN(S.dailyHoliday)} في العطل`)}
+      ${indKpi("زيارات العيادات للمريض", indNum(S.visitsPerPatient,1), "متوسط سنوي")}
+      ${indKpi("الأسرة التنويمية", ibN(I.beds[1]), `إشغال ${ibP(I.occupancy[1])} (الوطني ${ibP(I.occNational)})`)}
+      ${indKpi("حالات الخروج", ibN(I.discharges[1]), `دوران السرير ${ibN(I.turnover[1])}`)}
+      ${indKpi("متوسط مدة الإقامة", indNum(P.alos,2) + " يوم", `الثاني بين ${P.hospitals} مستشفيات`)}
+      ${indKpi("إعادة الدخول (28 يومًا)", ibP(P.readmission,2), `⚠️ الأعلى بين ${P.hospitals} مستشفيات`)}
+      ${indKpi("الخروج ضد المشورة الطبية", ibP(P.lama,1), `الأدنى بين ${P.hospitals} مستشفيات`)}
+      ${indKpi("الولادات", ibN(Dl.total[1]), `قيصرية ${ibP(Dl.cs[1]/Dl.total[1]*100)}`)}
+      ${indKpi("العمليات الجراحية", ibN(Sg.total[1]), `${ibN(Sg.elective[1])} مجدولة • ${ibN(Sg.emergency[1])} طارئة`)}
+      ${indKpi("إجراءات الأشعة", ibN(r.radiology.total), `${ibP(r.radiology.total/r.radiology.govTotal*100,0)} من إجمالي المحافظة`)}
+      ${indKpi("الغسيل الكلوي", `${ibN(r.dialysis.patients)} مريضًا`, `${r.dialysis.beds} سريرًا • ${r.dialysis.newPatients} حالة جديدة`)}
+    </div>
+    <div class="ind-h">مؤشرات تستحق الانتباه عند تحديد الأولويات</div>
+    <div class="ind-flags">${ibraFlags(r).map(f=>`<div class="ind-flag"><b>${f[0]}</b><div class="gov" style="font-size:13px;color:#33475B;line-height:1.8;margin-top:4px;">${escapeHtml(f[1])}</div></div>`).join("")}</div>
+    <div class="ind-h">توزيع الزيارات حسب القسم <span class="note-meta">أعلى عشرة أقسام — النسبة من إجمالي الزيارات</span></div>
+    ${ibBars(r.visitsByDept.map(x=>({ name:x[0], v:x[1], sub:`≈ ${ibN(x[1]/100*S.visits)} زيارة` })), v=>ibP(v))}`;
+  }else if(IBRA_STATE.view==="ip"){
+    const row = (l, a, isPct, d)=> `<tr><td>${l}</td><td>${isPct ? ibP(a[0]) : indNum(a[0], d||0)}</td><td><b>${isPct ? ibP(a[1]) : indNum(a[1], d||0)}</b></td><td>${ibChange(a[0], a[1], isPct)}</td></tr>`;
+    const stCls = v=> v>=90 ? "lo" : v<60 ? "" : "hi";
+    h += `<div class="ind-h">أداء الخدمات الداخلية <span class="note-meta">2024 مقابل 2025</span></div>
+      <div class="ind-tbl-wrap"><table class="ind-tbl"><thead><tr><th>المؤشر</th><th>2024</th><th>2025</th><th>التغير</th></tr></thead><tbody>
+      ${row("الأسرة التنويمية", I.beds)}${row("حالات الخروج", I.discharges)}${row("نسبة إشغال الأسرة", I.occupancy, true)}${row("معدل دوران السرير", I.turnover)}
+      </tbody></table></div>
+      <div class="ind-h">اتجاه إشغال الأسرة <span class="note-meta">الخط = المعدل الوطني للمستشفيات المرجعية ${ibP(I.occNational)}</span></div>
+      ${ibBars(Object.entries(I.occTrend).map(([y,v])=>({ name:y, v })), v=>ibP(v), { ref:I.occNational, refLabel:"المعدل الوطني" })}
+      <div class="ind-h">إشغال الأسرة حسب التخصص 2025 <span class="note-meta">🔴 حرج 90–100% • 🟢 مثالي 60–89% • 🔵 منخفض أقل من 60%</span></div>
+      ${ibBars([...r.occBySpecialty].sort((a,b)=>b[2]-a[2]).map(x=>({ name: x[1]==="عام" ? x[0] : x[1], sub: x[1]==="عام" ? "" : x[0], v:x[2], cls: x[2]>=90 ? "lo" : x[2]>=60 ? "hi" : "" })), v=>ibP(v))}
+      <div class="ind-h">مؤشرات الأداء مقارنة بمستشفيات المحافظة الست</div>
+      <div class="ind-kv">
+        <div><span class="l">إعادة الدخول خلال 28 يومًا</span><span class="r"><b>${ibP(P.readmission,2)}</b><small>الترتيب ${P.readmissionRank} من ${P.hospitals} (الأعلى) — يتطلب الانتباه</small></span></div>
+        <div><span class="l">الخروج ضد المشورة الطبية (LAMA)</span><span class="r"><b>${ibP(P.lama,1)}</b><small>الترتيب ${P.lamaRank} من ${P.hospitals} (الأدنى) — أداء جيد</small></span></div>
+        <div><span class="l">متوسط مدة الإقامة</span><span class="r"><b>${indNum(P.alos,2)} يوم</b><small>الثاني بعد مستشفى بدية (2.61)</small></span></div>
+      </div>
+      <div class="ind-h">الغسيل الكلوي</div>
+      <div class="ind-kv">
+        <div><span class="l">أسرّة الغسيل (ديسمبر 2025)</span><span class="r"><b>${r.dialysis.beds}</b></span></div>
+        <div><span class="l">المرضى المعالَجون (ديسمبر 2025)</span><span class="r"><b>${r.dialysis.patients}</b></span></div>
+        <div><span class="l">مرضى جدد خلال 2025</span><span class="r"><b>${r.dialysis.newPatients}</b></span></div>
+        <div><span class="l">المنقطعون خلال 2025</span><span class="r"><b>${r.dialysis.droppedOut}</b><small>يُستحسن التحقق</small></span></div>
+        <div><span class="l">متوسط الجلسات للمريض</span><span class="r"><b>${indNum(r.dialysis.sessions,1)}</b><small>الوطني ${indNum(r.dialysis.sessionsNational,1)} (2024)</small></span></div>
+      </div>`;
+  }else if(IBRA_STATE.view==="ot"){
+    const row = (l, a)=> `<tr><td>${l}</td><td>${ibN(a[0])}</td><td><b>${ibN(a[1])}</b></td><td>${ibChange(a[0], a[1])}</td></tr>`;
+    h += `<div class="ind-h">الولادات <span class="note-meta">2024 مقابل 2025</span></div>
+      <div class="ind-tbl-wrap"><table class="ind-tbl"><thead><tr><th>النوع</th><th>2024</th><th>2025</th><th>التغير</th></tr></thead><tbody>
+      ${row("ولادة طبيعية", Dl.vaginal)}${row("ولادة قيصرية", Dl.cs)}${row("ولادة قبل الوصول (BBA)", Dl.bba)}</tbody>
+      <tfoot><tr><td>الإجمالي</td><td>${ibN(Dl.total[0])}</td><td>${ibN(Dl.total[1])}</td><td>${ibChange(Dl.total[0], Dl.total[1])}</td></tr>
+      <tr><td>نسبة القيصرية</td><td>${ibP(Dl.cs[0]/Dl.total[0]*100)}</td><td>${ibP(Dl.cs[1]/Dl.total[1]*100)}</td><td>${ibChange(Dl.cs[0]/Dl.total[0]*100, Dl.cs[1]/Dl.total[1]*100, true)}</td></tr></tfoot></table></div>
+      <div class="ind-h">العمليات الجراحية <span class="note-meta">2024 مقابل 2025</span></div>
+      <div class="ind-tbl-wrap"><table class="ind-tbl"><thead><tr><th>النوع</th><th>2024</th><th>2025</th><th>التغير</th></tr></thead><tbody>
+      ${row("طارئة", Sg.emergency)}${row("مجدولة", Sg.elective)}</tbody><tfoot><tr><td>الإجمالي</td><td>${ibN(Sg.total[0])}</td><td>${ibN(Sg.total[1])}</td><td>${ibChange(Sg.total[0], Sg.total[1])}</td></tr></tfoot></table></div>
+      <div class="ind-h">العمليات حسب القسم 2025</div>
+      ${ibBars(Sg.byDept.map(x=>({ name:x[0], v:x[1], sub: ibP(x[1]/Sg.total[1]*100) })), v=>ibN(v))}
+      <div class="ind-h">الأشعة</div>
+      <div class="ind-kv">
+        <div><span class="l">إجراءات الأشعة 2025</span><span class="r"><b>${ibN(r.radiology.total)}</b><small>نمو ${ibP(r.radiology.growth)} عن 2024</small></span></div>
+        <div><span class="l">الحصة من إجمالي المحافظة</span><span class="r"><b>${ibP(r.radiology.total/r.radiology.govTotal*100)}</b><small>من ${ibN(r.radiology.govTotal)} إجراء</small></span></div>
+      </div>`;
+  }else{
+    const R = r.referrals, D = r.referralDepts, t = R[IBRA_STATE.refType];
+    const metrics = { median:["وسيط الانتظار (يوم)", v=>ibN(v,1)], gt12w:["نسبة الانتظار أكثر من 12 أسبوعًا", v=>ibP(v)], lt2w:["نسبة الانتظار أقل من أسبوعين", v=>ibP(v)], p75:["75% من الحالات خلال (يوم)", v=>ibN(v)], cases:["عدد الإحالات", v=>ibN(v)] };
+    const m = metrics[IBRA_STATE.refMetric];
+    const rows = D.map((d,i)=>({ name:d, v:t[IBRA_STATE.refMetric][i] })).sort((a,b)=>b.v-a.v);
+    const bad = IBRA_STATE.refMetric==="lt2w" ? -1 : (IBRA_STATE.refMetric==="cases" ? 0 : 1);
+    rows.forEach((x,i)=>{ if(bad>0){ if(i<3) x.cls = "lo"; else if(i>=rows.length-3) x.cls = "hi"; } else if(bad<0){ if(i<3) x.cls = "hi"; else if(i>=rows.length-3) x.cls = "lo"; } });
+    h += `<div class="org-head-tools" style="margin-bottom:10px;">
+        <select id="ibRefType" class="org-select"><option value="routine" ${IBRA_STATE.refType==="routine"?"selected":""}>الإحالات الروتينية</option><option value="urgent" ${IBRA_STATE.refType==="urgent"?"selected":""}>الإحالات العاجلة</option></select>
+        <select id="ibRefMetric" class="org-select">${Object.entries(metrics).map(([k,v])=>`<option value="${k}" ${IBRA_STATE.refMetric===k?"selected":""}>${v[0]}</option>`).join("")}</select>
+      </div>
+      <div class="ind-h">${m[0]} — ${IBRA_STATE.refType==="routine" ? "الإحالات الروتينية" : "الإحالات العاجلة"} <span class="note-meta">الإحالات المعتمدة التي حُدد لها موعد في 2025</span></div>
+      ${ibBars(rows, m[1], { legend: bad ? `<span><i style="background:#D2563F"></i>الأسوأ</span><span><i style="background:#2E9E5B"></i>الأفضل</span>` : "" })}
+      <div class="ind-h">جدول الانتظار حسب القسم (بالأيام)</div>
+      <div class="ind-tbl-wrap"><table class="ind-tbl"><thead><tr><th>القسم</th><th>روتيني: الحالات</th><th>الوسيط</th><th>25%–75%</th><th>أقصى</th><th>&gt;12 أسبوعًا</th><th>عاجل: الحالات</th><th>الوسيط</th><th>&gt;12 أسبوعًا</th></tr></thead><tbody>
+      ${D.map((d,i)=>`<tr><td>${escapeHtml(d)}</td><td>${ibN(R.routine.cases[i])}</td><td class="${R.routine.median[i]>=90?"lo":R.routine.median[i]<=20?"hi":""}"><b>${ibN(R.routine.median[i])}</b></td><td>${R.routine.p25[i]}–${R.routine.p75[i]}</td><td>${R.routine.max[i]}</td><td class="${R.routine.gt12w[i]>=30?"lo":""}">${ibP(R.routine.gt12w[i])}</td><td>${ibN(R.urgent.cases[i])}</td><td class="${R.urgent.median[i]>=30?"lo":R.urgent.median[i]<=7?"hi":""}"><b>${indNum(R.urgent.median[i],1)}</b></td><td class="${R.urgent.gt12w[i]>=30?"lo":""}">${ibP(R.urgent.gt12w[i])}</td></tr>`).join("")}
+      </tbody><tfoot><tr><td>الإجمالي</td><td>${ibN(R.routine.cases.reduce((a,b)=>a+b,0))}</td><td colspan="4"></td><td>${ibN(R.urgent.cases.reduce((a,b)=>a+b,0))}</td><td colspan="2"></td></tr></tfoot></table></div>
+      <div class="ind-h">استغلال مواعيد العيادات <span class="note-meta">المواعيد المعطاة من المتاحة</span></div>
+      ${ibBars(D.map((d,i)=>({ name:d, v:R.slots.given[i]/R.slots.total[i]*100, sub:`${ibN(R.slots.given[i])} من ${ibN(R.slots.total[i])}` })).sort((a,b)=>b.v-a.v), v=>ibP(v,0))}
+      <div class="ind-note">• زمن الاستجابة (من الإحالة إلى قرار القبول): الوسيط منخفض في معظم الأقسام (أيام قليلة)، مع حالات متطرفة أبرزها الأنف والأذن والحنجرة (283 يومًا) والعيون (178 يومًا روتيني و97 يومًا عاجل).</div>`;
+  }
+  h += `<div class="ind-note">${r.notes.map(n=>"• " + escapeHtml(n)).join("<br>")}</div>`;
+  box.innerHTML = h;
+  box.querySelectorAll("[data-iv]").forEach(b=> b.onclick = ()=>{ IBRA_STATE.view = b.dataset.iv; renderIbra(); });
+  const t1 = document.getElementById("ibRefType"); if(t1) t1.onchange = e=>{ IBRA_STATE.refType = e.target.value; renderIbra(); };
+  const t2 = document.getElementById("ibRefMetric"); if(t2) t2.onchange = e=>{ IBRA_STATE.refMetric = e.target.value; renderIbra(); };
+}
+
 const REF_TABS = [["refTabPlan","refPlanView"],["refTabInd","refIndView"],["refTabIbra","refIbraView"],["refTabPrio","refPrioView"]];
 function showRefTab(tabId){
   REF_TABS.forEach(([t,v])=>{ document.getElementById(t).classList.toggle("active", t===tabId); document.getElementById(v).classList.toggle("hidden", t!==tabId); });
   if(tabId==="refTabInd"){ initHealthInd(); renderHealthInd(); }
   if(tabId==="refTabPrio") renderPriorities();
+  if(tabId==="refTabIbra") renderIbra();
 }
 REF_TABS.forEach(([t])=> document.getElementById(t).onclick = ()=> showRefTab(t));
 
