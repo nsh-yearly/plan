@@ -3317,7 +3317,7 @@ tr.rejected-row td{background:#FDF6F6;}
   <div class="dash-wrap hidden" id="pgaPMView">
     <div id="pmManagersSection">
       <div class="section-title">👥 رؤساء الأقسام والموظفون (مدراء المشاريع)</div>
-      <div class="section-desc">رئيس القسم يرى ويحدّث كل مشاريع قسمه تلقائيًا، والموظف يرى ويحدّث المشاريع المُسنَدة إليه فقط. قد يُسنَد المشروع لأكثر من شخص.</div>
+      <div class="section-desc">رئيس القسم يضيف أهداف قسمه ونتائجها ويحدّث إنجازها بعد اعتماد مدير الدائرة، والموظف يطّلع على أهداف قسمه فقط.</div>
       <button class="add-btn" id="addProjectManagerBtn" style="margin-bottom:16px;">➕ إضافة رئيس قسم أو موظف</button>
       <div id="projectManagersAdminList"></div>
     </div>
@@ -3382,9 +3382,11 @@ tr.rejected-row td{background:#FDF6F6;}
     </select>
     <label style="display:block;font-size:12px;font-weight:700;color:var(--navy);margin:10px 0 4px;">كلمة المرور</label>
     <input type="text" id="pmePassword" style="width:100%;padding:9px;border:1px solid var(--border);border-radius:8px;font-size:13px;" value="plan2026">
+    <div id="pmeProjectsWrap" style="display:none;">
     <label style="display:block;font-size:12px;font-weight:700;color:var(--navy);margin:14px 0 4px;">المشاريع المُسنَدة مباشرة</label>
     <input type="text" id="pmeProjectSearch" placeholder="🔍 ابحث باسم المشروع أو الهدف أو الدائرة..." style="width:100%;padding:9px;border:1px solid var(--border);border-radius:8px;font-size:13px;margin-bottom:8px;">
     <div id="pmeProjectsChecklist" style="max-height:220px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;padding:8px;"></div>
+    </div>
     <div class="modal-actions" style="margin-top:16px;">
       <button class="btn-secondary" id="pmEditCancel">إلغاء</button>
       <button class="btn-primary" id="pmEditSave">حفظ</button>
@@ -8738,8 +8740,8 @@ function fillPMOrgFields(role, deptId, sectionId){
   };
   const updateNote = ()=>{
     document.getElementById("pmeRoleNote").textContent = roleSel.value==="head"
-      ? "👁️ رئيس القسم يرى ويحدّث كل مشاريع قسمه تلقائيًا، إضافة إلى ما يُسنَد إليه مباشرة."
-      : "👁️ الموظف يرى ويحدّث المشاريع المُسنَدة إليه مباشرة فقط.";
+      ? "👁️ رئيس القسم يضيف أهداف قسمه ونتائجها، ويحدّث إنجازها بعد اعتماد مدير الدائرة."
+      : "👁️ الموظف يطّلع على أهداف قسمه ولوحة أدائه فقط.";
   };
   fillSections(sectionId);
   updateNote();
@@ -15606,6 +15608,8 @@ function openPriorityDetail(id, dopts){
       ${projs.length ? projs.map(pr=>`<div class="pr-proj">📌 <span style="flex:1;">${escapeHtml(pr.projectName)} <span class="note-meta">— ${escapeHtml(deptName(pr.deptId))} • ${pr.year}</span></span>${metricsChipHTML(OKR_MODE ? programMetrics(pr) : projectMetrics(pr), true)}</div>`).join("") : `<div class="note-meta">لم يُربط بها أي هدف بعد.</div>`}
       ${can || prioIsPartner(p, myDeptIdForPrio()) ? `<button class="pr-btn" id="pdLink" style="margin-top:10px;">🔗 ربط أهداف ${can && currentRole()==="admin" ? "الدائرة" : "دائرتي"} بهذه الأولوية</button>` : ""}
     </div>
+    ${(()=>{ const md = currentRole()==="admin" ? p.deptId : myDeptIdForPrio(); const ok = OKR_MODE && md && p.status==="published" && (currentRole()==="admin" || (currentRole()==="manager" && (p.deptId===md || prioIsPartner(p, md))));
+      return ok ? `<div class="pr-sec" style="background:#F0F7F8;border-color:#BFE0E3;"><div class="pr-sec-h"><b>🎯 تحويل الأولوية إلى هدف${p.deptId!==md ? " لدائرتي" : " للدائرة"}</b></div><div class="note-meta" style="margin-bottom:8px;">يُفتح نموذج هدف جديد بعنوان الأولوية ومرتبطًا بها وباتجاهاتها الاستراتيجية، فتكمل الوزن والنتائج الرئيسية.</div><button class="pr-btn pri" id="pdToGoal" data-dept="${md}">🎯 جعل الأولوية هدفًا</button></div>` : ""; })()}
     ${prioPartnersSectionHTML(p)}
     <div class="pr-sec"><div class="pr-sec-h"><b>وضع المعالجة</b></div>
       ${can ? `<select id="pdOutcome" class="org-select">${Object.entries(PRIO_OUTCOMES).map(([k,v])=>`<option value="${k}" ${(p.outcome||"open")===k?"selected":""}>${v}</option>`).join("")}</select>
@@ -15617,6 +15621,12 @@ function openPriorityDetail(id, dopts){
     <span style="flex:1"></span><button class="pr-btn dang" id="pdDel">🗑️ حذف</button>` : "";
   const ov = prioModalShell(escapeHtml(p.title), body, foot);
   bindPartnersSection(ov, p);
+  const tg = ov.querySelector("#pdToGoal");
+  if(tg) tg.onclick = ()=>{
+    const dId = tg.dataset.dept;
+    const after = ()=>{ if(currentRole()==="manager"){ roleScreenThen("managerScreen","mgrTabInput")(); } else openOkrAdmin(); };
+    openOkrGoalModal(dId, p.year, null, after, { prefill:{ name:p.title, dirs:(p.directionIds||[]), prios:[p.id], fromPrio:p.title } });
+  };
   if(dopts.focusPartner){
     const row = ov.querySelector(`[data-partrow="${dopts.focusPartner}"]`);
     if(row){ row.classList.add("pr-focus"); setTimeout(()=> row.scrollIntoView({ block:"center", behavior:"smooth" }), 60); }
@@ -16306,15 +16316,17 @@ function openOkrGoalModal(deptId, year, p, rerender, so){
   const headMode = SEC && currentRole()==="pm";
   const submitterMode = SEC ? headMode : currentRole()==="manager";
   year = Number(year) || defaultPlanYear();
-  const st = { dirs: p ? okrGoalDirs(p) : [], goals: p ? programGoalIds(p).map(Number) : [], prios: p ? [...(p.priorityIds||[])] : [], krs: p ? okrKRs(p).map(k=>({ ...k })) : [{ id:"k"+Date.now(), name:"", type:"percent", weight:100, low:"", expected:"", high:"" }] };
+  const pf = (so && so.prefill) || {};
+  const st = { dirs: p ? okrGoalDirs(p) : (pf.dirs||[]).map(String), goals: p ? programGoalIds(p).map(Number) : [], prios: p ? [...(p.priorityIds||[])] : (pf.prios||[]), krs: p ? okrKRs(p).map(k=>({ ...k })) : [{ id:"k"+Date.now(), name:"", type:"percent", weight:100, low:"", expected:"", high:"" }] };
   const dirGoals = ()=> STRATEGIC_GOALS.filter(g=> !g.year || Number(g.year)===Number(st.year||year));
   st.year = year;
   const body = `
+    ${pf.fromPrio ? `<div class="pr-ev" style="margin:0 0 12px;">🧭 يُنشأ هذا الهدف من الأولوية «${escapeHtml(pf.fromPrio)}» — رُبط بها وباتجاهاتها تلقائيًا. عدّل نص الهدف إن لزم، وأكمل الوزن والنتائج الرئيسية.</div>` : ""}
     <div class="pr-sec"><div class="pr-sec-h"><span class="n">1</span><b>الهدف</b></div>
       ${SEC ? `<div class="pr-2col"><div class="pr-fld"><label>القسم</label><select id="ogSec" ${headMode?"disabled":""}>${sectionsOfDept(deptId).map(x=>`<option value="${x.id}" ${x.id===((p&&p.sectionId)||(so&&so.sectionId))?"selected":""}>${escapeHtml(x.name)}</option>`).join("")}</select></div>
         <div class="pr-fld"><label>هدف الدائرة الذي ينعكس عليه</label><select id="ogParent"></select></div></div>` : ""}
       ${!SEC && currentRole()==="admin" ? `<div class="pr-fld"><label>الدائرة</label><select id="ogDept">${DEPARTMENTS.map(d=>`<option value="${d.id}" ${d.id===deptId?"selected":""}>${escapeHtml(d.name)}</option>`).join("")}</select></div>` : ""}
-      <div class="pr-fld"><label for="ogName">نص الهدف</label><input type="text" id="ogName" maxlength="200" value="${escapeAttr(p?p.name:"")}" placeholder="مثل: التحول الرقمي في متابعة وتقييم الخطة السنوية"></div>
+      <div class="pr-fld"><label for="ogName">نص الهدف</label><input type="text" id="ogName" maxlength="200" value="${escapeAttr(p?p.name:(pf.name||""))}" placeholder="مثل: التحول الرقمي في متابعة وتقييم الخطة السنوية"></div>
       <div class="pr-2col">
         <div class="pr-fld"><label for="ogCat">تصنيف الهدف</label><select id="ogCat">${OKR_CATEGORIES.map(c=>`<option ${p&&p.category===c?"selected":""}>${c}</option>`).join("")}</select></div>
         <div class="pr-fld"><label for="ogWeight">وزن الهدف (%)</label><input type="text" inputmode="decimal" id="ogWeight" value="${escapeAttr(p&&p.weight!=null?String(p.weight):"")}" placeholder="مثل: 45"><div class="hint" id="ogWHint"></div></div>
