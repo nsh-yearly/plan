@@ -576,6 +576,55 @@ body.shell-on .dg-topbar{display:none !important;}
 .okr-sp-h{font-weight:800;color:#0D2B47;font-size:13.5px;margin-bottom:4px;}
 .okr-kr-owner{display:flex;flex-direction:column;gap:3px;font-size:11.5px;font-weight:800;color:#33475B;margin-top:8px;}
 .okr-kr-owner select{border:1px solid #CFDCE8;border-radius:9px;padding:7px 8px;font-family:inherit;font-size:13.5px;background:#fff;}
+/* ===== العرض التفاعلي للأهداف ===== */
+.ich{position:relative;}
+.ich-head,.ich-row,.ich-axisrow{display:grid;grid-template-columns:minmax(180px,30%) minmax(0,1fr) 130px;gap:14px;align-items:center;}
+.ich-head{font-size:12.5px;font-weight:800;color:#566476;padding:0 8px 8px;}
+.ich-ht{display:grid;grid-template-columns:20% 20% 60%;direction:ltr;text-align:center;}
+.ich-zl{border-radius:8px;padding:3px 0;font-size:11.5px;direction:rtl;}
+.ich-zl.l1{background:#FBE3E5;color:#B3202E;order:1;} .ich-zl.l2{background:#FBF1DA;color:#8A6110;order:2;} .ich-zl.l3{background:#E3F2E8;color:#1E7A3D;order:3;}
+.ich-ht .l1{grid-column:3;grid-row:1;} .ich-ht .l2{grid-column:2;grid-row:1;} .ich-ht .l3{grid-column:1;grid-row:1;}
+.ich-zl{margin:0 2px;}
+.ich-row{padding:10px 8px;border-radius:12px;cursor:pointer;transition:opacity .25s,background .2s;outline:none;}
+.ich-row:hover,.ich-row:focus{background:rgba(19,61,100,.05);}
+.ich-row.dim{opacity:.32;}
+.ich-n b{display:block;color:#0D2B47;font-size:14.5px;line-height:1.5;}
+.ich-n span{font-size:12px;color:#6B7A8A;}
+.ich-t{position:relative;height:30px;}
+.ich-z{position:absolute;top:0;bottom:0;opacity:.5;}
+.ich-z.z1{right:0;width:60%;background:#FBE3E5;border-radius:0 15px 15px 0;}
+.ich-z.z2{right:60%;width:20%;background:#FBF1DA;}
+.ich-z.z3{right:80%;width:20%;background:#E3F2E8;border-radius:15px 0 0 15px;}
+.ich-ticks i{position:absolute;top:-4px;bottom:-4px;border-right:1.5px dashed #B9C2CF;}
+.ich-bar{position:absolute;right:0;top:5px;height:20px;width:0;border-radius:10px;background:var(--c);transition:width 1s cubic-bezier(.2,.75,.25,1) var(--d);}
+.ich.go .ich-bar{width:var(--w);}
+.ich-pill{position:absolute;top:-1px;right:0;background:#fff;border:2px solid var(--c);color:var(--c);font-weight:800;font-size:13px;border-radius:999px;padding:2px 9px;white-space:nowrap;transition:right 1s cubic-bezier(.2,.75,.25,1) var(--d);font-variant-numeric:tabular-nums;}
+.ich.go .ich-pill{right:clamp(0px, calc(var(--w) - 26px), calc(100% - 56px));}
+.ich-axisrow{padding:0 8px;}
+.ich-axis{position:relative;height:22px;margin-top:4px;font-size:11.5px;color:#8593A3;}
+.ich-axis span{position:absolute;transform:translateX(50%);}
+.ich-tip{position:absolute;left:0;width:340px;max-width:calc(100% - 8px);background:#fff;border:1px solid #DDE3EA;border-radius:14px;box-shadow:0 12px 30px rgba(13,43,71,.18);padding:12px 14px 10px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;transform:translateY(6px);z-index:5;overflow:hidden;}
+.ich-tip.on{opacity:1;transform:none;}
+.ich-tip-bar{position:absolute;top:0;left:0;right:0;height:5px;}
+.ich-tip-h{display:flex;justify-content:space-between;gap:10px;align-items:baseline;margin-top:4px;}
+.ich-tip-h b{color:#0D2B47;font-size:15px;line-height:1.5;}
+.ich-tip-h span{font-weight:800;font-size:18px;}
+.ich-tip-m{font-size:12px;color:#6B7A8A;margin:2px 0 8px;line-height:1.7;}
+.ich-kr{display:grid;grid-template-columns:1fr 70px 78px;gap:8px;align-items:center;padding:5px 0;border-top:1px solid #EEF2F7;font-size:12.5px;}
+.ich-kr-n{color:#33475B;line-height:1.5;}
+.ich-kr-n small{color:#2F7F86;}
+.ich-kr-b{height:7px;background:#EEF2F7;border-radius:7px;overflow:hidden;}
+.ich-kr-b i{display:block;height:100%;border-radius:7px;margin-right:0;margin-left:auto;}
+.ich-kr-v{text-align:center;line-height:1.3;}
+.ich-kr-v small{display:block;font-size:10.5px;color:#8593A3;}
+.ich-tip-f{font-size:11px;color:#8593A3;text-align:center;margin-top:6px;}
+@media (max-width:700px){
+  .ich-head{display:none;}
+  .ich-row{grid-template-columns:1fr;gap:6px;}
+  .ich-s{display:none;}
+  .ich-axisrow{display:none;}
+  .ich-tip{left:4px;right:4px;width:auto;}
+}
 /* ===== SMART والأرباع ===== */
 .smart-head{background:#F4F2FE;border:1px solid #CECBF6;color:#3C3489;border-radius:10px;padding:7px 12px;font-size:13px;margin-bottom:10px;}
 .smart-head:empty{display:none;}
@@ -16810,12 +16859,17 @@ function renderSecGoals(){
       <div class="pr-kpi" style="border-inline-start:4px solid #1D6FAD;"><div class="k">بانتظار اعتماد مدير الدائرة</div><div class="v">${cnt("pending")}</div></div>
       <div class="pr-kpi" style="border-inline-start:4px solid #1E7A3D;"><div class="k">معتمدة</div><div class="v">${cnt("approved")}</div><div class="s">${cnt("returned")} مُعاد • ${cnt("draft")} مسودة</div></div>
     </div>
-    ${secs.length ? secs.map(x=>{ const g = okrSecGoals(x.id, y); const sm = okrAggregate(g.map(okrGoalMetrics)); const heads = ALL_PROJECT_MANAGERS.filter(pm=> pm.role==="head" && pm.sectionId===x.id).map(pm=>pm.name);
+    ${all.length ? `<div class="ind-views" style="margin-bottom:12px;"><button type="button" class="ind-view ${ICH_UI.view==="chart"?"active":""}" data-ichv="chart">📊 العرض التفاعلي</button><button type="button" class="ind-view ${ICH_UI.view==="table"?"active":""}" data-ichv="table">🗂️ جدول الأهداف والنتائج</button></div>` : ""}
+    ${all.length && ICH_UI.view==="chart" ? `<div class="pr-card" style="margin-bottom:16px;"><div class="pr-card-h"><b>نسب أداء أهداف ${secs.length===1 ? "القسم" : "الأقسام"}</b><span class="note-meta">مرّر على الهدف لعرض تفاصيله ونتائجه • اضغط لفتحه</span></div>${ichRowsHTML(secs.flatMap(x=> okrSecGoals(x.id, y).map(p=> p._shared ? p : { ...p, _for: x.id })).filter((p,i,arr)=> arr.findIndex(z=>z.code===p.code && z._for===p._for)===i))}</div>` : ""}
+    ${ICH_UI.view==="chart" && all.length ? "" : (secs.length ? secs.map(x=>{ const g = okrSecGoals(x.id, y); const sm = okrAggregate(g.map(okrGoalMetrics)); const heads = ALL_PROJECT_MANAGERS.filter(pm=> pm.role==="head" && pm.sectionId===x.id).map(pm=>pm.name);
       return `<section class="okr-dept"><div class="okr-dept-h"><b>🏷️ ${escapeHtml(x.name)}</b><span class="note-meta">رئيس القسم: ${heads.length ? heads.map(escapeHtml).join("، ") : "—"} • الإنجاز ${sm.noData ? "—" : sm.actual + "%"}</span>${okrSecWeightWarn(x.id, y)}
         ${canAddFor(x.id) ? `<button type="button" class="pr-tag-btn" style="margin-inline-start:auto;padding:6px 12px;font-size:13px;" data-secg-add="${x.id}">＋ إضافة هدف للقسم</button>` : ""}</div>
         ${g.length ? g.map(p=> okrGoalCardHTML(p, { review:true })).join("") : `<div class="empty-note">لا توجد أهداف لهذا القسم في خطة ${y}.</div>`}</section>`; }).join("")
-      : `<div class="empty-note">${deptId ? "لا توجد أقسام مسجّلة لهذه الدائرة." : "حسابك غير مُسنَد لدائرة أو قسم بعد."}</div>`}
+      : `<div class="empty-note">${deptId ? "لا توجد أقسام مسجّلة لهذه الدائرة." : "حسابك غير مُسنَد لدائرة أو قسم بعد."}</div>`)}
+    ${ICH_UI.view==="chart" && all.length ? `<div style="display:flex;flex-wrap:wrap;gap:8px;">${secs.filter(x=>canAddFor(x.id)).map(x=>`<button type="button" class="pr-tag-btn" style="padding:7px 14px;font-size:13px;" data-secg-add="${x.id}">＋ إضافة هدف لـ${escapeHtml(x.name)}</button>`).join("")}</div>` : ""}
     ${goalsAchievementLegendHTML()}`;
+  box.querySelectorAll("[data-ichv]").forEach(b=> b.onclick = ()=>{ ICH_UI.view = b.dataset.ichv; renderSecGoals(); });
+  bindIch(box, code=>{ ICH_UI.view = "table"; OKR_UI.open[code] = true; renderSecGoals(); setTimeout(()=>{ const c = document.querySelector(`#secGoalsBox [data-okr-card="${CSS.escape(code)}"]`); if(c) c.scrollIntoView({ behavior:"smooth", block:"start" }); }, 60); });
   box.querySelectorAll("[data-secg-year]").forEach(b=> b.onclick = ()=>{ OKR_UI.year = Number(b.dataset.secgYear); renderSecGoals(); });
   const ds = document.getElementById("secgDept"); if(ds) ds.onchange = e=>{ SECG_UI.dept = e.target.value; renderSecGoals(); };
   box.querySelectorAll("[data-secg-add]").forEach(b=> b.onclick = ()=>{
@@ -17191,6 +17245,63 @@ function maybeShowSharedPopup(){
   const ov = prioModalShell("🤝 الأهداف المشتركة", `${inv.length ? `<div class="pr-ev" style="margin-bottom:8px;">لديك ${inv.length} ${inv.length===1?"دعوة":"دعوات"} للمشاركة في أهداف أقسام أخرى.</div>` : ""}${app.length ? `<div class="pr-ev">لديك ${app.length} ${app.length===1?"شراكة":"شراكات"} أهداف بانتظار اعتمادك.</div>` : ""}`, `<span style="flex:1"></span><button class="pr-btn" id="spLater">لاحقًا</button><button class="pr-btn pri" id="spOpen">عرض</button>`);
   ov.querySelector("#spLater").onclick = prioCloseModal;
   ov.querySelector("#spOpen").onclick = ()=>{ prioCloseModal(); openSecGoals(); };
+}
+
+/* ---------- العرض التفاعلي لأهداف الأقسام (أشرطة نسب الأداء + بطاقة تفاصيل عند المرور) ---------- */
+const ICH_UI = { view:"chart" };
+function ichRowsHTML(goals){
+  const rows = goals.map(p=>({ p, m: okrGoalMetrics(p) })).sort((a,b)=> (b.m.noData?-1:b.m.actual) - (a.m.noData?-1:a.m.actual));
+  const zones = `<div class="ich-z z1"></div><div class="ich-z z2"></div><div class="ich-z z3"></div>`;
+  return `<div class="ich">
+    <div class="ich-head"><div class="ich-hn">الهدف</div><div class="ich-ht"><span class="ich-zl l1">أقل من 60%</span><span class="ich-zl l2">60–79%</span><span class="ich-zl l3">80% فأكثر</span></div><div class="ich-hs">الحالة</div></div>
+    ${rows.map(({p,m},i)=>{ const pct = m.noData ? null : m.actual; const col = boardColor(pct); const st = PERF_STATUS[m.status];
+      return `<div class="ich-row" data-ich="${p.code}" data-ichfor="${p._for||""}" tabindex="0" role="button" aria-label="${escapeAttr(p.name)}">
+        <div class="ich-n"><b>${escapeHtml(p.name)}</b><span>${okrGoalLabel(p)} • ${escapeHtml(sectionName(p._for || p.sectionId))}${p._shared ? " • 🤝 مشترك" : ""} • الوزن ${Number(p.weight)||0}%</span></div>
+        <div class="ich-t">${zones}<div class="ich-ticks"><i style="right:60%"></i><i style="right:80%"></i></div>
+          <div class="ich-bar" style="--w:${pct==null?0:Math.min(100,pct)}%;--c:${col};--d:${i*70}ms;"></div>
+          <span class="ich-pill" style="--w:${pct==null?0:Math.min(100,pct)}%;--c:${col};--d:${i*70}ms;">${pct==null ? "—" : pct + "%"}</span></div>
+        <div class="ich-s"><span class="perf-chip" style="background:${st.bg};color:${st.color};">${st.label}</span></div>
+      </div>`; }).join("")}
+    <div class="ich-axisrow"><div></div><div class="ich-axis"><span style="right:0">0%</span><span style="right:25%">25%</span><span style="right:50%">50%</span><span style="right:60%">60%</span><span style="right:80%">80%</span><span style="right:100%">100%</span></div><div></div></div>
+    <div class="ich-tip" id="ichTip" aria-hidden="true"></div>
+  </div>`;
+}
+function ichTipHTML(p){
+  const m = okrGoalMetrics(p), pct = m.noData ? null : m.actual, col = boardColor(pct);
+  const pg = p.parentCode ? PROGRAMS.find(x=>x.code===p.parentCode) : null;
+  return `<div class="ich-tip-bar" style="background:${col}"></div>
+    <div class="ich-tip-h"><b>${escapeHtml(p.name)}</b><span style="color:${col}">${pct==null ? "—" : pct + "%"}</span></div>
+    <div class="ich-tip-m">${okrGoalLabel(p)} • ${escapeHtml(p.category||OKR_CATEGORIES[0])} • الوزن ${Number(p.weight)||0}% • ${OKR_STATUS[okrStatus(p)].label}${pg ? `<br>ينعكس على: ${escapeHtml(pg.name)}` : ""}</div>
+    ${okrKRs(p).map(k=>{ const a = krAch(k); const c = boardColor(a.pct); return `<div class="ich-kr"><div class="ich-kr-n">${escapeHtml(k.name)}${p._sec && secPartners(p).some(x=>x.status==="active") ? ` <small>🏷️ ${escapeHtml(sectionName(krOwnerSection(p,k)))}</small>` : ""}</div>
+      <div class="ich-kr-b"><i style="width:${a.pct==null?0:Math.min(100,a.pct)}%;background:${c}"></i></div>
+      <div class="ich-kr-v"><b style="color:${c}">${a.pct==null ? "—" : a.pct + "%"}</b><small>${escapeHtml(okrFmtVal(k,k.actual))} من ${escapeHtml(okrFmtVal(k,k.expected))}${a.late ? " • متأخرة" : ""}</small></div></div>`; }).join("") || `<div class="note-meta">لا توجد نتائج رئيسية.</div>`}
+    <div class="ich-tip-f">اضغط لفتح تفاصيل الهدف</div>`;
+}
+function bindIch(root, onOpen){
+  const box = root.querySelector(".ich"); if(!box) return;
+  const tip = box.querySelector("#ichTip");
+  const rows = [...box.querySelectorAll(".ich-row")];
+  const show = row=>{
+    const p = okrFindGoal(row.dataset.ich); if(!p) return;
+    const pv = row.dataset.ichfor ? okrSecGoals(row.dataset.ichfor).find(x=>x.code===p.code) || p : p;
+    rows.forEach(r=> r.classList.toggle("dim", r!==row));
+    tip.innerHTML = ichTipHTML(pv);
+    tip.classList.add("on");
+    const br = box.getBoundingClientRect(), rr = row.getBoundingClientRect();
+    const th = tip.offsetHeight, below = rr.bottom - br.top + 6, above = rr.top - br.top - th - 6;
+    tip.style.top = (below + th > box.offsetHeight + 40 && above >= 0 ? above : below) + "px";
+  };
+  const hide = ()=>{ rows.forEach(r=> r.classList.remove("dim")); tip.classList.remove("on"); };
+  let pt = "mouse", tapped = null;
+  rows.forEach(row=>{
+    row.onpointerdown = e=>{ pt = e.pointerType || "mouse"; };
+    row.onmouseenter = ()=> show(row);
+    row.onfocus = ()=> show(row);
+    row.onmouseleave = hide; row.onblur = hide;
+    row.onclick = ()=>{ if(pt==="touch" && tapped!==row){ tapped = row; show(row); return; } onOpen(row.dataset.ich); };
+    row.onkeydown = e=>{ if(e.key==="Enter") onOpen(row.dataset.ich); };
+  });
+  requestAnimationFrame(()=> box.classList.add("go"));
 }
 
 function openOkrAdmin(){ showScreen("okrAdminScreen"); renderOkrAdmin(); }
