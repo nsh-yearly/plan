@@ -402,6 +402,9 @@ details.cd-full summary{cursor:pointer;font-size:12.5px;font-weight:700;color:va
 .app-nav-item{display:flex;align-items:center;gap:10px;width:100%;text-align:start;background:transparent;border:0;color:#D3E2F0;font-family:inherit;font-size:14.5px;padding:10px 12px;border-radius:10px;min-height:44px;cursor:pointer;}
 .app-nav-item:hover{background:rgba(255,255,255,.08);color:#fff;}
 .app-nav-item.active{background:#fff;color:#133D64;font-weight:700;}
+.app-nav-item.nav-accent:not(.active){color:#F2C46D;font-weight:800;background:rgba(242,196,109,.10);box-shadow:inset 0 0 0 1px rgba(242,196,109,.35);}
+.app-nav-light .app-nav-item.nav-accent:not(.active){color:#8A5A00;background:#FFF4D6;box-shadow:inset 0 0 0 1px #F3C98B;}
+#refScreen .org-title{color:#A86B00;}
 .app-nav-item .ico{width:22px;text-align:center;flex:none;}
 .app-nav-badge{margin-inline-start:auto;background:#74B5BB;color:#0B2540;font-size:11.5px;font-weight:800;border-radius:999px;padding:1px 8px;}
 .app-user{margin-top:auto;display:flex;align-items:center;gap:10px;background:rgba(0,0,0,.18);border-radius:12px;padding:10px 12px;}
@@ -1800,6 +1803,13 @@ tr.rejected-row td{background:#FDF6F6;}
 .pb-proj-d{font-size:calc(9.2px*var(--k));color:#3A4656;line-height:1.75;text-align:justify;margin:1px 13px 0 0;}
 .pb-proj-m{font-size:calc(8.8px*var(--k));color:#6B7688;margin:2px 13px 0 0;}
 @media print{
+  body.printing-okrrep{padding:0 !important;height:auto !important;overflow:visible !important;background:#fff !important;}
+  html.shell-scroll body.printing-okrrep{height:auto !important;overflow:visible !important;}
+  body.printing-okrrep > *:not(#okrRepPrintContainer){display:none !important;}
+  body.printing-okrrep #okrRepPrintContainer{display:block !important;}
+  body.printing-okrrep .orp-cover{page:orcover;max-width:none;width:210mm;height:297mm;aspect-ratio:auto;margin:0;break-after:page;}
+  @page orcover{ size:A4 portrait; margin:0; }
+  @page{ size:A4 portrait; margin:14mm 12mm; }
   body.printing-plandoc > *:not(#planDocPrintContainer){display:none !important;}
   body.printing-plandoc #planDocPrintContainer{display:block !important;}
   #planDocPrintContainer .pd-doc{max-width:none;}
@@ -1843,7 +1853,7 @@ tr.rejected-row td{background:#FDF6F6;}
         <h1 class="org-title" id="orgHomeTitle">الخطة السنوية للمديرية</h1>
       </div>
       <div class="org-head-tools">
-        <input type="search" id="orgSearch" class="org-search" placeholder="🔍 ابحث عن دائرة أو قسم أو مشروع" aria-label="بحث">
+        <select id="orgDeptJump" class="org-select" aria-label="اختر الدائرة" style="min-width:240px;"></select>
         <div class="org-years" id="orgYears" role="group" aria-label="السنة"></div>
       </div>
     </div>
@@ -1897,6 +1907,7 @@ tr.rejected-row td{background:#FDF6F6;}
       <button class="mgr-tab active" id="refTabPlan">🗂️ الخطة الخمسية الحادية عشرة</button>
       <button class="mgr-tab" id="refTabInd">📊 المؤشرات الصحية</button>
       <button class="mgr-tab" id="refTabIbra">🏥 مؤشرات مستشفى إبراء</button>
+      <button class="mgr-tab" id="refTabPx">😊 تجربة المريض</button>
       <button class="mgr-tab" id="refTabPrio">🧭 مصفوفة الأولويات</button>
     </div>
     <div id="refPlanView">
@@ -1936,6 +1947,7 @@ tr.rejected-row td{background:#FDF6F6;}
       </div>
     </div>
     <div id="refIbraView" class="hidden"></div>
+    <div id="refPxView" class="hidden"><div class="org-card" style="padding:28px 20px;text-align:center;"><div style="font-size:40px;line-height:1;">😊</div><h3 style="margin:10px 0 6px;color:#0D2B47;font-family:'Cairo',sans-serif;">بيانات تجربة المريض</h3><div class="note-meta" style="font-size:13.5px;line-height:1.9;">قريبًا: نتائج استبيانات رضا المرضى وتجربتهم في المؤسسات الصحية — مرجع لتحديد أولويات تحسين الخدمة.</div></div></div>
     <div id="refPrioView" class="hidden"></div>
   </div>
 </div>
@@ -3349,6 +3361,7 @@ tr.rejected-row td{background:#FDF6F6;}
 <div id="challengesPrintTableContainer" class="hidden"></div>
 <div id="directoryPrintContainer" class="hidden"></div>
 <div id="planDocPrintContainer" class="hidden"></div>
+<div id="okrRepPrintContainer" class="hidden"></div>
 <div id="detailModalOverlay" class="modal-overlay hidden" style="align-items:flex-start;overflow-y:auto;padding:26px 12px;z-index:300;">
   <div class="detail-modal-box">
     <div class="detail-modal-header">
@@ -13967,7 +13980,7 @@ function shellItemsBase(role){
     { key:"timeline", ico:"🗓️", label:"الخط الزمني السنوي", short:"الخط الزمني", act:()=> openTimeline("all"), bottom:true },
     { key:"goals", ico:"🎯", label:"تحقق الأهداف", act:()=> clickEl("navGoalsBtn"), bottom:true },
     { key:"projects", ico:"📊", label:"استعراض المشاريع", act:()=> clickEl("navHomeBtn") },
-    { key:"ref", ico:"📚", label:"مرجع الأولويات", act:()=>{ openRefScreen(); if(Number((document.getElementById("prioPartnerBadgeSrc")||{}).textContent)>0) showRefTab("refTabPrio"); }, badge:"prioPartnerBadgeSrc" },
+    { key:"ref", ico:"📚", label:"مرجع الأولويات", accent:true, act:()=>{ openRefScreen(); if(Number((document.getElementById("prioPartnerBadgeSrc")||{}).textContent)>0) showRefTab("refTabPrio"); }, badge:"prioPartnerBadgeSrc" },
     { group:"التقارير والتحليل" },
     { key:"meeting", ico:"📋", label:"الخطة المفصلة", act:()=> clickEl("navMeetingBtn") },
     { key:"weekly", ico:"📑", label:"تقرير المشاريع", act:()=> clickEl("navWeeklyReportBtn") },
@@ -13993,7 +14006,7 @@ function shellItemsBase(role){
     { key:"overview", ico:"📊", label:"نظرة عامة على المشاريع", act:roleScreenThen("dgScreen","dgTabOverviewBtn") },
     { key:"challenges", ico:"🚨", label:"التحديات", act:roleScreenThen("dgScreen","dgTabChallengesBtn"), badge:"dgChallengesBadge", bottom:true },
     { key:"spi", ico:"📈", label:"مؤشر الأداء الزمني SPI", act:roleScreenThen("dgScreen","dgTabSPIBtn") },
-    { key:"ref", ico:"📚", label:"مرجع الأولويات", act:()=>{ openRefScreen(); if(Number((document.getElementById("prioPartnerBadgeSrc")||{}).textContent)>0) showRefTab("refTabPrio"); }, badge:"prioPartnerBadgeSrc" },
+    { key:"ref", ico:"📚", label:"مرجع الأولويات", accent:true, act:()=>{ openRefScreen(); if(Number((document.getElementById("prioPartnerBadgeSrc")||{}).textContent)>0) showRefTab("refTabPrio"); }, badge:"prioPartnerBadgeSrc" },
     { group:"الحساب" },
     { key:"pw", ico:"🔑", label:"تغيير كلمة المرور", act:()=> clickEl("dgChangePasswordBtn"), noActive:true }
   ];
@@ -14008,7 +14021,7 @@ function shellItemsBase(role){
     { key:"spi", ico:"📈", label:"مؤشر الأداء الزمني SPI", act:roleScreenThen("managerScreen","mgrTabSPI") },
     { key:"analytics", ico:"🔬", label:"تحليلات متقدمة", act:roleScreenThen("managerScreen","mgrTabAnalytics") },
     { key:"yearend", ico:"🔚", label:"قرار نهاية السنة", act:()=> openYearEndScreen(), badge:"yearEndBadgeSrc" },
-    { key:"ref", ico:"📚", label:"مرجع الأولويات", act:()=>{ openRefScreen(); if(Number((document.getElementById("prioPartnerBadgeSrc")||{}).textContent)>0) showRefTab("refTabPrio"); }, badge:"prioPartnerBadgeSrc" },
+    { key:"ref", ico:"📚", label:"مرجع الأولويات", accent:true, act:()=>{ openRefScreen(); if(Number((document.getElementById("prioPartnerBadgeSrc")||{}).textContent)>0) showRefTab("refTabPrio"); }, badge:"prioPartnerBadgeSrc" },
     { group:"الحساب" },
     { key:"pw", ico:"🔑", label:"تغيير كلمة المرور", act:()=> clickEl("mgrChangePwBtn"), noActive:true }
   ];
@@ -14019,7 +14032,7 @@ function shellItemsBase(role){
     { key:"comms", ico:"📨", label:"الملاحظات والتحديات", act:roleScreenThen("projectManagerScreen","pmTabComms"), badge:"pmCommsBadge", bottom:true, short:"الملاحظات" },
     { key:"spi", ico:"📈", label:"مؤشر الأداء الزمني SPI", act:roleScreenThen("projectManagerScreen","pmTabSPI") },
     { key:"analytics", ico:"🔬", label:"تحليلات متقدمة", act:roleScreenThen("projectManagerScreen","pmTabAnalytics") },
-    { key:"ref", ico:"📚", label:"مرجع الأولويات", act:()=>{ openRefScreen(); if(Number((document.getElementById("prioPartnerBadgeSrc")||{}).textContent)>0) showRefTab("refTabPrio"); }, badge:"prioPartnerBadgeSrc" },
+    { key:"ref", ico:"📚", label:"مرجع الأولويات", accent:true, act:()=>{ openRefScreen(); if(Number((document.getElementById("prioPartnerBadgeSrc")||{}).textContent)>0) showRefTab("refTabPrio"); }, badge:"prioPartnerBadgeSrc" },
     { group:"الحساب" },
     { key:"pw", ico:"🔑", label:"تغيير كلمة المرور", act:()=> clickEl("pmChangePwBtn"), noActive:true }
   ];
@@ -14034,7 +14047,7 @@ function shellKeyForScreen(id){
 }
 function shellItemHTML(it, light){
   if(it.group) return `<div class="app-nav-group">${escapeHtml(it.group)}</div>`;
-  return `<button type="button" class="app-nav-item${SHELL_ACTIVE_KEY===it.key?" active":""}" data-key="${it.key}"><span class="ico" aria-hidden="true">${it.ico}</span><span>${escapeHtml(it.label)}</span>${it.badge ? `<span class="app-nav-badge hidden" data-badge-src="${it.badge}"></span>` : ""}</button>`;
+  return `<button type="button" class="app-nav-item${SHELL_ACTIVE_KEY===it.key?" active":""}${it.accent?" nav-accent":""}" data-key="${it.key}"><span class="ico" aria-hidden="true">${it.ico}</span><span>${escapeHtml(it.label)}</span>${it.badge ? `<span class="app-nav-badge hidden" data-badge-src="${it.badge}"></span>` : ""}</button>`;
 }
 function renderAppShell(){
   const role = currentRole();
@@ -14203,11 +14216,12 @@ function renderOrgHome(){
     ${DEPARTMENTS.some(d=>!d.group) ? `<div class="org-group-title">أخرى</div><div class="org-grid">${DEPARTMENTS.filter(d=>!d.group).map(deptCard).join("")}</div>` : ""}`;
   document.querySelectorAll("#orgDepts [data-dept]").forEach(b=> b.onclick = ()=> openDeptScreen(b.dataset.dept));
   // البحث
-  const si = document.getElementById("orgSearch");
-  si.oninput = renderOrgSearch;
-  renderOrgSearch();
+  const js = document.getElementById("orgDeptJump");
+  js.innerHTML = `<option value="">🏢 انتقل إلى دائرة…</option>` + (deptGroupsInUse().filter(g=> DEPARTMENTS.some(d=>d.group===g)).map(g=>`<optgroup label="${escapeAttr(g)}">${DEPARTMENTS.filter(d=>d.group===g).map(d=>`<option value="${d.id}">${escapeHtml(d.name)}</option>`).join("")}</optgroup>`).join("")) + DEPARTMENTS.filter(d=>!d.group).map(d=>`<option value="${d.id}">${escapeHtml(d.name)}</option>`).join("");
+  js.onchange = ()=>{ if(js.value) openDeptScreen(js.value); };
 }
 function renderOrgSearch(){
+  if(!document.getElementById("orgSearch")) return;
   const q = (document.getElementById("orgSearch").value||"").trim();
   const box = document.getElementById("orgSearchResults");
   if(q.length<2){ box.innerHTML = ""; return; }
@@ -16383,10 +16397,13 @@ function okrRepHTML(){
   const overall = okrAggregate(data.map(x=> okrAggregate(x.goals.map(okrGoalMetrics))).filter(m=>!m.noData));
   const pct = m=> m.noData ? "—" : m.actual + "%";
   let h = "";
-  if(o.cover) h += `<section class="orp-cover"><img src="masar-logo.png" alt="" class="orp-logo"><div class="orp-org">المديرية العامة للخدمات الصحية بمحافظة شمال الشرقية</div>
-    <h1>${escapeHtml(title)}</h1><div class="orp-sub">الأهداف والنتائج الرئيسية — الخطة السنوية ${y}</div>
-    <div class="orp-meta">إعداد: ${escapeHtml(issuer)} • تاريخ الإصدار: ${escapeHtml(pdFmtDate(date))}</div>
-    <div class="orp-kpis"><div><b>${data.length}</b><span>دائرة</span></div><div><b>${allGoals.length}</b><span>هدفًا</span></div><div><b>${allGoals.reduce((s,p)=>s+okrKRs(p).length,0)}</b><span>نتيجة رئيسية</span></div><div><b>${pct(overall)}</b><span>نسبة الإنجاز</span></div></div></section>`;
+  if(o.cover) h += `<section class="orp-cover"><div class="orc-bar"></div>
+    <div class="orc-head"><div class="orc-logo"><img src="moh-logo.png" alt="وزارة الصحة"></div><div class="orc-org">سلطنة عُمان<br>وزارة الصحة<br>المديرية العامة للخدمات الصحية بمحافظة شمال الشرقية</div></div>
+    <div class="orc-mid"><div class="orc-tag">مسار .. من الخطة إلى الإنجاز</div><h1>${escapeHtml(title)}</h1><div class="orc-line"></div>
+      <div class="orc-sub">الأهداف والنتائج الرئيسية للعام ${y}</div><span class="orc-year">${y}</span>
+      <div class="orc-kpis"><div><b>${data.length}</b><span>دائرة</span></div><div><b>${allGoals.length}</b><span>هدفًا</span></div><div><b>${allGoals.reduce((s,p)=>s+okrKRs(p).length,0)}</b><span>نتيجة رئيسية</span></div><div><b>${pct(overall)}</b><span>نسبة الإنجاز</span></div></div></div>
+    <svg class="orc-arc" viewBox="0 0 400 400" aria-hidden="true"><path d="M0 400 V220 A180 180 0 0 1 360 220 V400" fill="none" stroke="#74B5BB" stroke-opacity=".45" stroke-width="3"/></svg>
+    <div class="orc-foot"><div><span>إعداد</span><b>${escapeHtml(issuer)}</b></div><div><span>تاريخ الإصدار</span><b>${escapeHtml(pdFmtDate(date))}</b></div></div></section>`;
   if(o.summary) h += `<section class="orp-sec"><h2>ملخص الإنجاز حسب الدائرة</h2><table class="orp-t"><thead><tr><th>#</th><th>الدائرة</th><th>الأهداف</th><th>النتائج الرئيسية</th><th>مجموع الأوزان</th><th>المعتمدة</th><th>نسبة الإنجاز</th></tr></thead><tbody>
     ${data.map((x,i)=>{ const m = okrAggregate(x.goals.map(okrGoalMetrics)); const w = x.goals.reduce((s,p)=>s+(Number(p.weight)||0),0); return `<tr><td>${i+1}</td><td style="text-align:start;">${escapeHtml(x.d.name)}</td><td>${x.goals.length}</td><td>${x.goals.reduce((s,p)=>s+okrKRs(p).length,0)}</td><td class="${w===100?"":"orp-warn"}">${indNum(w,1)}%</td><td>${x.goals.filter(p=>okrStatus(p)==="approved").length}</td><td><b>${pct(m)}</b></td></tr>`; }).join("")}
     </tbody><tfoot><tr><td colspan="2">المجموع</td><td>${allGoals.length}</td><td>${allGoals.reduce((s,p)=>s+okrKRs(p).length,0)}</td><td></td><td>${allGoals.filter(p=>okrStatus(p)==="approved").length}</td><td><b>${pct(overall)}</b></td></tr></tfoot></table></section>`;
@@ -16411,16 +16428,26 @@ function okrRepHTML(){
   return `<div class="orp" style="--orp-f:${(document.getElementById("orFont")||{}).value||1};">${h || `<div class="orp-gm">اختر محتوى التقرير.</div>`}</div>`;
 }
 const OKRREP_CSS = `.orp{font-family:'Cairo','Segoe UI',Tahoma,sans-serif;color:#1B2733;direction:rtl;font-size:calc(12.5px * var(--orp-f,1));line-height:1.7;}
-.orp-cover{text-align:center;padding:40px 20px 30px;border-bottom:3px solid #133D64;margin-bottom:18px;}
-.orp-logo{width:150px;height:auto;margin-bottom:10px;}
-.orp-org{color:#566476;font-weight:700;}
-.orp-cover h1{font-size:1.9em;color:#133D64;margin:10px 0 4px;}
-.orp-sub{font-size:1.2em;color:#237EC2;font-weight:700;}
-.orp-meta{color:#6B7A8A;margin-top:8px;}
-.orp-kpis{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-top:18px;}
-.orp-kpis div{border:1px solid #CFDCE8;border-radius:10px;padding:8px 16px;min-width:90px;}
-.orp-kpis b{display:block;font-size:1.6em;color:#133D64;}
-.orp-kpis span{color:#566476;font-size:.9em;}
+.orp-cover{position:relative;overflow:hidden;background:#0E2238;color:#fff;aspect-ratio:210/297;width:100%;max-width:640px;margin:0 auto 22px;box-sizing:border-box;padding:9% 8% 7%;display:flex;flex-direction:column;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+.orc-bar{position:absolute;top:0;left:0;right:0;height:1.4%;background:#74B5BB;}
+.orc-head{display:flex;gap:14px;align-items:center;justify-content:flex-start;}
+.orc-logo{background:#fff;border-radius:10px;padding:8px;width:16%;flex:none;}
+.orc-logo img{width:100%;display:block;}
+.orc-org{font-size:.95em;line-height:1.9;font-weight:700;}
+.orc-mid{margin-top:auto;margin-bottom:auto;position:relative;z-index:1;}
+.orc-tag{color:#74B5BB;font-weight:800;font-size:1em;margin-bottom:6px;}
+.orp-cover h1{font-size:2.3em;line-height:1.35;margin:0 0 14px;color:#fff;}
+.orc-line{width:38%;height:4px;background:#74B5BB;border-radius:2px;margin:6px 0 18px;}
+.orc-sub{font-size:1.3em;margin-bottom:14px;}
+.orc-year{display:inline-block;border:1.5px solid #74B5BB;color:#9FD0D5;border-radius:999px;padding:1px 16px;font-weight:800;font-size:.95em;}
+.orc-kpis{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px;}
+.orc-kpis div{border:1px solid rgba(116,181,187,.45);border-radius:10px;padding:6px 14px;min-width:70px;background:rgba(255,255,255,.04);}
+.orc-kpis b{display:block;font-size:1.45em;color:#fff;}
+.orc-kpis span{font-size:.85em;color:#9FB8CF;}
+.orc-arc{position:absolute;left:-18%;bottom:-6%;width:62%;opacity:.45;z-index:0;}
+.orc-foot{display:flex;gap:40px;border-top:1px solid rgba(255,255,255,.18);padding-top:12px;position:relative;z-index:1;}
+.orc-foot span{display:block;font-size:.85em;color:#9FB8CF;}
+.orc-foot b{font-size:1.05em;}
 .orp-sec{margin-bottom:18px;}
 .orp-sec h2{font-size:1.25em;color:#fff;background:#133D64;border-radius:8px;padding:6px 12px;margin:0 0 8px;}
 .orp-dept{break-before:page;}
@@ -16458,7 +16485,7 @@ function renderOkrReportScreen(){
         <div class="pd-field"><label>إعداد</label><input id="orIssuer" placeholder="قسم التخطيط والدراسات"></div>
         <div class="pd-field"><label>تاريخ الإصدار</label><input type="date" id="orDate"></div>
         <div class="pd-field"><label>حجم الخط</label><select id="orFont" style="padding:8px;border:1px solid var(--border);border-radius:8px;font-family:inherit;"><option value="1">عادي</option><option value="1.15" selected>كبير</option><option value="1.3">كبير جدًا</option></select></div></div>
-    </div><div class="pd-preview-wrap"><div class="pd-preview-note">معاينة — يُطبع كل قسم دائرة في صفحة مستقلة.</div><div id="orPreview" style="background:#fff;border:1px solid #E1E7EE;border-radius:12px;padding:18px;"></div></div></div>`;
+    </div><div class="pd-preview-wrap"><div class="pd-preview-note">معاينة — يُطبع كل قسم دائرة في صفحة مستقلة. في نافذة الطباعة أزل علامة «الرؤوس والتذييلات» (Headers and footers) وأبقِ «رسومات الخلفية» (Background graphics) مفعّلة.</div><div id="orPreview" style="background:#fff;border:1px solid #E1E7EE;border-radius:12px;padding:18px;"></div></div></div>`;
     document.getElementById("orDate").value = todayLocalStr();
     box.querySelectorAll("[data-oro]").forEach(c=> c.onchange = ()=>{ o[c.dataset.oro] = c.checked; okrRepRefresh(); });
     document.getElementById("orYear").onchange = e=>{ OKRREP.year = Number(e.target.value); okrRepRefresh(); };
@@ -16478,15 +16505,13 @@ function renderOkrReportScreen(){
 function okrRepRefresh(){ const p = document.getElementById("orPreview"); if(p) p.innerHTML = okrRepHTML(); }
 function okrRepPrint(){
   if(!OKRREP.depts.length){ alert("اختر دائرة واحدة على الأقل."); return; }
-  const w = window.open("", "_blank");
-  if(!w){ alert("اسمح بالنوافذ المنبثقة لهذه الصفحة ثم أعد المحاولة."); return; }
-  const base = location.href.replace(/[^/]*$/, "");
-  w.document.write(`<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><base href="${base}"><title>${escapeHtml((document.getElementById("orTitle").value||"تقرير الخطة"))} ${OKRREP.year}</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800&display=swap" rel="stylesheet">
-    <style>${OKRREP_CSS} @page{size:A4 portrait;margin:14mm 12mm;} body{margin:0;background:#fff;} .orp-cover{break-after:page;min-height:240mm;display:flex;flex-direction:column;justify-content:center;border-bottom:0;} .orp-sec h2,.orp-t th{-webkit-print-color-adjust:exact;print-color-adjust:exact;}</style></head>
-    <body>${okrRepHTML()}<script>window.onload=function(){setTimeout(function(){window.print();},600);};<\/script></body></html>`);
-  w.document.close();
+  const cont = document.getElementById("okrRepPrintContainer");
+  cont.innerHTML = okrRepHTML();
+  document.body.classList.add("printing-okrrep");
+  const done = ()=>{ document.body.classList.remove("printing-okrrep"); cont.innerHTML = ""; window.removeEventListener("afterprint", done); };
+  window.addEventListener("afterprint", done);
   logActivity(getActorName(), "okr_report_print", String(OKRREP.year));
+  setTimeout(()=> window.print(), 250);
 }
 async function okrRepExcel(){
   if(typeof ExcelJS==="undefined"){ alert("مكتبة Excel غير محمّلة."); return; }
@@ -16519,7 +16544,7 @@ function okrRefreshVisible(){
   if(!document.getElementById("deptScreen").classList.contains("hidden") && typeof renderDeptScreen==="function") renderDeptScreen();
 }
 
-const REF_TABS = [["refTabPlan","refPlanView"],["refTabInd","refIndView"],["refTabIbra","refIbraView"],["refTabPrio","refPrioView"]];
+const REF_TABS = [["refTabPlan","refPlanView"],["refTabInd","refIndView"],["refTabIbra","refIbraView"],["refTabPx","refPxView"],["refTabPrio","refPrioView"]];
 function showRefTab(tabId){
   REF_TABS.forEach(([t,v])=>{ document.getElementById(t).classList.toggle("active", t===tabId); document.getElementById(v).classList.toggle("hidden", t!==tabId); });
   if(tabId==="refTabInd"){ initHealthInd(); renderHealthInd(); }
