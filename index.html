@@ -571,6 +571,31 @@ body.shell-on .dg-topbar{display:none !important;}
 .ind-svc{display:flex;flex-wrap:wrap;gap:6px;}
 .ind-svc span{background:#F4F8F9;border:1px solid #D7E8EA;color:#1E5A60;border-radius:8px;padding:3px 10px;font-size:12.5px;}
 .ind-note{font-size:12px;color:#566476;margin-top:10px;line-height:1.7;}
+/* ===== لوحات الأداء ===== */
+.bd-sum{display:flex;flex-wrap:wrap;gap:18px;align-items:center;background:#fff;border:1px solid #E1E7EE;border-radius:16px;padding:16px 18px;margin-bottom:18px;}
+.bd-sum-main{flex:1 1 320px;}
+.bd-sum-t{font-size:18px;font-weight:800;color:#0D2B47;}
+.bd-kpis{display:flex;flex-wrap:wrap;gap:10px;margin:10px 0;}
+.bd-kpis div{background:#F5F8FB;border-radius:10px;padding:6px 14px;text-align:center;min-width:80px;}
+.bd-kpis b{display:block;font-size:20px;color:#0D2B47;}
+.bd-kpis span{font-size:12px;color:#566476;}
+.bd-stack{display:flex;height:12px;border-radius:8px;overflow:hidden;background:#EEF2F7;}
+.bd-stack i{display:block;height:100%;}
+.bd-legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:#566476;margin-top:6px;}
+.bd-legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-inline-end:4px;vertical-align:middle;}
+.bd-h{font-size:17px;color:#0D2B47;margin:20px 0 22px;font-weight:800;}
+.bd-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:26px 14px;}
+.bd-card{position:relative;background:#fff;border:1px solid #E1E7EE;border-radius:16px;padding:22px 12px 14px;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;font-family:inherit;}
+.bd-click{cursor:pointer;}
+.bd-click:hover{border-color:#237EC2;box-shadow:0 4px 14px rgba(19,61,100,.1);}
+.bd-rank{position:absolute;top:-14px;left:50%;transform:translateX(-50%);width:28px;height:28px;border-radius:50%;background:#6B7A8A;color:#fff;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;border:3px solid #F4F6F9;}
+.bd-grid .bd-card:nth-child(1) .bd-rank{background:#C9971C;}
+.bd-grid .bd-card:nth-child(2) .bd-rank{background:#8C9AA8;}
+.bd-grid .bd-card:nth-child(3) .bd-rank{background:#A8672C;}
+.bd-grid .bd-card.nod .bd-rank{background:#B8C2CC !important;}
+.bd-t{font-weight:800;color:#0D2B47;font-size:14px;line-height:1.55;}
+.bd-s{font-size:12px;color:#6B7A8A;line-height:1.6;}
+@media (max-width:600px){ .bd-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:24px 10px;} .bd-sum{justify-content:center;text-align:center;} .bd-kpis{justify-content:center;} }
 /* ===== جدول الأهداف بأسلوب إجادة ===== */
 .ij-card{border:1px solid #DDE3EA;border-radius:6px;background:#fff;}
 .ij-head{display:grid;grid-template-columns:52px minmax(0,1.7fr) minmax(120px,1fr) 110px 140px minmax(150px,190px);cursor:pointer;}
@@ -1919,6 +1944,7 @@ tr.rejected-row td{background:#FDF6F6;}
 </div>
 
 <!-- ===================== صفحة الدائرة ===================== -->
+<div id="perfBoardScreen" class="hidden"><div class="dash-wrap" id="perfBoardBox"></div></div>
 <div id="secGoalsScreen" class="hidden"><div class="dash-wrap" id="secGoalsBox"></div></div>
 <div id="okrReportScreen" class="hidden"><div class="dash-wrap" id="okrReportBox"></div></div>
 <div id="okrAdminScreen" class="hidden"><div class="dash-wrap" id="okrAdminBox"></div></div>
@@ -4827,7 +4853,7 @@ function goalsAchievementHTML(opts){
     const projs = programProjects(p, year);
     return `<div class="ga-prog">
       <div class="ga-prog-head">
-        <div><b>${p.code}</b> — ${escapeHtml(p.name)} <span class="note-meta">(${escapeHtml(deptName(p.deptId)||"—")} · ${OKR_MODE ? okrKRs(p).length + " نتائج رئيسية • الوزن " + (Number(p.weight)||0) + "%" : projs.length + " مشروعًا"})</span></div>
+        <div><b>${OKR_MODE ? okrGoalLabel(p) : p.code}</b> — ${escapeHtml(p.name)} <span class="note-meta">(${escapeHtml(deptName(p.deptId)||"—")} · ${OKR_MODE ? okrKRs(p).length + " نتائج رئيسية • الوزن " + (Number(p.weight)||0) + "%" : projs.length + " مشروعًا"})</span></div>
         ${metricsChipHTML(pm, true)}
       </div>
       ${metricsBarHTML(pm)}
@@ -5920,7 +5946,7 @@ function toggleCountdownCustomFields(){
 /* ---------------- Screens ---------------- */
 const ADMIN_CLUSTER_SCREENS = ["adminScreen","goalsScreen","yearEndScreen","meetingScreen","passwordsScreen","activityScreen","backupScreen","execSummaryScreen","decisionLogScreen","requestsScreen","weeklyReportScreen","programsAdminScreen","competitionReportScreen","fullMatrixScreen","spiScreen","analyticsScreen","planDocScreen"];
 function showScreen(id){
-  ["loginScreen","managerScreen","projectManagerScreen","dgScreen","orgHomeScreen","deptScreen","timelineScreen","yearEndMgrScreen","refScreen","okrAdminScreen","okrReportScreen","secGoalsScreen",...ADMIN_CLUSTER_SCREENS].forEach(s=>{
+  ["loginScreen","managerScreen","projectManagerScreen","dgScreen","orgHomeScreen","deptScreen","timelineScreen","yearEndMgrScreen","refScreen","okrAdminScreen","okrReportScreen","secGoalsScreen","perfBoardScreen",...ADMIN_CLUSTER_SCREENS].forEach(s=>{
     document.getElementById(s).classList.toggle("hidden", s!==id);
   });
   document.getElementById("adminPersistentNav").classList.toggle("hidden", !ADMIN_CLUSTER_SCREENS.includes(id));
@@ -14013,21 +14039,26 @@ function shellItems(role){
     const r = items.findIndex(it=>it.group==="التقارير والتحليل");
     if(r>=0) items.splice(r+1, 0, { key:"okrreport", ico:"📘", label:"تقرير الخطة", act:()=> openOkrReport() });
     const i2 = items.findIndex(it=>it.key==="goals");
+    items.splice(i2+1, 0, { key:"board", ico:"🏆", label:"لوحة أداء الدوائر", act:()=>{ BOARD_UI.dept = ""; openPerfBoard(); } });
     items.splice(i2+1, 0, { key:"okrreview", ico:"✅", label:"اعتماد أهداف الدوائر", short:"الاعتماد", act:()=> openOkrAdmin(), badge:"okrPendingBadgeSrc", bottom:true });
   }
   if(role==="manager"){
     items = items.filter(it=> it.key!=="dept").map(it=> it.key==="input" ? { ...it, ico:"🏢", label:"الدائرة وأهدافها", short:"الدائرة" } : it.key==="goals" ? { ...it, ico:"📊", label:"الإنجاز حسب الاتجاهات", short:"الإنجاز" } : it);
+    items.splice(1, 0, { key:"board", ico:"📈", label:"لوحة أداء الدائرة", short:"الأداء", act:()=> openPerfBoard() });
     items.splice(1, 0, { key:"secgoals", ico:"🏷️", label:"أهداف الأقسام", short:"الأقسام", act:()=> openSecGoals(), badge:"okrSecBadgeSrc", bottom:true });
     const g = items.findIndex(it=>it.key==="goals");
     items.splice(g+1, 0, { key:"okrreport", ico:"📘", label:"تقرير الخطة", act:()=> openOkrReport() });
   }
   if(role==="dg"){
+    const g0 = items.findIndex(it=>it.key==="goals");
+    items.splice(g0+1, 0, { key:"board", ico:"🏆", label:"لوحة أداء الدوائر", act:()=>{ BOARD_UI.dept = ""; openPerfBoard(); }, bottom:true });
     const g = items.findIndex(it=>it.key==="goals");
     items.splice(g+1, 0, { key:"okrreport", ico:"📘", label:"تقرير الخطة", act:()=> openOkrReport() });
   }
   if(role==="pm"){
+    items.unshift({ key:"board", ico:"📈", label:"لوحة أداء القسم", act:()=> openPerfBoard(), bottom:true });
     items.unshift({ key:"secgoals", ico:"🏷️", label:"أهداف القسم", act:()=> openSecGoals(), bottom:true });
-    items.splice(1, 0, { key:"dept", ico:"🏢", label:"أهداف الدائرة", act:()=>{ const me = ALL_PROJECT_MANAGERS.find(m=>m.employeeId===currentProjectManagerId)||{}; if(me.deptId) openDeptScreen(me.deptId); else alert("حسابك غير مُسنَد لدائرة بعد."); }, bottom:true });
+    if(false) items.splice(1, 0, { key:"dept", ico:"🏢", label:"أهداف الدائرة", act:()=>{ const me = ALL_PROJECT_MANAGERS.find(m=>m.employeeId===currentProjectManagerId)||{}; if(me.deptId) openDeptScreen(me.deptId); else alert("حسابك غير مُسنَد لدائرة بعد."); }, bottom:true });
   }
   // حذف عناوين المجموعات الفارغة
   return items.filter((it,i)=> !it.group || (items[i+1] && !items[i+1].group));
@@ -14100,7 +14131,7 @@ function shellKeyForScreen(id){
   const role = currentRole();
   const map = { orgHomeScreen:"home", deptScreen: role==="manager" ? "dept" : "home", timelineScreen:"timeline", goalsScreen:"goals", adminScreen:"projects",
     meetingScreen:"meeting", weeklyReportScreen:"weekly", competitionReportScreen:"competition", fullMatrixScreen:"matrix", spiScreen:"spi", planDocScreen:"plandoc",
-    analyticsScreen:"analytics", refScreen:"ref", okrAdminScreen:"okrreview", okrReportScreen:"okrreport", secGoalsScreen:"secgoals", yearEndScreen:"yearend", yearEndMgrScreen:"yearend", decisionLogScreen:"decisions", requestsScreen:"requests", programsAdminScreen:"structure", passwordsScreen:"passwords", activityScreen:"activity", backupScreen:"backup" };
+    analyticsScreen:"analytics", refScreen:"ref", okrAdminScreen:"okrreview", okrReportScreen:"okrreport", secGoalsScreen:"secgoals", perfBoardScreen:"board", yearEndScreen:"yearend", yearEndMgrScreen:"yearend", decisionLogScreen:"decisions", requestsScreen:"requests", programsAdminScreen:"structure", passwordsScreen:"passwords", activityScreen:"activity", backupScreen:"backup" };
   return map[id] || null;
 }
 function shellItemHTML(it, light){
@@ -16103,6 +16134,13 @@ function okrCanProgress(p){
 }
 function okrIsSubmitter(p){ return p._sec ? okrIsHeadOf(p.sectionId) : currentRole()==="manager"; }
 function okrCanApprove(p){ return currentRole()==="admin" || (p._sec && okrIsDeptMgr(p.deptId)); }
+function okrGoalNo(p){
+  if(!p) return "";
+  const list = p._sec ? okrSecGoals(p.sectionId, p.year) : okrDeptGoals(p.deptId, p.year);
+  const i = list.findIndex(x=>x.code===p.code);
+  return i>=0 ? i+1 : "";
+}
+function okrGoalLabel(p){ const n = okrGoalNo(p); return n ? `الهدف ${n}` : "الهدف"; }
 function okrFindGoal(code){ return PROGRAMS.find(p=>p.code===code) || SEC_GOALS.find(p=>p.code===code); }
 function okrSecGoals(sectionId, year){ return SEC_GOALS.filter(p=> p.sectionId===sectionId && (!year || Number(p.year)===Number(year))).sort((a,b)=> dirCodeCmp(a.code,b.code)); }
 function okrSecGoalsOfParent(code){ return SEC_GOALS.filter(p=> p.parentCode===code); }
@@ -16172,7 +16210,7 @@ function okrGoalCardHTML(p, ctx){
     <div class="ij-head" data-okr-toggle="${p.code}">
       <div class="ij-lab"></div><div class="ij-lab">الهدف</div><div class="ij-lab">تصنيف الهدف</div><div class="ij-lab">وزن الهدف</div><div class="ij-lab">الحالة</div><div class="ij-lab">الإنجاز</div>
       <div class="ij-val ij-togc"><span class="okr-tog">${open ? "−" : "+"}</span></div>
-      <div class="ij-val ij-name"><span class="okr-code">${p.code}</span>${escapeHtml(p.name)}${ctx.showDept || (p._sec && ctx.showSection) ? `<div class="okr-sub">${ctx.showDept ? `🏢 ${escapeHtml(deptName(p.deptId)||"—")}` : ""}${p._sec && ctx.showSection ? ` 🏷️ ${escapeHtml(sectionName(p.sectionId)||"—")}` : ""}</div>` : ""}</div>
+      <div class="ij-val ij-name"><span class="okr-code">${okrGoalLabel(p)}</span>${escapeHtml(p.name)}${ctx.showDept || (p._sec && ctx.showSection) ? `<div class="okr-sub">${ctx.showDept ? `🏢 ${escapeHtml(deptName(p.deptId)||"—")}` : ""}${p._sec && ctx.showSection ? ` 🏷️ ${escapeHtml(sectionName(p.sectionId)||"—")}` : ""}</div>` : ""}</div>
       <div class="ij-val">${escapeHtml(p.category||OKR_CATEGORIES[0])}</div>
       <div class="ij-val">${indNum(Number(p.weight)||0,2)} %</div>
       <div class="ij-val">${okrStatusChip(p)}</div>
@@ -16180,10 +16218,10 @@ function okrGoalCardHTML(p, ctx){
     </div>
     ${open ? `<div class="okr-body">
       ${p.okrStatus==="returned" && p.reviewNote ? `<div class="okr-note">↩️ ملاحظة ${p._sec ? "مدير الدائرة" : "قسم التخطيط"}: ${escapeHtml(p.reviewNote)}</div>` : ""}
-      ${p._sec ? `<div class="okr-links"><span>ينعكس على هدف الدائرة:</span>${(()=>{ const pg = PROGRAMS.find(x=>x.code===p.parentCode); return pg ? `<span class="org-chip">${pg.code}. ${escapeHtml(pg.name)}</span>` : `<span class="org-chip" style="background:#EEF2F7;color:#566476;">غير مرتبط بأي هدف في الدائرة</span>`; })()}</div>` : `<div class="okr-links">
+      ${p._sec ? `<div class="okr-links"><span>ينعكس على هدف الدائرة:</span>${(()=>{ const pg = PROGRAMS.find(x=>x.code===p.parentCode); return pg ? `<span class="org-chip">${okrGoalLabel(pg)}: ${escapeHtml(pg.name)}</span>` : `<span class="org-chip" style="background:#EEF2F7;color:#566476;">غير مرتبط بأي هدف في الدائرة</span>`; })()}</div>` : `<div class="okr-links">
         <span>الاتجاهات الاستراتيجية:</span>${okrGoalDirs(p).length ? okrGoalDirs(p).map(id=>`<span class="pr-chip dir">🧭 ${escapeHtml(directionName(id))}</span>`).join("") : `<span class="org-chip" style="background:#EEF2F7;color:#566476;">غير مرتبط</span>`}
         ${prios.length ? `<span style="margin-inline-start:8px;">يعالج الأولويات:</span>${prios.map(x=>`<span class="pr-chip dir">🧭 ${escapeHtml(x.title)}</span>`).join("")}` : ""}
-        ${(()=>{ const sg = okrSecGoalsOfParent(p.code); return sg.length ? `<span style="margin-inline-start:8px;">أهداف الأقسام المنعكسة:</span>${sg.map(x=>`<span class="org-chip">🏷️ ${escapeHtml(sectionName(x.sectionId))}: ${escapeHtml(x.name)} (${okrGoalMetrics(x).noData ? "—" : okrGoalMetrics(x).actual + "%"})</span>`).join("")}` : ""; })()}
+        ${(()=>{ const sg = okrSecGoalsOfParent(p.code); return sg.length ? `<span style="margin-inline-start:8px;">أهداف الأقسام المنعكسة:</span>${sg.map(x=>`<span class="org-chip">🏷️ ${escapeHtml(sectionName(x.sectionId))} — ${okrGoalLabel(x)}: ${escapeHtml(x.name)} (${okrGoalMetrics(x).noData ? "—" : okrGoalMetrics(x).actual + "%"})</span>`).join("")}` : ""; })()}
       </div>`}
       <div class="ij-krh">النتائج الرئيسية للهدف ${krs.length && ws!==100 ? `<span class="perf-chip" style="background:#FCE9D6;color:#A24A08;">⚠️ مجموع أوزان النتائج ${ws}% (يجب أن يكون 100%)</span>` : ""}</div>
       ${krs.length ? `<div style="overflow-x:auto;"><table class="ij-table"><thead><tr><th rowspan="2">النتائج الرئيسية</th><th rowspan="2">وزن النتيجة</th><th rowspan="2">نوع المؤشر</th><th colspan="3">المستهدفات</th><th rowspan="2">الأداء الفعلي</th><th rowspan="2">الإنجاز</th><th rowspan="2"></th></tr><tr><th>منخفض</th><th>متوقع</th><th>عالي</th></tr></thead>
@@ -16272,7 +16310,7 @@ function openOkrGoalModal(deptId, year, p, rerender, so){
       const pgs = okrDeptGoals(deptId, st.year);
       const sel = $("#ogParent").value || (p ? p.parentCode : "");
       const selv = sel || (p && !p.parentCode ? "__none" : "");
-      $("#ogParent").innerHTML = `<option value="">— اختر هدف الدائرة —</option>` + pgs.map(g=>`<option value="${g.code}" ${g.code===selv?"selected":""}>${g.code}. ${escapeHtml(g.name)}</option>`).join("") + `<option value="__none" ${selv==="__none"?"selected":""}>غير مرتبط بأي هدف في الدائرة</option>`;
+      $("#ogParent").innerHTML = `<option value="">— اختر هدف الدائرة —</option>` + pgs.map(g=>`<option value="${g.code}" ${g.code===selv?"selected":""}>${okrGoalLabel(g)}: ${escapeHtml(g.name)}</option>`).join("") + `<option value="__none" ${selv==="__none"?"selected":""}>غير مرتبط بأي هدف في الدائرة</option>`;
       return;
     }
     const ds = typeof DIRECTIONS!=="undefined" ? DIRECTIONS : [];
@@ -16488,13 +16526,13 @@ function okrDirectionsHTML(year, deptId, showKRs){
     const depts = [...new Set(gs.map(p=>p.deptId))];
     return `<div class="ga-goal"><div class="ga-goal-head"><div class="ga-goal-name">🧭 ${escapeHtml(d.name)}</div>${metricsChipHTML(m)}</div>${metricsBarHTML(m)}
       <div class="note-meta">${gs.length ? `${gs.length} ${gs.length===1?"هدف":"أهداف"} من ${depts.length} ${depts.length===1?"دائرة":"دوائر"}: ${depts.map(x=>escapeHtml(deptName(x))).join("، ")}` : "لم يُربط به أي هدف دائرة بعد"}</div>
-      ${gs.map(p=>{ const pm = okrGoalMetrics(p); return `<div class="ga-prog"><div class="ga-prog-head"><div><b>${p.code}</b> — ${escapeHtml(p.name)} <span class="note-meta">(${escapeHtml(deptName(p.deptId)||"—")} · ${okrKRs(p).length} نتائج رئيسية · الوزن ${Number(p.weight)||0}%)</span></div>${metricsChipHTML(pm, true)}</div>${metricsBarHTML(pm)}
+      ${gs.map(p=>{ const pm = okrGoalMetrics(p); return `<div class="ga-prog"><div class="ga-prog-head"><div><b>${okrGoalLabel(p)}</b> — ${escapeHtml(p.name)} <span class="note-meta">(${escapeHtml(deptName(p.deptId)||"—")} · ${okrKRs(p).length} نتائج رئيسية · الوزن ${Number(p.weight)||0}%)</span></div>${metricsChipHTML(pm, true)}</div>${metricsBarHTML(pm)}
         ${showKRs!==false ? okrKRs(p).map(k=>{ const a = krAch(k); return `<div class="ga-proj"><span>${escapeHtml(k.name)} <span class="note-meta">— ${KR_TYPES[k.type]||""} • وزن ${Number(k.weight)||0}% • المتوقع ${escapeHtml(okrFmtVal(k,k.expected))} • المتحقق ${escapeHtml(okrFmtVal(k,k.actual))}</span></span><span class="perf-chip" style="background:${a.done?"#E3F2E8":a.late?"#FBE3E5":"#EEF5FB"};color:${a.done?"#1E7A3D":a.late?"#B3202E":"#1D6FAD"};">${a.pct==null ? "لم يُسجَّل" : "الإنجاز " + a.pct + "%"}</span></div>`; }).join("") : ""}</div>`; }).join("")}
     </div>`;
   }).join("");
   const none = inScope.filter(p=> !okrGoalDirs(p).length);
   return (blocks || `<div class="empty-note">لا توجد أهداف ${year ? "لسنة " + year + " " : ""}بعد.</div>`)
-    + (none.length ? `<div class="ga-goal"><div class="ga-goal-head"><div class="ga-goal-name">أهداف غير مرتبطة باتجاه استراتيجي</div></div><div class="note-meta">${none.map(p=>`${p.code} — ${escapeHtml(p.name)} (${escapeHtml(deptName(p.deptId))})`).join(" • ")}</div></div>` : "");
+    + (none.length ? `<div class="ga-goal"><div class="ga-goal-head"><div class="ga-goal-name">أهداف غير مرتبطة باتجاه استراتيجي</div></div><div class="note-meta">${none.map(p=>`${okrGoalLabel(p)}: ${escapeHtml(p.name)} (${escapeHtml(deptName(p.deptId))})`).join(" • ")}</div></div>` : "");
 }
 
 /* ---------- تقرير الخطة (الأهداف والنتائج الرئيسية) ---------- */
@@ -16540,7 +16578,7 @@ function okrRepHTML(){
     const dm = okrAggregate(x.goals.map(okrGoalMetrics));
     h += `<section class="orp-sec orp-dept"><h2>${escapeHtml(x.d.name)}</h2><div class="orp-dmeta">مدير الدائرة: ${escapeHtml(managerOfDept(x.d.id)||"—")} • ${x.goals.length} أهداف • نسبة الإنجاز: <b>${pct(dm)}</b></div>
       ${x.goals.length ? x.goals.map(p=>{ const m = okrGoalMetrics(p); const krs = okrKRs(p);
-        return `<div class="orp-goal"><div class="orp-gh"><span class="orp-code">${p.code}</span><b>${escapeHtml(p.name)}</b></div>
+        return `<div class="orp-goal"><div class="orp-gh"><span class="orp-code">${okrGoalLabel(p)}</span><b>${escapeHtml(p.name)}</b></div>
           <div class="orp-gm">التصنيف: ${escapeHtml(p.category||OKR_CATEGORIES[0])} • وزن الهدف: <b>${Number(p.weight)||0}%</b> • الحالة: ${OKR_STATUS[okrStatus(p)].label}${o.actual ? ` • الإنجاز: <b>${pct(m)}</b>` : ""}${okrGoalDirs(p).length ? `<br>الاتجاهات الاستراتيجية: ${okrGoalDirs(p).map(dd=>escapeHtml(directionName(dd))).join("، ")}` : ""}${(p.priorityIds||[]).length ? `<br>الأولويات: ${(p.priorityIds||[]).map(prioById).filter(Boolean).map(z=>escapeHtml(z.title)).join("، ")}` : ""}</div>
           ${krs.length ? `<table class="orp-t"><thead><tr><th>النتيجة الرئيسية</th><th>نوع المؤشر</th><th>الوزن</th>${o.targets ? "<th>منخفض</th><th>متوقع</th><th>عالي</th>" : ""}${o.actual ? "<th>المتحقق</th><th>الإنجاز</th>" : ""}</tr></thead><tbody>
             ${krs.map(k=>{ const a = krAch(k); const last = (k.comments||[]).slice(-1)[0]; const span = 3 + (o.targets?3:0) + (o.actual?2:0);
@@ -16646,14 +16684,14 @@ async function okrRepExcel(){
   head(s1, [["الدائرة","d",40],["الأهداف","g",10],["النتائج الرئيسية","k",14],["مجموع الأوزان %","w",14],["المعتمدة","a",10],["نسبة الإنجاز %","p",14]]);
   data.forEach(x=>{ const m = okrAggregate(x.goals.map(okrGoalMetrics)); s1.addRow({ d:x.d.name, g:x.goals.length, k:x.goals.reduce((s,p)=>s+okrKRs(p).length,0), w:x.goals.reduce((s,p)=>s+(Number(p.weight)||0),0), a:x.goals.filter(p=>okrStatus(p)==="approved").length, p: m.noData ? null : m.actual }); });
   const s2 = wb.addWorksheet("الأهداف");
-  head(s2, [["الرمز","c",8],["الدائرة","d",34],["الهدف","n",50],["التصنيف","t",14],["وزن الهدف %","w",12],["الحالة","s",16],["الاتجاهات الاستراتيجية","r",40],["الأولويات","pr",36],["نسبة الإنجاز %","p",14]]);
-  data.forEach(x=> x.goals.forEach(p=>{ const m = okrGoalMetrics(p); s2.addRow({ c:p.code, d:x.d.name, n:p.name, t:p.category||OKR_CATEGORIES[0], w:Number(p.weight)||0, s:OKR_STATUS[okrStatus(p)].label, r: okrGoalDirs(p).map(directionName).join("، "), pr:(p.priorityIds||[]).map(prioById).filter(Boolean).map(z=>z.title).join("، "), p: m.noData ? null : m.actual }); }));
+  head(s2, [["الهدف","c",10],["الدائرة","d",34],["الهدف","n",50],["التصنيف","t",14],["وزن الهدف %","w",12],["الحالة","s",16],["الاتجاهات الاستراتيجية","r",40],["الأولويات","pr",36],["نسبة الإنجاز %","p",14]]);
+  data.forEach(x=> x.goals.forEach(p=>{ const m = okrGoalMetrics(p); s2.addRow({ c:okrGoalLabel(p), d:x.d.name, n:p.name, t:p.category||OKR_CATEGORIES[0], w:Number(p.weight)||0, s:OKR_STATUS[okrStatus(p)].label, r: okrGoalDirs(p).map(directionName).join("، "), pr:(p.priorityIds||[]).map(prioById).filter(Boolean).map(z=>z.title).join("، "), p: m.noData ? null : m.actual }); }));
   const s3 = wb.addWorksheet("النتائج الرئيسية");
-  head(s3, [["رمز الهدف","c",10],["الدائرة","d",30],["النتيجة الرئيسية","n",50],["نوع المؤشر","t",12],["الوزن %","w",10],["منخفض","lo",12],["متوقع","ex",12],["عالي","hi",12],["المتحقق","ac",12],["الإنجاز %","p",12],["آخر تعليق","cm",50]]);
-  data.forEach(x=> x.goals.forEach(p=> okrKRs(p).forEach(k=>{ const a = krAch(k); const last = (k.comments||[]).slice(-1)[0]; s3.addRow({ c:p.code, d:x.d.name, n:k.name, t:KR_TYPES[k.type]||"", w:Number(k.weight)||0, lo:okrFmtVal(k,k.low), ex:okrFmtVal(k,k.expected), hi:okrFmtVal(k,k.high), ac:okrFmtVal(k,k.actual), p:a.pct, cm: last ? `(${okrFmtDate(last.at)}) ${last.by||""}: ${last.text||""}` : "" }); })));
+  head(s3, [["الهدف","c",10],["الدائرة","d",30],["النتيجة الرئيسية","n",50],["نوع المؤشر","t",12],["الوزن %","w",10],["منخفض","lo",12],["متوقع","ex",12],["عالي","hi",12],["المتحقق","ac",12],["الإنجاز %","p",12],["آخر تعليق","cm",50]]);
+  data.forEach(x=> x.goals.forEach(p=> okrKRs(p).forEach(k=>{ const a = krAch(k); const last = (k.comments||[]).slice(-1)[0]; s3.addRow({ c:okrGoalLabel(p), d:x.d.name, n:k.name, t:KR_TYPES[k.type]||"", w:Number(k.weight)||0, lo:okrFmtVal(k,k.low), ex:okrFmtVal(k,k.expected), hi:okrFmtVal(k,k.high), ac:okrFmtVal(k,k.actual), p:a.pct, cm: last ? `(${okrFmtDate(last.at)}) ${last.by||""}: ${last.text||""}` : "" }); })));
   const s4 = wb.addWorksheet("الأنشطة");
-  head(s4, [["رمز الهدف","c",10],["النتيجة الرئيسية","k",40],["النشاط","n",44],["البداية","s",12],["النهاية","e",12],["النسبة %","p",10],["تم التنفيذ","dn",12]]);
-  data.forEach(x=> x.goals.forEach(p=> okrKRs(p).forEach(k=> (k.activities||[]).forEach(a=> s4.addRow({ c:p.code, k:k.name, n:a.name, s:a.start||"", e:a.end||"", p:Number(a.progress)||0, dn: a.done ? "نعم" : "لا" })))));
+  head(s4, [["الهدف","c",10],["النتيجة الرئيسية","k",40],["النشاط","n",44],["البداية","s",12],["النهاية","e",12],["النسبة %","p",10],["تم التنفيذ","dn",12]]);
+  data.forEach(x=> x.goals.forEach(p=> okrKRs(p).forEach(k=> (k.activities||[]).forEach(a=> s4.addRow({ c:okrGoalLabel(p), k:k.name, n:a.name, s:a.start||"", e:a.end||"", p:Number(a.progress)||0, dn: a.done ? "نعم" : "لا" })))));
   [s1,s2,s3,s4].forEach(ws=> ws.eachRow((r,i)=>{ if(i>1) r.alignment = { vertical:"top", wrapText:true }; }));
   const buf = await wb.xlsx.writeBuffer();
   const blob = new Blob([buf], { type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
@@ -16711,6 +16749,7 @@ function renderSecGoals(){
   bindOkrCards(box, renderSecGoals);
 }
 function secGoalsRefreshVisible(){
+  const pb = document.getElementById("perfBoardScreen"); if(pb && !pb.classList.contains("hidden") && !document.getElementById("prioModal")) renderPerfBoard();
   const sc = document.getElementById("secGoalsScreen");
   if(document.getElementById("prioModal")) return;
   if(sc && !sc.classList.contains("hidden")) renderSecGoals();
@@ -16718,8 +16757,91 @@ function secGoalsRefreshVisible(){
   if(!document.getElementById("deptScreen").classList.contains("hidden")) renderDeptScreen();
 }
 
+/* ---------- لوحات الأداء (القسم / الدائرة / الدوائر) ---------- */
+const BOARD_UI = { dept:"" };
+function boardColor(pct){ return pct==null ? "#9AA7B4" : pct>=80 ? "#1E7A3D" : pct>=60 ? "#C9971C" : "#B3202E"; }
+function boardRing(pct, size){
+  size = size || 96;
+  const r = 40, c = 2*Math.PI*r, v = pct==null ? 0 : Math.max(0, Math.min(100, pct));
+  const col = boardColor(pct);
+  return `<svg class="bd-ring" width="${size}" height="${size}" viewBox="0 0 100 100" role="img" aria-label="${pct==null ? "لا بيانات" : pct + "%"}">
+    <circle cx="50" cy="50" r="${r}" fill="none" stroke="#E6EBF0" stroke-width="11"/>
+    ${v>0 ? `<circle cx="50" cy="50" r="${r}" fill="none" stroke="${col}" stroke-width="11" stroke-linecap="round" stroke-dasharray="${(c*v/100).toFixed(1)} ${c.toFixed(1)}" transform="rotate(-90 50 50)"/>` : ""}
+    <text x="50" y="50" text-anchor="middle" dominant-baseline="central" font-size="20" font-weight="800" fill="${col}" font-family="Cairo,sans-serif">${pct==null ? "—" : pct + "%"}</text></svg>`;
+}
+function boardCards(items){
+  // items: [{ title, sub, pct }]
+  const sorted = [...items].sort((a,b)=> (b.pct==null?-1:b.pct) - (a.pct==null?-1:a.pct));
+  return `<div class="bd-grid">${sorted.map((x,i)=>`<div class="bd-card${x.pct==null?" nod":""}"><span class="bd-rank">${i+1}</span>${boardRing(x.pct)}<div class="bd-t">${escapeHtml(x.title)}</div>${x.sub ? `<div class="bd-s">${x.sub}</div>` : ""}</div>`).join("")}</div>`;
+}
+function boardKrStats(goals){
+  const krs = goals.flatMap(p=> okrKRs(p));
+  const st = { done:0, prog:0, late:0, none:0 };
+  krs.forEach(k=>{ const a = krAch(k); if(a.done) st.done++; else if(a.late) st.late++; else if(a.pct!=null) st.prog++; else st.none++; });
+  const tot = krs.length || 1;
+  const seg = (n,c)=> n ? `<i style="width:${(n/tot*100).toFixed(1)}%;background:${c};"></i>` : "";
+  return { krs, st, bar: `<div class="bd-stack">${seg(st.done,"#1E7A3D")}${seg(st.prog,"#237EC2")}${seg(st.late,"#B3202E")}${seg(st.none,"#C9D3DE")}</div>
+    <div class="bd-legend"><span><i style="background:#1E7A3D"></i>تحققت ${st.done}</span><span><i style="background:#237EC2"></i>قيد التنفيذ ${st.prog}</span><span><i style="background:#B3202E"></i>متأخرة ${st.late}</span><span><i style="background:#C9D3DE"></i>لم يُسجَّل ${st.none}</span></div>` };
+}
+function boardSummary(title, m, goals, extra){
+  const k = boardKrStats(goals);
+  return `<div class="bd-sum">${boardRing(m.noData ? null : m.actual, 130)}
+    <div class="bd-sum-main"><div class="bd-sum-t">${title}</div><div class="note-meta">${extra||""}</div>
+      <div class="bd-kpis"><div><b>${goals.length}</b><span>أهداف</span></div><div><b>${k.krs.length}</b><span>نتائج رئيسية</span></div><div><b style="color:#1E7A3D;">${k.st.done}</b><span>تحققت</span></div><div><b style="color:#B3202E;">${k.st.late}</b><span>متأخرة</span></div></div>
+      ${k.krs.length ? k.bar : ""}</div></div>`;
+}
+function boardKrCards(goals){
+  return boardCards(goals.flatMap(p=> okrKRs(p).map(k=>({ title:k.name, sub:`${okrGoalLabel(p)} • ${KR_TYPES[k.type]||""} • المتحقق ${escapeHtml(okrFmtVal(k,k.actual))} من ${escapeHtml(okrFmtVal(k,k.expected))}`, pct: krAch(k).pct }))));
+}
+function openPerfBoard(){ showScreen("perfBoardScreen"); renderPerfBoard(); }
+function renderPerfBoard(){
+  const box = document.getElementById("perfBoardBox"); if(!box) return;
+  if(!OKR_UI.year) OKR_UI.year = defaultPlanYear();
+  const y = OKR_UI.year, r = currentRole();
+  const yearTabs = okrYearTabsHTML(y, "data-bd-year");
+  let h = "";
+  if(r==="pm"){
+    const me = okrMyHeadRec() || {};
+    const sec = getSection(me.sectionId);
+    const goals = sec ? okrSecGoals(sec.id, y) : [];
+    const m = okrAggregate(goals.map(okrGoalMetrics));
+    h = `<div class="okr-top"><div><h1 class="org-title" style="font-size:22px;">📈 لوحة أداء القسم</h1><div class="note-meta" style="font-size:13.5px;">${escapeHtml(sec ? sec.name : "—")} — ${escapeHtml(deptName(me.deptId)||"")}</div></div>${yearTabs}</div>`
+      + (sec ? boardSummary(`إنجاز ${escapeHtml(sec.name)}`, m, goals, `خطة ${y} • مرجّح بأوزان الأهداف`)
+        + `<h2 class="bd-h">🏅 ترتيب أهداف القسم حسب نسبة الإنجاز</h2>` + (goals.length ? boardCards(goals.map(p=>({ title:p.name, sub:`${okrGoalLabel(p)} • الوزن ${Number(p.weight)||0}% • ${okrKRs(p).length} نتائج`, pct: okrGoalMetrics(p).noData ? null : okrGoalMetrics(p).actual }))) : `<div class="empty-note">لا توجد أهداف للقسم في خطة ${y}.</div>`)
+        + `<h2 class="bd-h">🎯 ترتيب النتائج الرئيسية (مؤشرات الأداء)</h2>` + (goals.some(p=>okrKRs(p).length) ? boardKrCards(goals) : `<div class="empty-note">لا توجد نتائج رئيسية بعد.</div>`)
+        : `<div class="empty-note">حسابك غير مُسنَد لقسم.</div>`);
+  }else if(r==="manager" || ((r==="admin" || r==="dg") && BOARD_UI.dept)){
+    const deptId = r==="manager" ? deptOfManager(currentManager) : BOARD_UI.dept;
+    const goals = okrDeptGoals(deptId, y);
+    const m = okrAggregate(goals.map(okrGoalMetrics));
+    const secs = sectionsOfDept(deptId);
+    h = `<div class="okr-top"><div><h1 class="org-title" style="font-size:22px;">📈 لوحة أداء الدائرة</h1><div class="note-meta" style="font-size:13.5px;">${escapeHtml(deptName(deptId)||"—")}</div></div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;">${r!=="manager" ? `<button type="button" class="org-btn" id="bdBack">← كل الدوائر</button>` : ""}${yearTabs}</div></div>`
+      + boardSummary(`إنجاز ${escapeHtml(deptName(deptId))}`, m, goals, `خطة ${y} • مرجّح بأوزان أهداف الدائرة • ${secs.length} أقسام`)
+      + `<h2 class="bd-h">🏷️ ترتيب الأقسام حسب نسبة الإنجاز</h2>` + (secs.length ? boardCards(secs.map(x=>{ const g = okrSecGoals(x.id, y); const sm = okrAggregate(g.map(okrGoalMetrics)); const heads = ALL_PROJECT_MANAGERS.filter(pm=> pm.role==="head" && pm.sectionId===x.id).map(pm=>pm.name);
+          return { title:x.name, sub:`${g.length} أهداف${heads.length ? " • 👤 " + escapeHtml(heads.join("، ")) : ""}`, pct: sm.noData ? null : sm.actual }; })) : `<div class="empty-note">لا توجد أقسام مسجّلة.</div>`)
+      + `<h2 class="bd-h">🏅 ترتيب أهداف الدائرة حسب نسبة الإنجاز</h2>` + (goals.length ? boardCards(goals.map(p=>({ title:p.name, sub:`${okrGoalLabel(p)} • الوزن ${Number(p.weight)||0}% • ${okrKRs(p).length} نتائج`, pct: okrGoalMetrics(p).noData ? null : okrGoalMetrics(p).actual }))) : `<div class="empty-note">لا توجد أهداف للدائرة في خطة ${y}.</div>`)
+      + `<h2 class="bd-h">🎯 ترتيب النتائج الرئيسية للدائرة</h2>` + (goals.some(p=>okrKRs(p).length) ? boardKrCards(goals) : `<div class="empty-note">لا توجد نتائج رئيسية بعد.</div>`);
+  }else{
+    const depts = DEPARTMENTS;
+    const all = depts.flatMap(d=> okrDeptGoals(d.id, y));
+    const m = okrAggregate(depts.map(d=> okrAggregate(okrDeptGoals(d.id, y).map(okrGoalMetrics))).filter(x=>!x.noData));
+    h = `<div class="okr-top"><div><h1 class="org-title" style="font-size:22px;">🏆 لوحة أداء الدوائر</h1><div class="note-meta" style="font-size:13.5px;">اضغط على أي دائرة لعرض لوحة أدائها التفصيلية</div></div>${yearTabs}</div>`
+      + boardSummary("إنجاز المديرية", m, all, `خطة ${y} • ${depts.length} دائرة`)
+      + `<h2 class="bd-h">🏢 ترتيب الدوائر حسب نسبة الإنجاز</h2>`
+      + `<div class="bd-grid">${depts.map(d=>{ const dm = okrAggregate(okrDeptGoals(d.id, y).map(okrGoalMetrics)); return { d, pct: dm.noData ? null : dm.actual, n: okrDeptGoals(d.id, y).length }; })
+          .sort((a,b)=> (b.pct==null?-1:b.pct) - (a.pct==null?-1:a.pct))
+          .map((x,i)=>`<button type="button" class="bd-card bd-click${x.pct==null?" nod":""}" data-bd-dept="${x.d.id}"><span class="bd-rank">${i+1}</span>${boardRing(x.pct)}<div class="bd-t">${escapeHtml(x.d.name)}</div><div class="bd-s">${x.n} أهداف • 👤 ${escapeHtml(managerOfDept(x.d.id)||"—")}</div></button>`).join("")}</div>`;
+  }
+  box.innerHTML = h + `<div class="bd-legend" style="margin-top:14px;"><span><i style="background:#1E7A3D"></i>80% فأكثر</span><span><i style="background:#C9971C"></i>60–79%</span><span><i style="background:#B3202E"></i>أقل من 60%</span><span><i style="background:#9AA7B4"></i>لا بيانات</span></div>`;
+  box.querySelectorAll("[data-bd-year]").forEach(b=> b.onclick = ()=>{ OKR_UI.year = Number(b.dataset.bdYear); renderPerfBoard(); });
+  box.querySelectorAll("[data-bd-dept]").forEach(b=> b.onclick = ()=>{ BOARD_UI.dept = b.dataset.bdDept; renderPerfBoard(); window.scrollTo(0,0); document.body.scrollTop = 0; });
+  const back = document.getElementById("bdBack"); if(back) back.onclick = ()=>{ BOARD_UI.dept = ""; renderPerfBoard(); };
+}
+
 function openOkrAdmin(){ showScreen("okrAdminScreen"); renderOkrAdmin(); }
 function okrRefreshVisible(){
+  const pb = document.getElementById("perfBoardScreen"); if(pb && !pb.classList.contains("hidden") && !document.getElementById("prioModal")) renderPerfBoard();
   if(document.getElementById("okrAdminScreen") && !document.getElementById("okrAdminScreen").classList.contains("hidden")) renderOkrAdmin();
   if(document.getElementById("prioModal")) return;
   if(!document.getElementById("deptScreen").classList.contains("hidden") && typeof renderDeptScreen==="function") renderDeptScreen();
