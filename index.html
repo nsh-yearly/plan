@@ -571,6 +571,49 @@ body.shell-on .dg-topbar{display:none !important;}
 .ind-svc{display:flex;flex-wrap:wrap;gap:6px;}
 .ind-svc span{background:#F4F8F9;border:1px solid #D7E8EA;color:#1E5A60;border-radius:8px;padding:3px 10px;font-size:12.5px;}
 .ind-note{font-size:12px;color:#566476;margin-top:10px;line-height:1.7;}
+/* ===== جدول الأهداف بأسلوب إجادة ===== */
+.ij-card{border:1px solid #DDE3EA;border-radius:6px;background:#fff;}
+.ij-head{display:grid;grid-template-columns:52px minmax(0,1.7fr) minmax(120px,1fr) 110px 140px minmax(150px,190px);cursor:pointer;}
+.ij-lab{background:#EEF1F5;color:#1B2733;font-weight:800;font-size:14px;padding:10px 12px;border-bottom:1.5px solid #6B7A8A;border-inline-start:1px solid #fff;}
+.ij-val{background:#F4F4F4;padding:12px;font-size:14.5px;color:#1B2733;display:flex;align-items:center;flex-wrap:wrap;gap:4px;border-inline-start:1px solid #fff;}
+.ij-card.open .ij-val{background:#EDEDED;}
+.ij-head:hover .ij-val{background:#ECEFF3;}
+.ij-togc{justify-content:center;}
+.ij-name{font-weight:600;line-height:1.7;}
+.ij-name .okr-sub{flex-basis:100%;}
+.ij-ach{min-width:0;}
+.ij-ach > div{width:100%;}
+.ij-krh{font-weight:800;color:#1B2733;font-size:14.5px;margin:14px 2px 10px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
+.ij-table{width:100%;border-collapse:collapse;font-size:14px;}
+.ij-table thead th{background:#E8EDF4;color:#1B2733;font-weight:800;padding:12px 10px;text-align:center;border:1px solid #fff;}
+.ij-table td{padding:12px 10px;border-bottom:1px solid #E3E7EC;text-align:center;color:#1B2733;white-space:nowrap;vertical-align:middle;}
+.ij-table td + td{border-inline-start:1px solid #EDF0F3;}
+.ij-table td.ij-kname{text-align:start;white-space:normal;min-width:260px;line-height:1.7;}
+.ij-table tr.ij-kr:hover td{background:#F7FAFC;}
+.ij-actual{font-weight:700;}
+.ij-pct{font-weight:800;}
+.ij-btns{white-space:nowrap;}
+.ij-ibtn{border:0;background:#EEF5FB;border-radius:8px;width:34px;height:34px;cursor:pointer;font-size:15px;position:relative;margin:0 2px;}
+.ij-ibtn small{position:absolute;top:-5px;left:-5px;background:#237EC2;color:#fff;border-radius:999px;font-size:10px;padding:0 5px;font-weight:800;}
+.ij-ibtn:hover{background:#DCEAF6;}
+.ij-table tr.ij-act td{background:#FAFBFC;font-size:13px;padding:8px 10px;color:#33475B;}
+.ij-table tr.ij-act td.ij-kname{padding-inline-start:28px;}
+.ij-actdot{color:#2F7F86;margin-inline-end:6px;}
+.ij-muted{color:#8593A3 !important;}
+.ij-table tr.ij-cm td{text-align:start;white-space:normal;background:#E7F7F6;color:#1B2733;font-size:13.5px;padding:10px 12px;}
+.ij-tag{display:inline-block;font-size:11px;font-weight:800;border-radius:999px;padding:1px 8px;background:#EEF2F7;color:#566476;}
+.ij-tag.ok{background:#E3F2E8;color:#1E7A3D;} .ij-tag.late{background:#FBE3E5;color:#B3202E;} .ij-tag.ex{background:#EEEDFE;color:#3C3489;}
+@media (max-width:900px){
+  .ij-head{grid-template-columns:44px minmax(0,1fr) auto;}
+  .ij-lab{display:none;}
+  .ij-val{background:#F4F4F4;}
+  .ij-togc{grid-row:1 / span 3;}
+  .ij-name{grid-column:2 / 4;}
+  .ij-head .ij-val:nth-child(9),.ij-head .ij-val:nth-child(10){font-size:12.5px;}
+  .ij-head .ij-val:nth-child(9)::before{content:"التصنيف: ";color:#6B7A8A;margin-inline-end:4px;}
+  .ij-head .ij-val:nth-child(10)::before{content:"الوزن: ";color:#6B7A8A;margin-inline-end:4px;}
+  .ij-ach{grid-column:2 / 4;}
+}
 /* ===== الأهداف والنتائج الرئيسية ===== */
 .okr-top{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;justify-content:space-between;margin-bottom:14px;}
 .okr-bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:12px;}
@@ -16107,38 +16150,43 @@ function okrGoalCardHTML(p, ctx){
     const a = krAch(k);
     const last = (k.comments||[]).slice(-1)[0];
     const acts = k.activities||[];
-    const actAvg = acts.length ? Math.round(acts.reduce((s,x)=>s+(x.done ? 100 : (Number(x.progress)||0)),0)/acts.length) : null;
     const col = a.done ? "#1E7A3D" : a.late ? "#B3202E" : "#237EC2";
-    return `<tr>
-      <td style="font-weight:600;">${escapeHtml(k.name||"")}${a.exceeded ? ` <span class="perf-chip" style="background:#EEEDFE;color:#3C3489;">تجاوز العالي</span>` : ""}${a.late ? ` <span class="perf-chip" style="background:#FBE3E5;color:#B3202E;">متأخرة</span>` : ""}</td>
-      <td>${KR_TYPES[k.type]||"—"}</td><td><b>${Number(k.weight)||0}</b></td>
-      <td>${okrFmtVal(k,k.low)}</td><td><b>${okrFmtVal(k,k.expected)}</b></td><td>${okrFmtVal(k,k.high)}</td>
-      <td style="font-weight:700;">${okrFmtVal(k,k.actual)}</td>
-      <td>${okrPctBar(a.pct, col)}</td>
-      <td style="white-space:nowrap;">
-        ${canProg ? `<button type="button" class="pr-tag-btn" data-okr-prog="${p.code}|${i}">📈 تحديث</button>` : ""}
-        <button type="button" class="pr-tag-btn" style="background:#F1F5F9;color:#33475B;" data-okr-acts="${p.code}|${i}">🗂️ الأنشطة${acts.length ? ` (${acts.length}${actAvg!=null ? " • " + actAvg + "%" : ""})` : ""}</button>
+    const actRows = acts.map(x=>{ const late = x.end && okrToday()>okrDate(x.end) && !x.done && (Number(x.progress)||0)<100;
+      return `<tr class="ij-act"><td class="ij-kname"><span class="ij-actdot">▸</span>${escapeHtml(x.name||"")}${late ? ` <span class="ij-tag late">متأخر</span>` : ""}</td>
+        <td colspan="2" class="ij-muted">نشاط</td><td colspan="3" class="ij-muted">${x.start||x.end ? `${okrFmtDate(x.start)} ← ${okrFmtDate(x.end)}` : "—"}</td>
+        <td>${x.done ? 100 : (Number(x.progress)||0)}%</td><td>${x.done ? `<span class="ij-tag ok">تم التنفيذ</span>` : `<span class="ij-tag">لم يُنفَّذ</span>`}</td><td></td></tr>`; }).join("");
+    return `<tr class="ij-kr">
+      <td class="ij-kname">${escapeHtml(k.name||"")}${a.exceeded ? ` <span class="ij-tag ex">تجاوز العالي</span>` : ""}${a.late ? ` <span class="ij-tag late">متأخرة</span>` : ""}</td>
+      <td>${Number(k.weight)||0} %</td><td>${KR_TYPES[k.type]||"—"}</td>
+      <td>${okrFmtVal(k,k.low)}</td><td>${okrFmtVal(k,k.expected)}</td><td>${okrFmtVal(k,k.high)}</td>
+      <td class="ij-actual">${okrFmtVal(k,k.actual)}</td>
+      <td><span class="ij-pct" style="color:${col};">${a.pct==null ? "—" : a.pct + "%"}</span></td>
+      <td class="ij-btns">
+        ${canProg ? `<button type="button" class="ij-ibtn" data-okr-prog="${p.code}|${i}" title="تحديث الأداء الفعلي">📈</button>` : ""}
+        <button type="button" class="ij-ibtn" data-okr-acts="${p.code}|${i}" title="الأنشطة">🗂️${acts.length ? `<small>${acts.length}</small>` : ""}</button>
       </td></tr>
-      ${last ? `<tr><td colspan="9" style="background:#FBFCFE;font-size:12.5px;color:#566476;text-align:start;">💬 التعليق (${escapeHtml(okrFmtDate(last.at))}) (${escapeHtml(last.by||"")}): ${escapeHtml(last.text||"")}</td></tr>` : ""}`;
+      ${actRows}
+      ${last ? `<tr class="ij-cm"><td colspan="9">التعليق ( ${escapeHtml(okrFmtDate(last.at))} ) : -(${escapeHtml(last.by||"")})- ${escapeHtml(last.text||"")}</td></tr>` : ""}`;
   };
-  return `<article class="okr-card" data-okr-card="${p.code}">
-    <div class="okr-head" data-okr-toggle="${p.code}">
-      <span class="okr-tog">${open ? "−" : "+"}</span>
-      <div class="okr-title"><span class="okr-code">${p.code}</span><b>${escapeHtml(p.name)}</b>
-        <div class="okr-sub">${ctx.showDept ? `🏢 ${escapeHtml(deptName(p.deptId)||"—")} • ` : ""}${p._sec && ctx.showSection ? `🏷️ ${escapeHtml(sectionName(p.sectionId)||"—")} • ` : ""}${escapeHtml(p.category||OKR_CATEGORIES[0])} • ${krs.length} ${krs.length===1?"نتيجة رئيسية":"نتائج رئيسية"}${p.year ? ` • ${p.year}` : ""}</div></div>
-      <div class="okr-w"><span>وزن الهدف</span><b>${Number(p.weight)||0}%</b></div>
-      <div class="okr-st">${okrStatusChip(p)}</div>
-      <div class="okr-ach">${okrPctBar(m.noData ? null : m.actual, st.color)}<span class="perf-chip" style="background:${st.bg};color:${st.color};">${st.label}</span></div>
+  return `<article class="okr-card ij-card${open?" open":""}" data-okr-card="${p.code}">
+    <div class="ij-head" data-okr-toggle="${p.code}">
+      <div class="ij-lab"></div><div class="ij-lab">الهدف</div><div class="ij-lab">تصنيف الهدف</div><div class="ij-lab">وزن الهدف</div><div class="ij-lab">الحالة</div><div class="ij-lab">الإنجاز</div>
+      <div class="ij-val ij-togc"><span class="okr-tog">${open ? "−" : "+"}</span></div>
+      <div class="ij-val ij-name"><span class="okr-code">${p.code}</span>${escapeHtml(p.name)}${ctx.showDept || (p._sec && ctx.showSection) ? `<div class="okr-sub">${ctx.showDept ? `🏢 ${escapeHtml(deptName(p.deptId)||"—")}` : ""}${p._sec && ctx.showSection ? ` 🏷️ ${escapeHtml(sectionName(p.sectionId)||"—")}` : ""}</div>` : ""}</div>
+      <div class="ij-val">${escapeHtml(p.category||OKR_CATEGORIES[0])}</div>
+      <div class="ij-val">${indNum(Number(p.weight)||0,2)} %</div>
+      <div class="ij-val">${okrStatusChip(p)}</div>
+      <div class="ij-val ij-ach">${okrPctBar(m.noData ? null : m.actual, st.color)}</div>
     </div>
     ${open ? `<div class="okr-body">
       ${p.okrStatus==="returned" && p.reviewNote ? `<div class="okr-note">↩️ ملاحظة ${p._sec ? "مدير الدائرة" : "قسم التخطيط"}: ${escapeHtml(p.reviewNote)}</div>` : ""}
-      ${p._sec ? `<div class="okr-links"><span>ينعكس على هدف الدائرة:</span>${(()=>{ const pg = PROGRAMS.find(x=>x.code===p.parentCode); return pg ? `<span class="org-chip">${pg.code}. ${escapeHtml(pg.name)}</span>` : `<span class="org-chip" style="background:#EEF2F7;color:#566476;">غير مرتبط</span>`; })()}</div>` : `<div class="okr-links">
+      ${p._sec ? `<div class="okr-links"><span>ينعكس على هدف الدائرة:</span>${(()=>{ const pg = PROGRAMS.find(x=>x.code===p.parentCode); return pg ? `<span class="org-chip">${pg.code}. ${escapeHtml(pg.name)}</span>` : `<span class="org-chip" style="background:#EEF2F7;color:#566476;">غير مرتبط بأي هدف في الدائرة</span>`; })()}</div>` : `<div class="okr-links">
         <span>الاتجاهات الاستراتيجية:</span>${okrGoalDirs(p).length ? okrGoalDirs(p).map(id=>`<span class="pr-chip dir">🧭 ${escapeHtml(directionName(id))}</span>`).join("") : `<span class="org-chip" style="background:#EEF2F7;color:#566476;">غير مرتبط</span>`}
         ${prios.length ? `<span style="margin-inline-start:8px;">يعالج الأولويات:</span>${prios.map(x=>`<span class="pr-chip dir">🧭 ${escapeHtml(x.title)}</span>`).join("")}` : ""}
         ${(()=>{ const sg = okrSecGoalsOfParent(p.code); return sg.length ? `<span style="margin-inline-start:8px;">أهداف الأقسام المنعكسة:</span>${sg.map(x=>`<span class="org-chip">🏷️ ${escapeHtml(sectionName(x.sectionId))}: ${escapeHtml(x.name)} (${okrGoalMetrics(x).noData ? "—" : okrGoalMetrics(x).actual + "%"})</span>`).join("")}` : ""; })()}
       </div>`}
-      <div class="okr-krh">النتائج الرئيسية للهدف ${krs.length && ws!==100 ? `<span class="perf-chip" style="background:#FCE9D6;color:#A24A08;">⚠️ مجموع أوزان النتائج ${ws}% (يجب أن يكون 100%)</span>` : ""}</div>
-      ${krs.length ? `<div style="overflow-x:auto;"><table class="org-table okr-table"><thead><tr><th rowspan="2">النتيجة الرئيسية</th><th rowspan="2">نوع المؤشر</th><th rowspan="2">وزن النتيجة</th><th colspan="3">المستهدفات</th><th rowspan="2">المتحقق</th><th rowspan="2">الإنجاز</th><th rowspan="2"></th></tr><tr><th>منخفض</th><th>متوقع</th><th>عالي</th></tr></thead>
+      <div class="ij-krh">النتائج الرئيسية للهدف ${krs.length && ws!==100 ? `<span class="perf-chip" style="background:#FCE9D6;color:#A24A08;">⚠️ مجموع أوزان النتائج ${ws}% (يجب أن يكون 100%)</span>` : ""}</div>
+      ${krs.length ? `<div style="overflow-x:auto;"><table class="ij-table"><thead><tr><th rowspan="2">النتائج الرئيسية</th><th rowspan="2">وزن النتيجة</th><th rowspan="2">نوع المؤشر</th><th colspan="3">المستهدفات</th><th rowspan="2">الأداء الفعلي</th><th rowspan="2">الإنجاز</th><th rowspan="2"></th></tr><tr><th>منخفض</th><th>متوقع</th><th>عالي</th></tr></thead>
         <tbody>${krs.map(krRow).join("")}</tbody></table></div>` : `<div class="empty-note">لم تُضف نتائج رئيسية لهذا الهدف بعد.</div>`}
       ${p.approvedBy && status==="approved" ? `<div class="note-meta" style="margin-top:6px;">✅ اعتمده ${escapeHtml(p.approvedBy)} بتاريخ ${escapeHtml(okrFmtDate(p.approvedAt))}</div>` : ""}
       <div class="okr-actions">
@@ -16223,7 +16271,8 @@ function openOkrGoalModal(deptId, year, p, rerender, so){
     if(SEC){
       const pgs = okrDeptGoals(deptId, st.year);
       const sel = $("#ogParent").value || (p ? p.parentCode : "");
-      $("#ogParent").innerHTML = `<option value="">— اختر هدف الدائرة —</option>` + pgs.map(g=>`<option value="${g.code}" ${g.code===sel?"selected":""}>${g.code}. ${escapeHtml(g.name)}</option>`).join("");
+      const selv = sel || (p && !p.parentCode ? "__none" : "");
+      $("#ogParent").innerHTML = `<option value="">— اختر هدف الدائرة —</option>` + pgs.map(g=>`<option value="${g.code}" ${g.code===selv?"selected":""}>${g.code}. ${escapeHtml(g.name)}</option>`).join("") + `<option value="__none" ${selv==="__none"?"selected":""}>غير مرتبط بأي هدف في الدائرة</option>`;
       return;
     }
     const ds = typeof DIRECTIONS!=="undefined" ? DIRECTIONS : [];
@@ -16281,7 +16330,7 @@ function openOkrGoalModal(deptId, year, p, rerender, so){
     const miss = krs.find(k=> k.expected==="" || k.expected==null);
     if(miss){ err(`أدخل المستهدف «المتوقع» للنتيجة: ${miss.name}`); return; }
     if(mode==="submit" && krWeightSum(krs)!==100 && !confirm(`مجموع أوزان النتائج ${krWeightSum(krs)}% وليس 100%. هل تريد الإرسال رغم ذلك؟`)) return;
-    if(SEC && !$("#ogParent").value){ err("اختر هدف الدائرة الذي ينعكس عليه هدف القسم"); return; }
+    if(SEC && !$("#ogParent").value){ err("اختر هدف الدائرة الذي ينعكس عليه هدف القسم، أو «غير مرتبط بأي هدف في الدائرة»"); return; }
     if(SEC && !curSec()){ err("اختر القسم"); return; }
     const dId = SEC ? deptId : curDept();
     const code = p ? p.code : (SEC ? nextSecGoalCode(curSec()) : nextProgramCode(dId));
@@ -16289,7 +16338,7 @@ function openOkrGoalModal(deptId, year, p, rerender, so){
     const fields = {
       code, name, deptId: dId, year: st.year, category: $("#ogCat").value,
       weight: Number(String($("#ogWeight").value).replace(/[^\d.]/g,"")) || 0,
-      ...(SEC ? { _sec:true, sectionId: curSec(), parentCode: $("#ogParent").value } : { directionIds: st.dirs, goalIds: st.goals, goalId: st.goals[0] || null, priorityIds: st.prios,
+      ...(SEC ? { _sec:true, sectionId: curSec(), parentCode: $("#ogParent").value==="__none" ? "" : $("#ogParent").value } : { directionIds: st.dirs, goalIds: st.goals, goalId: st.goals[0] || null, priorityIds: st.prios,
       govManager: (p && p.govManager) || managerOfDept(dId) || currentManager || "" }),
       keyResults: krs.map(k=>{ const o = old.find(x=>x.id===k.id) || {}; return { id:k.id || ("k"+Math.random().toString(36).slice(2,8)), name:String(k.name).trim(), type:k.type||"percent", weight:Number(k.weight)||0, low:k.low??"", expected:k.expected??"", high:k.high??"", actual: k.type===o.type ? (o.actual??null) : null, comments:o.comments||[], activities:o.activities||[] }; })
     };
@@ -16657,7 +16706,6 @@ function renderSecGoals(){
   box.querySelectorAll("[data-secg-year]").forEach(b=> b.onclick = ()=>{ OKR_UI.year = Number(b.dataset.secgYear); renderSecGoals(); });
   const ds = document.getElementById("secgDept"); if(ds) ds.onchange = e=>{ SECG_UI.dept = e.target.value; renderSecGoals(); };
   box.querySelectorAll("[data-secg-add]").forEach(b=> b.onclick = ()=>{
-    if(!okrDeptGoals(deptId, y).length){ alert(`لا توجد أهداف للدائرة في خطة ${y} بعد — يجب أن يرتبط هدف القسم بهدف دائرة.`); return; }
     openOkrGoalModal(deptId, y, null, renderSecGoals, { sec:true, sectionId: b.dataset.secgAdd });
   });
   bindOkrCards(box, renderSecGoals);
