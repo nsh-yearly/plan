@@ -16978,6 +16978,8 @@ const QUARTER_DATES = [["الربع الأول","03-31"],["الربع الثان
 let SNAPSHOTS = [];
 let snapshotsLoaded = false;
 function qDate(year, qi){ return `${year}-${QUARTER_DATES[qi][1]}`; }
+// أول ربع تُلتقط فيه الصورة الربعية: خطة 2026 بدأ تشغيلها في الربع الأخير فلا تُلتقط الأرباع السابقة
+function snapFirstQ(year){ return Number(year)===2026 ? 3 : 0; }
 function qEnd(year, qi){ const d = new Date(qDate(year, qi) + "T23:59:59"); return d; }
 // قيمة المتحقق لنتيجة رئيسية كما كانت في تاريخ معيّن (من سجل التحديثات المؤرَّخ)
 function krActualAsOf(k, end){
@@ -17058,9 +17060,9 @@ async function okrEnsureSnapshots(){
   try{
     const now = new Date();
     for(const year of YEARS){
-      for(let qi=0; qi<4; qi++){
+      for(let qi=snapFirstQ(year); qi<4; qi++){
         if(now<=qEnd(year, qi) || snapOf(year, qi)) continue;
-        if(qi>0 && !snapOf(year, qi-1) && now>qEnd(year, qi-1)) continue; // التسلسل: يُحفظ السابق أولًا
+        if(qi>snapFirstQ(year) && !snapOf(year, qi-1) && now>qEnd(year, qi-1)) continue; // التسلسل: يُحفظ السابق أولًا
         const snap = computeSnapshot(year, qi);
         await db.collection(SNAPSHOTS_COLLECTION).doc(`${year}-Q${qi+1}`).set(snap);
         SNAPSHOTS.push({ ...snap, id:`${year}-Q${qi+1}` });
@@ -17080,7 +17082,7 @@ function badgeChipsFor(year, deptId, secId){
 }
 // شريط الأرباع: قيمة كل لقطة + الحالي المباشر
 function quarterTrendHTML(year, getter, liveVal){
-  const cells = QUARTER_DATES.map((q,qi)=>{ const s = snapOf(year, qi); const v = s ? getter(s) : undefined; const pv = qi>0 && snapOf(year, qi-1) ? getter(snapOf(year, qi-1)) : null;
+  const cells = QUARTER_DATES.map((q,qi)=>{ if(qi<snapFirstQ(year)) return `<div class="qt-cell qt-future"><span>${q[0]}</span><b>—</b><i>قبل التشغيل</i></div>`; const s = snapOf(year, qi); const v = s ? getter(s) : undefined; const pv = qi>0 && snapOf(year, qi-1) ? getter(snapOf(year, qi-1)) : null;
     const d = v!=null && pv!=null ? v-pv : null;
     return `<div class="qt-cell ${s ? "" : "qt-future"}"><span>${q[0]}</span><b>${v==null ? "—" : v + "%"}</b>${d!=null ? `<i class="${d>=0?"up":"dn"}">${d>=0?"▲":"▼"} ${Math.abs(d)}</i>` : `<i>${s ? "" : "يُلتقط " + q[1].split("-").reverse().join("/")}</i>`}</div>`; }).join("");
   return `<div class="qt-row">${cells}<div class="qt-cell qt-live"><span>الآن</span><b>${liveVal==null ? "—" : liveVal + "%"}</b><i>مباشر</i></div></div>`;
