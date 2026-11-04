@@ -576,6 +576,8 @@ body.shell-on .dg-topbar{display:none !important;}
 .okr-sp-h{font-weight:800;color:#0D2B47;font-size:13.5px;margin-bottom:4px;}
 .okr-kr-owner{display:flex;flex-direction:column;gap:3px;font-size:11.5px;font-weight:800;color:#33475B;margin-top:8px;}
 .okr-kr-owner select{border:1px solid #CFDCE8;border-radius:9px;padding:7px 8px;font-family:inherit;font-size:13.5px;background:#fff;}
+/* ===== إخفاء عناصر نظام المشاريع السابق ===== */
+#dlTabNotes,#dlTabChallenges,#mgrCommsSubTabChallenges,#pmCommsSubTabChallenges,#mgrRequestProject,#pmRequestProject,#decisionProjectSelect{display:none!important;}
 /* ===== العرض التفاعلي للأهداف ===== */
 .ich{position:relative;}
 .ich-head,.ich-row,.ich-axisrow{display:grid;grid-template-columns:minmax(180px,30%) minmax(0,1fr) 130px;gap:14px;align-items:center;}
@@ -2415,11 +2417,11 @@ tr.rejected-row td{background:#FDF6F6;}
 <div id="goalsScreen" class="hidden">
   <div class="dash-wrap">
     <div class="section-title">🎯 تحقق أهداف المديرية وأهداف الدوائر</div>
-    <div class="section-desc">يُحسب تلقائيًا من خطوات المشاريع ومراحلها — لا إدخال يدوي.</div>
+    <div class="section-desc">يُحسب تلقائيًا من إنجاز أهداف الدوائر المرتبطة ونتائجها الرئيسية — لا إدخال يدوي.</div>
     <div class="filters-bar" style="margin-bottom:10px;">
       <select id="goalsFilterYear"></select>
       <select id="goalsFilterDept"><option value="">كل الدوائر</option></select>
-      <label style="display:inline-flex;gap:6px;align-items:center;font-size:13px;"><input type="checkbox" id="goalsShowProjects" checked> إظهار المشاريع</label>
+      <label style="display:inline-flex;gap:6px;align-items:center;font-size:13px;"><input type="checkbox" id="goalsShowProjects" checked> إظهار النتائج الرئيسية</label>
     </div>
     <div id="goalsLegend"></div>
     <div id="goalsDeptSummary"></div>
@@ -2635,13 +2637,13 @@ tr.rejected-row td{background:#FDF6F6;}
 
   <div class="dash-wrap hidden" id="mgrCommsView">
     <div class="section-title">📨 الملاحظات والتحديات</div>
-    <div class="section-desc">ملاحظات الخطط التفصيلية، قرارات الاجتماعات الخاصة بأهداف دائرتك، سجل تحديات مشاريعك، وطلباتك المرسلة لقسم التخطيط</div>
+    <div class="section-desc">ملاحظات قسم التخطيط، والقرارات الخاصة بأهداف دائرتك، وطلباتك المرسلة لقسم التخطيط</div>
     <div class="filters-bar" style="margin-bottom:16px;">
       <select id="mgrCommsFilterYear"><option value="">كل السنوات</option></select>
     </div>
     <div class="mgr-tabs" style="margin-bottom:18px;">
       <button class="mgr-tab active" id="mgrCommsSubTabNotes" style="position:relative;">📝 ملاحظات قسم التخطيط <span id="mgrCommsSubBadgeNotes" class="req-badge hidden">0</span></button>
-      <button class="mgr-tab" id="mgrCommsSubTabDecisions" style="position:relative;">📝 قرارات خاصة بمشاريعك <span id="mgrCommsSubBadgeDecisions" class="req-badge hidden">0</span></button>
+      <button class="mgr-tab" id="mgrCommsSubTabDecisions" style="position:relative;">📝 القرارات الخاصة بدائرتك <span id="mgrCommsSubBadgeDecisions" class="req-badge hidden">0</span></button>
       <button class="mgr-tab" id="mgrCommsSubTabChallenges" style="position:relative;">🚨 التحديات <span id="mgrCommsSubBadgeChallenges" class="req-badge hidden">0</span></button>
       <button class="mgr-tab" id="mgrCommsSubTabRequests" style="position:relative;">📮 الطلبات لقسم التخطيط <span id="mgrCommsSubBadgeRequests" class="req-badge hidden">0</span></button>
     </div>
@@ -2659,7 +2661,7 @@ tr.rejected-row td{background:#FDF6F6;}
     </div>
     <div id="mgrCommsChallengesWrap" class="hidden">
       <div class="pending-list">
-        <h3>🚨 سجل تحديات مشاريعك</h3>
+        <h3>🚨 سجل التحديات</h3>
         <div class="section-desc" style="margin-bottom:14px;">كل التحديات التي سجّلتها عبر مشاريعك، وحالتها الحالية (بما في ذلك ردّ قسم التخطيط أو المدير العام)</div>
         <button class="add-btn" id="mgrAddChallengeBtn" style="background:#B3202E;margin-bottom:16px;">🚨 تسجيل تحدٍّ جديد</button>
         <div id="mgrChallengesList"></div>
@@ -2668,7 +2670,7 @@ tr.rejected-row td{background:#FDF6F6;}
     <div id="mgrCommsRequestsWrap" class="hidden">
       <div class="pending-list">
         <h3>📮 طلباتي لقسم التخطيط والدراسات</h3>
-        <div class="section-desc" style="margin-bottom:14px;">مثلاً: طلب فتح مشروع لتعديل الاسم، أو ملاحظة عامة (تغيير كلمة المرور...) أو أي طلب آخر</div>
+        <div class="section-desc" style="margin-bottom:14px;">مثلاً: طلب تعديل هدف معتمد، أو ملاحظة عامة (تغيير كلمة المرور...) أو أي طلب آخر</div>
         <div class="request-add-form">
           <select id="mgrRequestProgram"><option value="">الهدف المعني (اختياري)</option></select>
           <select id="mgrRequestProject"><option value="">المشروع المعني (اختياري)</option></select>
@@ -2777,13 +2779,13 @@ tr.rejected-row td{background:#FDF6F6;}
 
   <div class="dash-wrap hidden" id="pmCommsView">
     <div class="section-title">📨 الملاحظات والتحديات</div>
-    <div class="section-desc">ملاحظات الخطط التفصيلية، قرارات خاصة بمشاريعك، سجل تحديات مشاريعك، وطلباتك المرسلة لقسم التخطيط</div>
+    <div class="section-desc">ملاحظات قسم التخطيط، والقرارات الخاصة بقسمك، وطلباتك المرسلة لقسم التخطيط</div>
     <div class="filters-bar" style="margin-bottom:16px;">
       <select id="pmCommsFilterYear"><option value="">كل السنوات</option></select>
     </div>
     <div class="mgr-tabs" style="margin-bottom:18px;">
       <button class="mgr-tab active" id="pmCommsSubTabNotes" style="position:relative;">📝 ملاحظات قسم التخطيط <span id="pmCommsSubBadgeNotes" class="req-badge hidden">0</span></button>
-      <button class="mgr-tab" id="pmCommsSubTabDecisions" style="position:relative;">📝 قرارات خاصة بمشاريعك <span id="pmCommsSubBadgeDecisions" class="req-badge hidden">0</span></button>
+      <button class="mgr-tab" id="pmCommsSubTabDecisions" style="position:relative;">📝 القرارات الخاصة بقسمك <span id="pmCommsSubBadgeDecisions" class="req-badge hidden">0</span></button>
       <button class="mgr-tab" id="pmCommsSubTabChallenges" style="position:relative;">🚨 التحديات <span id="pmCommsSubBadgeChallenges" class="req-badge hidden">0</span></button>
       <button class="mgr-tab" id="pmCommsSubTabRequests" style="position:relative;">📮 الطلبات لقسم التخطيط <span id="pmCommsSubBadgeRequests" class="req-badge hidden">0</span></button>
     </div>
@@ -2795,13 +2797,13 @@ tr.rejected-row td{background:#FDF6F6;}
     </div>
     <div id="pmCommsDecisionsWrap" class="hidden">
       <div class="pending-list">
-        <h3>📝 قرارات وملاحظات خاصة بمشاريعك</h3>
+        <h3>📝 قرارات وملاحظات خاصة بقسمك</h3>
         <div id="pmDecisionsList"></div>
       </div>
     </div>
     <div id="pmCommsChallengesWrap" class="hidden">
       <div class="pending-list">
-        <h3>🚨 سجل تحديات مشاريعك</h3>
+        <h3>🚨 سجل التحديات</h3>
         <div class="section-desc" style="margin-bottom:14px;">كل التحديات التي سجّلتها عبر مشاريعك، وحالتها الحالية (بما في ذلك ردّ قسم التخطيط أو المدير العام)</div>
         <button class="add-btn" id="pmAddChallengeBtn" style="background:#B3202E;margin-bottom:16px;">🚨 تسجيل تحدٍّ جديد</button>
         <div id="pmChallengesList"></div>
@@ -2962,9 +2964,9 @@ tr.rejected-row td{background:#FDF6F6;}
     <div class="section-desc">يمكنك إعادة تعيين كلمة مرور أي مدير في أي وقت، وتحديث بريده الإلكتروني ورقم جواله (لأغراض التذكير عبر البريد وواتساب)</div>
     <div class="filters-bar">
       <select id="pwGroupFilter">
-        <option value="">كل المدراء (تنفيذيون + مدراء مشاريع)</option>
+        <option value="">كل الحسابات (مدراء الدوائر + رؤساء الأقسام والموظفون)</option>
         <option value="exec">مدراء الدوائر فقط</option>
-        <option value="pm">مدراء المشاريع فقط</option>
+        <option value="pm">رؤساء الأقسام والموظفون فقط</option>
       </select>
       <select id="pwGoalFilter"><option value="">كل أهداف المديرية</option></select>
     </div>
@@ -2972,7 +2974,7 @@ tr.rejected-row td{background:#FDF6F6;}
     <div class="section-title" style="margin-top:26px;">كلمات مرور مدراء الدوائر</div>
     <div id="managerAuthList"></div>
 
-    <div class="section-title" style="margin-top:40px;">مدراء المشاريع</div>
+    <div class="section-title" style="margin-top:40px;">رؤساء الأقسام والموظفون</div>
     <div id="projectManagersAuthList"></div>
   </div>
 </div>
@@ -2981,7 +2983,7 @@ tr.rejected-row td{background:#FDF6F6;}
 <div id="activityScreen" class="hidden">
   <div class="dash-wrap">
     <div class="section-title">من يستخدم المنصة بفعالية؟</div>
-    <div class="section-desc">آخر نشاط لكل مدير، وسجل كامل لعمليات الدخول والخروج وإضافة المشاريع</div>
+    <div class="section-desc">آخر نشاط لكل مستخدم، وسجل كامل لعمليات الدخول والخروج وإضافة الأهداف وتحديثها</div>
     <div class="mgr-tabs" style="margin-bottom:18px;">
       <button class="mgr-tab active" id="actTabGeneral">📜 سجل النشاط العام</button>
       <button class="mgr-tab" id="actTabFollow">📨 متابعة قسم التخطيط للمدراء</button>
@@ -2990,7 +2992,7 @@ tr.rejected-row td{background:#FDF6F6;}
     <div id="activitySummaryGrid" class="summary-grid" style="margin-bottom:22px;"></div>
     <div class="filters-bar" style="margin-bottom:18px;">
       <select id="activityProgramFilter"><option value="">كل أهداف الدوائر</option></select>
-      <select id="activityPMFilter"><option value="">كل مدراء المشاريع</option></select>
+      <select id="activityPMFilter"><option value="">كل رؤساء الأقسام والموظفين</option></select>
       <select id="activityActionFilter"><option value="">كل الإجراءات</option></select>
       <input type="text" id="activitySearch" placeholder="🔍 بحث في المدير/الإجراء/التفاصيل..." style="padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;min-width:230px;">
       <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-muted);">من
@@ -3018,10 +3020,10 @@ tr.rejected-row td{background:#FDF6F6;}
     </div>
 
     <div id="actFollowView" class="hidden">
-      <div class="section-desc" style="margin-bottom:14px;">كل ما أرسله قسم التخطيط للمدراء التنفيذيين ومدراء المشاريع (تذكيرات التأخر، تنبيهات التحديات، المراسلات المخصصة، الرسائل المنبثقة) — تُجمَّع تلقائيًا من مصادرها المنظَّمة <b>بما فيها الرسائل السابقة</b>، وتُحتسَب الإحصائيات ضمن الفلاتر المختارة. ينعكس أي نوع رسالة جديد يُضاف مستقبلًا تلقائيًا.</div>
+      <div class="section-desc" style="margin-bottom:14px;">كل ما أرسله قسم التخطيط لمدراء الدوائر ورؤساء الأقسام والموظفين (تذكيرات التأخر، تنبيهات التحديات، المراسلات المخصصة، الرسائل المنبثقة) — تُجمَّع تلقائيًا من مصادرها المنظَّمة <b>بما فيها الرسائل السابقة</b>، وتُحتسَب الإحصائيات ضمن الفلاتر المختارة. ينعكس أي نوع رسالة جديد يُضاف مستقبلًا تلقائيًا.</div>
       <div id="followSummaryGrid" class="summary-grid" style="margin-bottom:18px;"></div>
       <div class="filters-bar" style="margin-bottom:14px;">
-        <select id="followRole"><option value="">كل الأدوار</option><option value="exec">مدراء الدوائر</option><option value="pm">مدراء المشاريع</option></select>
+        <select id="followRole"><option value="">كل الأدوار</option><option value="exec">مدراء الدوائر</option><option value="pm">رؤساء الأقسام والموظفون</option></select>
         <select id="followPerson"></select>
         <select id="followChannel"></select>
         <select id="followKind"></select>
@@ -3030,7 +3032,7 @@ tr.rejected-row td{background:#FDF6F6;}
         <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-muted);">إلى
           <input type="date" id="followTo" style="padding:8px;border:1px solid var(--border);border-radius:8px;font-size:12px;"></label>
         <select id="followSort">
-          <option value="name">ترتيب: حسب الاسم (تنفيذي ثم مشروع)</option>
+          <option value="name">ترتيب: حسب الاسم (مدراء الدوائر ثم الأقسام)</option>
           <option value="least">ترتيب: الأقل متابعة أولًا</option>
           <option value="most">ترتيب: الأكثر متابعة أولًا</option>
           <option value="oldest">ترتيب: الأقدم آخر متابعة أولًا</option>
@@ -3042,14 +3044,14 @@ tr.rejected-row td{background:#FDF6F6;}
       <div class="section-title" style="font-size:16px;margin-top:6px;">📊 إحصائية المتابعة لكل مدير <span style="font-size:12px;font-weight:400;color:var(--text-muted);">— اضغط على أي صف لعرض رسائله فقط</span></div>
       <div class="table-scroll-wrap">
         <table class="results">
-          <thead><tr><th>المدير</th><th>الدور</th><th>إجمالي الرسائل</th><th>💬 واتساب</th><th>📧 بريد</th><th>🔔 منبثق</th><th>آخر متابعة</th><th>منذ (يوم)</th><th>مشاريع متأخرة حاليًا</th><th>الحالة</th></tr></thead>
+          <thead><tr><th>المدير</th><th>الدور</th><th>إجمالي الرسائل</th><th>💬 واتساب</th><th>📧 بريد</th><th>🔔 منبثق</th><th>آخر متابعة</th><th>منذ (يوم)</th><th>نتائج متأخرة حاليًا</th><th>الحالة</th></tr></thead>
           <tbody id="followStatsBody"></tbody>
         </table>
       </div>
       <div class="section-title" id="followDetailTitle" style="font-size:16px;margin-top:26px;">📜 تفاصيل الرسائل المُرسَلة</div>
       <div class="table-scroll-wrap">
         <table class="results">
-          <thead><tr><th>التاريخ والوقت</th><th>أرسلها</th><th>المستلم</th><th>القناة</th><th>نوع الرسالة</th><th>المشروع / الملخص</th></tr></thead>
+          <thead><tr><th>التاريخ والوقت</th><th>أرسلها</th><th>المستلم</th><th>القناة</th><th>نوع الرسالة</th><th>الهدف / الملخص</th></tr></thead>
           <tbody id="followDetailBody"></tbody>
         </table>
       </div>
@@ -3073,15 +3075,16 @@ tr.rejected-row td{background:#FDF6F6;}
         <button class="btn-secondary" id="backupSelectNone" style="padding:8px 18px;border-radius:8px;">إلغاء التحديد</button>
       </div>
       <div class="backup-checklist">
-        <label class="backup-check-item"><input type="checkbox" value="perProgram" checked> تفاصيل كل هدف دائرة (ورقة لكل هدف: بطاقة الهدف + مشاريعه + خططه التفصيلية)</label>
+        <label class="backup-check-item"><input type="checkbox" value="perProgram" checked> أهداف الدوائر وأهداف الأقسام مع نتائجها الرئيسية (ورقة لأهداف الدوائر وورقة لأهداف الأقسام)</label>
         <label class="backup-check-item"><input type="checkbox" value="reference" checked> البيانات المرجعية العامة (ملخص كل أهداف المديرية والدوائر في ورقة واحدة)</label>
         <label class="backup-check-item"><input type="checkbox" value="managerEmails" checked> بيانات مدراء الدوائر (الأسماء والبريد الإلكتروني فقط - بدون كلمات المرور)</label>
       </div>
-      <div class="section-desc" style="margin-top:10px;">💡 كل هدف دائرة يُصدَّر في ورقة مستقلة تحتوي على: بطاقة تعريف الهدف، جميع مشاريعه عبر كل السنوات، وخطوات مراحل التنفيذ لكل مشروع فيه.</div>
+      <div class="section-desc" style="margin-top:10px;">💡 كل نتيجة رئيسية في صف مستقل: الهدف ووزنه وحالته، ثم النتيجة ونوعها ووزنها والمستهدفات (منخفض/متوقع/عالي) والمتحقق ونسبة الإنجاز — لكل السنوات.</div>
     </div>
 
     <button class="add-btn" id="exportBackupBtn" style="font-size:15px;padding:14px 30px;">📥 تصدير النسخة الاحتياطية (Excel)</button>
 
+    <div id="bulkPlansWrap" style="display:none;">
     <div class="section-title" style="margin-top:40px;">📑 تصدير مجمّع للخطط التفصيلية (بنفس قالب الوزارة)</div>
     <div class="section-desc">حدّد النطاق، ثم اختر المشاريع التي تريد تصدير خططها التفصيلية — كل خطة في ورقة Excel مستقلة بنفس القالب الرسمي، جاهزة للإرسال مباشرة</div>
 
@@ -3100,6 +3103,7 @@ tr.rejected-row td{background:#FDF6F6;}
     </div>
 
     <button class="add-btn" id="exportBulkPlansBtn" style="font-size:15px;padding:14px 30px;">📥 تصدير الخطط المُحدَّدة (Excel)</button>
+    </div>
   </div>
 </div>
 
@@ -3130,7 +3134,7 @@ tr.rejected-row td{background:#FDF6F6;}
 <div id="decisionLogScreen" class="hidden">
   <div class="dash-wrap" style="padding-bottom:0;">
     <div class="section-title" style="font-size:20px;margin-top:0;">📝 إدارة الملاحظات والقرارات</div>
-    <div class="section-desc" style="margin-bottom:16px;">كل قرارات وملاحظات الأهداف، وملاحظات الخطط التفصيلية لكل المشاريع، وسجل التحديات، ورسائل التنبيه — في صفحة واحدة</div>
+    <div class="section-desc" style="margin-bottom:16px;">كل قرارات وملاحظات الأهداف، ورسائل التنبيه المنبثقة، والمراسلات المخصصة — في صفحة واحدة</div>
     <div class="mgr-tabs">
       <button class="mgr-tab active" id="dlTabDecisions" style="position:relative;">📝 القرارات والملاحظات <span id="dlTabBadgeDecisions" class="req-badge hidden">0</span></button>
       <button class="mgr-tab" id="dlTabNotes" style="position:relative;">📋 ملاحظات الخطط التفصيلية <span id="dlTabBadgeNotes" class="req-badge hidden">0</span></button>
@@ -3142,7 +3146,7 @@ tr.rejected-row td{background:#FDF6F6;}
 
   <div class="dash-wrap" id="dlDecisionsView">
     <div class="section-title" style="margin-top:0;">تسجيل قرار أو ملاحظة جديدة</div>
-    <div class="section-desc">اختر هدف الدائرة المعني (ومشروعًا محددًا اختياريًا) واكتب القرار أو الملاحظة — تصل مباشرة لمن يعنيه الأمر لمتابعتها وتنفيذها. تحديد مشروع معيّن يُرسل نسخة تلقائية للمدير التنفيذي أيضًا.</div>
+    <div class="section-desc">اختر هدف الدائرة المعني واكتب القرار أو الملاحظة — تصل مباشرة لمدير الدائرة لمتابعتها وتنفيذها.</div>
     <div class="pending-list">
       <div class="decision-add-form">
         <select id="decisionProgramSelect"></select>
@@ -3209,7 +3213,7 @@ tr.rejected-row td{background:#FDF6F6;}
 
   <div class="dash-wrap hidden" id="dlAnnounceView">
     <div class="section-title" style="margin-top:0;">📢 رسالة تنبيه منبثقة</div>
-    <div class="section-desc">تظهر تلقائيًا عند الدخول — للجميع افتراضيًا، أو حدّد مستلمين معيّنين (مدراء دوائر و/أو مدراء مشاريع)</div>
+    <div class="section-desc">تظهر تلقائيًا عند الدخول — للجميع افتراضيًا، أو حدّد مستلمين معيّنين (مدراء دوائر و/أو رؤساء أقسام وموظفين)</div>
     <div class="pending-list">
       <div class="decision-add-form" style="align-items:flex-end;">
         <div style="display:flex;flex-direction:column;gap:4px;">
@@ -3231,7 +3235,7 @@ tr.rejected-row td{background:#FDF6F6;}
         <label style="font-size:12px;font-weight:700;color:var(--navy);display:block;margin-bottom:8px;">المستلمون <span style="font-weight:400;color:var(--text-muted);">(اتركها فارغة لإرسالها للجميع)</span></label>
         <div style="display:flex;gap:8px;margin-bottom:8px;">
           <button type="button" class="export-btn" id="announceSelectAllExec" style="font-size:11.5px;">تحديد كل مدراء الدوائر</button>
-          <button type="button" class="export-btn" id="announceSelectAllPM" style="font-size:11.5px;">تحديد كل مدراء المشاريع</button>
+          <button type="button" class="export-btn" id="announceSelectAllPM" style="font-size:11.5px;">تحديد كل رؤساء الأقسام والموظفين</button>
           <button type="button" class="export-btn" id="announceSelectNone" style="font-size:11.5px;">إلغاء التحديد (= الجميع)</button>
         </div>
         <div id="announceRecipientsChecklist" style="max-height:200px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;padding:10px;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:6px;"></div>
@@ -3242,12 +3246,12 @@ tr.rejected-row td{background:#FDF6F6;}
 
   <div class="dash-wrap hidden" id="dlCorrView">
     <div class="section-title" style="margin-top:0;">✉️ مراسلات مخصصة</div>
-    <div class="section-desc">أرسل رسالة واتساب أو بريدًا إلكترونيًا لمدير دائرة أو مدير مشروع بنص تكتبه أنت (مثل طلب حضور لمناقشة نقاط معيّنة)، مع تفاصيل هدف المديرية/هدف الدائرة/المشروع المختارة. تُسجَّل كل مراسلة بتاريخها ويمكن فتح تفاصيلها لاحقًا.</div>
+    <div class="section-desc">أرسل رسالة واتساب أو بريدًا إلكترونيًا لمدير دائرة أو رئيس قسم أو موظف بنص تكتبه أنت (مثل طلب حضور لمناقشة نقاط معيّنة)، مع تفاصيل هدف المديرية/هدف الدائرة المختارة. تُسجَّل كل مراسلة بتاريخها ويمكن فتح تفاصيلها لاحقًا.</div>
     <div class="pending-list">
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin-bottom:12px;">
         <div style="display:flex;flex-direction:column;gap:4px;"><label class="corr-lbl">هدف المديرية (اختياري)</label><select id="corrGoal" class="corr-inp"></select></div>
         <div style="display:flex;flex-direction:column;gap:4px;"><label class="corr-lbl">هدف الدائرة (اختياري)</label><select id="corrProgram" class="corr-inp"></select></div>
-        <div style="display:flex;flex-direction:column;gap:4px;"><label class="corr-lbl">المشروع (اختياري)</label><select id="corrProject" class="corr-inp"></select></div>
+        <div style="display:none;flex-direction:column;gap:4px;"><label class="corr-lbl">المشروع (اختياري)</label><select id="corrProject" class="corr-inp"></select></div>
         <div style="display:flex;flex-direction:column;gap:4px;"><label class="corr-lbl">اسم المُرسِل (للتوثيق)</label><input type="text" id="corrSender" class="corr-inp" maxlength="80"></div>
       </div>
       <div style="display:flex;gap:16px;align-items:center;margin-bottom:14px;">
@@ -3266,21 +3270,21 @@ tr.rejected-row td{background:#FDF6F6;}
         <label class="corr-lbl" style="display:block;margin-bottom:8px;">المستلمون <span style="font-weight:400;color:var(--text-muted);">(حسب النطاق المختار أعلاه، أو الكل إن لم تُحدَّد فلاتر)</span></label>
         <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
           <button type="button" class="export-btn" id="corrSelectAllExec" style="font-size:11.5px;">تحديد كل مدراء الدوائر</button>
-          <button type="button" class="export-btn" id="corrSelectAllPM" style="font-size:11.5px;">تحديد كل مدراء المشاريع</button>
+          <button type="button" class="export-btn" id="corrSelectAllPM" style="font-size:11.5px;">تحديد كل رؤساء الأقسام والموظفين</button>
           <button type="button" class="export-btn" id="corrSelectNone" style="font-size:11.5px;">إلغاء تحديد الكل</button>
         </div>
         <div id="corrRecipientsChecklist" style="max-height:220px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;padding:10px;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:6px;"></div>
       </div>
       <div style="display:flex;flex-direction:column;gap:4px;margin-bottom:12px;">
         <label class="corr-lbl">عنوان البريد <span style="font-weight:400;color:var(--text-muted);">(يُستخدم عند الإرسال بالبريد فقط، وله عنوان افتراضي إن تركته فارغًا)</span></label>
-        <input type="text" id="corrSubject" class="corr-inp" maxlength="150" placeholder="مثال: دعوة لمناقشة نقاط على مشروعكم">
+        <input type="text" id="corrSubject" class="corr-inp" maxlength="150" placeholder="مثال: دعوة لمناقشة نقاط على أهدافكم">
       </div>
       <div style="display:flex;flex-direction:column;gap:4px;margin-bottom:10px;">
         <label class="corr-lbl">نص الرسالة</label>
         <textarea id="corrText" rows="4" class="corr-inp" placeholder="اكتب نص المراسلة، مثال: نأمل حضوركم يوم ... لمناقشة ..."></textarea>
       </div>
       <label style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--navy);margin-bottom:12px;">
-        <input type="checkbox" id="corrIncludeCtx" checked style="width:16px;height:16px;"> تضمين تفاصيل هدف المديرية/هدف الدائرة/المشروع المختارة في الرسالة
+        <input type="checkbox" id="corrIncludeCtx" checked style="width:16px;height:16px;"> تضمين تفاصيل هدف المديرية/هدف الدائرة المختارة في الرسالة
       </label>
       <div style="margin-bottom:12px;">
         <label class="corr-lbl" style="display:block;margin-bottom:4px;">معاينة الرسالة</label>
@@ -3295,7 +3299,7 @@ tr.rejected-row td{background:#FDF6F6;}
 
     <div class="section-title" style="font-size:17px;">📜 سجل المراسلات المُرسَلة</div>
     <div class="filters-bar" style="margin-bottom:12px;">
-      <input type="text" id="corrLogSearch" class="corr-inp" placeholder="🔍 بحث في السجل (المستلم، المشروع، النص)..." style="min-width:260px;">
+      <input type="text" id="corrLogSearch" class="corr-inp" placeholder="🔍 بحث في السجل (المستلم، الهدف، النص)..." style="min-width:260px;">
       <select id="corrLogChannel" class="corr-inp"><option value="">كل القنوات</option><option value="whatsapp">واتساب</option><option value="email">بريد</option></select>
     </div>
     <div id="corrLog"></div>
@@ -3306,7 +3310,7 @@ tr.rejected-row td{background:#FDF6F6;}
 <div id="requestsScreen" class="hidden">
   <div class="dash-wrap">
     <div class="section-title">طلبات المدراء لقسم التخطيط والدراسات</div>
-    <div class="section-desc">طلبات فتح مشاريع للتعديل، أو ملاحظات عامة (مثل تغيير كلمة المرور)، أو أي طلب آخر يرسله مدراء الدوائر</div>
+    <div class="section-desc">طلبات تعديل الأهداف المعتمدة، أو ملاحظات عامة (مثل تغيير كلمة المرور)، أو أي طلب آخر يرسله مدراء الدوائر</div>
     <div id="requestsSummaryGrid" class="summary-grid" style="margin-bottom:18px;"></div>
     <div class="filters-bar" style="margin-bottom:18px;">
       <select id="requestsFilterManager"><option value="">كل المدراء</option></select>
@@ -3338,13 +3342,13 @@ tr.rejected-row td{background:#FDF6F6;}
   </div>
   <div class="dash-wrap" id="pgaStructView">
     <div class="section-title">🏢 الدوائر والأقسام</div>
-    <div class="section-desc">هيكل المديرية كما يظهر في المنصة: أضف دائرة أو قسمًا، أعد التسمية، غيّر مجموعة الدائرة، وأسند مدير كل دائرة. عند تغيير مدير الدائرة تنتقل أهدافها ومشاريعها للمدير الجديد تلقائيًا.</div>
+    <div class="section-desc">هيكل المديرية كما يظهر في المنصة: أضف دائرة أو قسمًا، أعد التسمية، غيّر مجموعة الدائرة، وأسند مدير كل دائرة. عند تغيير مدير الدائرة تنتقل أهدافها للمدير الجديد تلقائيًا.</div>
     <button class="add-btn" id="addDeptBtn" style="margin-bottom:16px;">➕ إضافة دائرة جديدة</button>
     <div id="structAdminList"></div>
   </div>
   <div class="dash-wrap hidden" id="pgaGoalsView">
     <div class="section-title">🎯 أهداف المديرية السنوية</div>
-    <div class="section-desc">أهداف المديرية لكل سنة — تنعكس عليها أهداف الدوائر، وتُحسب نسبة تحققها تلقائيًا من مشاريع الدوائر المرتبطة بها.</div>
+    <div class="section-desc">أهداف المديرية لكل سنة — تنعكس عليها أهداف الدوائر، وتُحسب نسبة تحققها تلقائيًا من إنجاز أهداف الدوائر المرتبطة بها.</div>
     <div id="directionsAdminBox"></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;align-items:center;">
       <select id="dirGoalYearSelect" style="padding:8px 10px;border-radius:8px;border:1px solid var(--border);"></select>
@@ -3370,7 +3374,7 @@ tr.rejected-row td{background:#FDF6F6;}
   </div>
   <div class="dash-wrap hidden" id="pgaPMView">
     <div id="pmManagersSection">
-      <div class="section-title">👥 رؤساء الأقسام والموظفون (مدراء المشاريع)</div>
+      <div class="section-title">👥 رؤساء الأقسام والموظفون</div>
       <div class="section-desc">رئيس القسم يضيف أهداف قسمه ونتائجها ويحدّث إنجازها بعد اعتماد مدير الدائرة، والموظف يطّلع على أهداف قسمه فقط.</div>
       <button class="add-btn" id="addProjectManagerBtn" style="margin-bottom:16px;">➕ إضافة رئيس قسم أو موظف</button>
       <div id="projectManagersAdminList"></div>
@@ -3378,19 +3382,19 @@ tr.rejected-row td{background:#FDF6F6;}
   </div>
   <div class="dash-wrap hidden" id="pgaDirView">
     <div class="section-title">🖨️ دليل المدراء للطباعة</div>
-    <div class="section-desc">قائمة بمدراء الدوائر ومدراء المشاريع وبياناتهم ومسمياتهم الوظيفية، جاهزة للطباعة أو الحفظ PDF لاستخدامها في المراسلات الرسمية. اختر ما تريد إظهاره، وتتبع القائمة فلتر «هدف المديرية» أعلى الصفحة.</div>
+    <div class="section-desc">قائمة بمدراء الدوائر ورؤساء الأقسام والموظفين وبياناتهم ومسمياتهم الوظيفية، جاهزة للطباعة أو الحفظ PDF لاستخدامها في المراسلات الرسمية. اختر ما تريد إظهاره، وتتبع القائمة فلتر «هدف المديرية» أعلى الصفحة.</div>
     <div class="dir-opts">
       <div class="dir-opt-group"><div class="dir-opt-title">الفئات</div>
         <label><input type="checkbox" id="dirRoleExec" checked> مدراء الدوائر</label>
-        <label><input type="checkbox" id="dirRolePM" checked> مدراء المشاريع</label></div>
+        <label><input type="checkbox" id="dirRolePM" checked> رؤساء الأقسام والموظفون</label></div>
       <div class="dir-opt-group"><div class="dir-opt-title">الأعمدة</div>
         <label><input type="checkbox" id="dirColJob" checked> المسمى الوظيفي</label>
         <label><input type="checkbox" id="dirColId" checked> الرقم الوظيفي</label>
-        <label><input type="checkbox" id="dirColProg" checked> الأهداف / المشاريع</label>
+        <label><input type="checkbox" id="dirColProg" checked> الأهداف / القسم</label>
         <label><input type="checkbox" id="dirColPhone" checked> الهاتف</label>
         <label><input type="checkbox" id="dirColEmail" checked> البريد الإلكتروني</label></div>
       <div class="dir-opt-group"><div class="dir-opt-title">الطباعة</div>
-        <label>العنوان <input type="text" id="dirTitle" value="دليل المدراء المسؤولين عن الأهداف والمشاريع" maxlength="120" style="min-width:260px;"></label>
+        <label>العنوان <input type="text" id="dirTitle" value="دليل مدراء الدوائر ورؤساء الأقسام" maxlength="120" style="min-width:260px;"></label>
         <label>الترتيب <select id="dirSort"><option value="code">حسب رمز الهدف</option><option value="name">حسب الاسم</option></select></label>
         <label>الاتجاه <select id="dirOrient"><option value="landscape">أفقي</option><option value="portrait">عمودي</option></select></label></div>
     </div>
@@ -5150,7 +5154,7 @@ function sendCredentialsWhatsApp(recipientType, identifier){
     myProjects = ALL_PROJECTS.filter(p=>p.govManager===identifier);
   }else{
     const pm = ALL_PROJECT_MANAGERS.find(m=>m.employeeId===identifier);
-    if(!pm){ alert("تعذّر العثور على مدير المشروع."); return; }
+    if(!pm){ alert("تعذّر العثور على الحساب."); return; }
     name = pm.name;
     phone = pm.phone;
     password = pm.password;
@@ -5158,13 +5162,28 @@ function sendCredentialsWhatsApp(recipientType, identifier){
     myProjects = projectsOfPM(identifier);
   }
   if(!phone){ alert("لا يوجد رقم جوال مسجَّل لهذا الشخص. أضفه أولًا من نفس الصفحة."); return; }
-  if(myProjects.length===0){ alert("لا توجد مشاريع مُسنَدة لهذا الشخص حاليًا."); return; }
   const greeting = gender==="male" ? "الفاضل" : (gender==="female" ? "الفاضلة" : "الفاضل/الفاضلة");
-  let msg = `${greeting} ${name}،\nتم إسناد المشروع/المشاريع التالية لك ضمن منصة "مسار":\n`;
-  myProjects.forEach(p=>{
-    const goalName = (getGoal(p.goalId)||{}).name || "";
-    msg += `• ${p.projectName} — ${p.programCode} ${p.programName} — الهدف: ${goalName}\n`;
-  });
+  let msg;
+  if(typeof OKR_MODE!=="undefined" && OKR_MODE){
+    // النظام الحالي: أهداف ونتائج رئيسية — تُذكر صفة الحساب والدائرة/القسم بدل المشاريع
+    if(recipientType==="exec"){
+      const d = DEPARTMENTS.find(x=> managerOfDept(x.id)===name);
+      msg = `${greeting} ${name}،\nتم تفعيل حسابك في منصة "مسار" للخطط السنوية بصفتك مدير ${d ? d.name : "الدائرة"}، لإدخال أهداف الدائرة ونتائجها الرئيسية ومتابعة إنجازها، واعتماد أهداف أقسام الدائرة.\n`;
+    }else{
+      const pm = ALL_PROJECT_MANAGERS.find(m=>m.employeeId===identifier) || {};
+      const where = [sectionName(pm.sectionId), deptName(pm.deptId)].filter(Boolean).join(" — ");
+      msg = pm.role==="head"
+        ? `${greeting} ${name}،\nتم تفعيل حسابك في منصة "مسار" للخطط السنوية بصفتك رئيس ${where || "القسم"}، لإدخال أهداف القسم ونتائجها الرئيسية وتحديث إنجازها بعد اعتماد مدير الدائرة.\n`
+        : `${greeting} ${name}،\nتم تفعيل حسابك في منصة "مسار" للخطط السنوية${where ? " (" + where + ")" : ""}، للاطلاع على أهداف قسمك ومتابعة إنجازها.\n`;
+    }
+  }else{
+    if(myProjects.length===0){ alert("لا توجد مشاريع مُسنَدة لهذا الشخص حاليًا."); return; }
+    msg = `${greeting} ${name}،\nتم إسناد المشروع/المشاريع التالية لك ضمن منصة "مسار":\n`;
+    myProjects.forEach(p=>{
+      const goalName = (getGoal(p.goalId)||{}).name || "";
+      msg += `• ${p.projectName} — ${p.programCode} ${p.programName} — الهدف: ${goalName}\n`;
+    });
+  }
   msg += `\nبيانات الدخول للمنصة:\nاسم المستخدم (الرقم الوظيفي): ${recipientType==="exec" ? execLoginId : identifier}\nكلمة المرور: ${password}\n${PLATFORM_URL}\n\nيمكنك تغيير كلمة المرور لاحقًا من داخل حسابك.\n\nقسم التخطيط والدراسات`;
   window.open(`https://api.whatsapp.com/send?phone=${cleanPhoneNumber(phone)}&text=${encodeURIComponent(msg)}`, "_blank");
   const sentInfo = { sentAt: firebase.firestore.FieldValue.serverTimestamp(), sentBy: ADMIN_NAME };
@@ -5692,7 +5711,7 @@ async function saveDepartment(id, fields){
 }
 async function deleteDepartment(id){
   const used = PROGRAMS.some(p=>p.deptId===id) || ALL_PROJECTS.some(p=>p.deptId===id);
-  if(used){ alert("لا يمكن حذف هذه الدائرة لوجود أهداف أو مشاريع مرتبطة بها. انقلها أو احذفها أولًا."); return false; }
+  if(used){ alert("لا يمكن حذف هذه الدائرة لوجود أهداف مرتبطة بها. انقلها أو احذفها أولًا."); return false; }
   if(ALL_PROJECT_MANAGERS.some(pm=>pm.deptId===id)){ alert("لا يمكن حذف هذه الدائرة لوجود حسابات رؤساء أقسام أو موظفين تابعة لها. عدّلها أولًا."); return false; }
   try{
     for(const s of sectionsOfDept(id)) await db.collection(SECTIONS_COLLECTION).doc(s.id).delete();
@@ -5721,8 +5740,8 @@ async function saveSection(id, deptId, name){
   }catch(err){ console.error(err); alert("تعذّر حفظ القسم: " + err.message); return false; }
 }
 async function deleteSection(id){
-  if(ALL_PROJECTS.some(p=>p.sectionId===id) || ALL_PROJECT_MANAGERS.some(pm=>pm.sectionId===id)){
-    alert("لا يمكن حذف هذا القسم لوجود مشاريع أو حسابات مرتبطة به. عدّلها أولًا."); return false;
+  if(ALL_PROJECTS.some(p=>p.sectionId===id) || SEC_GOALS.some(p=>p.sectionId===id) || ALL_PROJECT_MANAGERS.some(pm=>pm.sectionId===id)){
+    alert("لا يمكن حذف هذا القسم لوجود أهداف أو حسابات مرتبطة به. عدّلها أولًا."); return false;
   }
   try{ await db.collection(SECTIONS_COLLECTION).doc(id).delete(); logActivity(ADMIN_NAME, "delete_section", id); return true; }
   catch(err){ console.error(err); alert("تعذّر حذف القسم: " + err.message); return false; }
@@ -5880,11 +5899,11 @@ async function addProjectManager(name, employeeId, password, projectIds, jobTitl
     for(const pid of (projectIds||[])){
       await addProjectManagerToProject(pid, employeeId);
     }
-    logActivity(ADMIN_NAME, "add_project_manager", `${name} (${employeeId}) — ${(projectIds||[]).length} مشروع`);
+    logActivity(ADMIN_NAME, "add_project_manager", `${name} (${employeeId})`);
     return true;
   }catch(err){
     console.error("addProjectManager error:", err);
-    alert("تعذّر إضافة مدير المشروع: " + err.message);
+    alert("تعذّر إضافة الحساب: " + err.message);
     return false;
   }
 }
@@ -5920,7 +5939,7 @@ async function updateProjectManagerAssignments(employeeId, newProjectIds){
   const toRemove = currentlyAssigned.filter(id=> !newProjectIds.includes(id));
   for(const pid of toAdd) await addProjectManagerToProject(pid, employeeId);
   for(const pid of toRemove) await removeProjectManagerFromProject(pid, employeeId);
-  logActivity(ADMIN_NAME, "edit_project_manager_assignments", `${employeeId} — ${newProjectIds.length} مشروع`);
+  logActivity(ADMIN_NAME, "edit_project_manager_assignments", `${employeeId}`);
 }
 
 // حفظ بيانات هدف دائرة (تعديل أو إضافة) — يُشغّل التحديث التلقائي لكل مشاريعه إذا تغيّر المدير المسؤول
@@ -7971,7 +7990,7 @@ function corrRecipientsList(){
     return { key:"exec:"+name, type:"exec", id:name, name, phone:a.phone||"", email:a.email||"", gender:a.gender||"", label:`👤 مدير دائرة — ${name}` };
   });
   const pms = ALL_PROJECT_MANAGERS.filter(pm=> !sc.hasFilter || projectsOfPM(pm.employeeId).some(p=> sc.projects.includes(p)))
-    .map(pm=>({ key:"pm:"+pm.employeeId, type:"pm", id:pm.employeeId, name:pm.name, phone:pm.phone||"", email:pm.email||"", gender:pm.gender||"", label:`🧑‍💼 مدير مشروع — ${pm.name}` }));
+    .map(pm=>({ key:"pm:"+pm.employeeId, type:"pm", id:pm.employeeId, name:pm.name, phone:pm.phone||"", email:pm.email||"", gender:pm.gender||"", label:`${pmRoleLabel(pm.name, true)} — ${pm.name}` }));
   return [...execs, ...pms];
 }
 function corrBuildRecipients(){
@@ -8180,7 +8199,7 @@ function openCorrDetail(id){
   document.getElementById("corrDetailBody").innerHTML = `
     <div class="cd-chips">
       <span class="cd-chip ${isEmail?"em":"wa"}">${isEmail ? "📧 بريد إلكتروني" : "💬 واتساب"}</span>
-      <span class="cd-chip">${c.recipientType==="pm" ? "🧑‍💼 مدير مشروع" : "👤 مدير دائرة"}</span>
+      <span class="cd-chip">${c.recipientType==="pm" ? pmRoleLabel(c.recipientName, true) : "👤 مدير دائرة"}</span>
       ${c.batchSize>1 ? `<span class="cd-chip batch">👥 ضمن إرسال جماعي (${c.batchSize} مستلمين)</span>` : ""}
     </div>
     <div class="cd-grid">
@@ -8343,7 +8362,7 @@ function renderStructAdminList(){
         <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center;">
           <div>
             <div class="pa-name">${d.order}. ${escapeHtml(d.name)}</div>
-            <div class="pa-meta">${secs.length} أقسام · ${goalsCount} أهداف · ${projCount} مشروعًا · ${peopleCount} حسابًا</div>
+            <div class="pa-meta">${secs.length} أقسام · ${goalsCount} أهداف · ${peopleCount} حسابًا</div>
           </div>
           <div class="pa-actions">
             <label style="font-size:12px;color:var(--text-muted);">مدير الدائرة
@@ -8512,7 +8531,8 @@ function dirCollect(o){
     return { name, job:full.jobTitle||"", id:full.employeeId||"", phone:auth.phone||"", email:auth.email||"",
       items: progs.map(p=>`${p.code} — ${p.name}`), firstCode: progs.length ? progs[0].code : "999" };
   });
-  const pms = !o.pm ? [] : ALL_PROJECT_MANAGERS.filter(pm=> !goal || getPMGoalIds(pm.employeeId).has(goal)).map(pm=>{
+  const pms = !o.pm ? [] : (typeof OKR_MODE!=="undefined" && OKR_MODE) ? ALL_PROJECT_MANAGERS.map(pm=>({ name:pm.name, job:pm.jobTitle||"", id:pm.employeeId||"", phone:pm.phone||"", email:pm.email||"",
+      items: [[deptName(pm.deptId), sectionName(pm.sectionId)].filter(Boolean).join(" › "), pm.role==="head" ? "رئيس قسم" : "موظف"].filter(Boolean), firstCode: String((getDept(pm.deptId)||{}).order||"999") })) : ALL_PROJECT_MANAGERS.filter(pm=> !goal || getPMGoalIds(pm.employeeId).has(goal)).map(pm=>{
     const projs = projectsOfPM(pm.employeeId).filter(p=> (!goal || hasGoal(p, goal)));
     projs.sort((a,b)=> dirCodeCmp(a.programCode,b.programCode) || String(a.projectName).localeCompare(b.projectName,"ar"));
     return { name:pm.name, job:pm.jobTitle||"", id:pm.employeeId||"", phone:pm.phone||"", email:pm.email||"",
@@ -8545,9 +8565,9 @@ function dirHTML(o){
     <div class="dirp-container">
       <div class="dirp-head"><div class="org">المديرية العامة للخدمات الصحية — محافظة شمال الشرقية</div><div class="org">دائرة التخطيط والتنظيم الصحي — قسم التخطيط والدراسات</div></div>
       <div class="dirp-title">${escapeHtml(o.title || "دليل المدراء")}</div>
-      <div class="dirp-sub">${goalName ? `هدف المديرية: ${escapeHtml(o.goal+". "+goalName)} — ` : ""}التاريخ: ${today} — ${o.exec ? `مدراء الدوائر: ${execs.length}` : ""}${o.exec && o.pm ? " — " : ""}${o.pm ? `مدراء المشاريع: ${pms.length}` : ""}</div>
+      <div class="dirp-sub">${goalName ? `هدف المديرية: ${escapeHtml(o.goal+". "+goalName)} — ` : ""}التاريخ: ${today} — ${o.exec ? `مدراء الدوائر: ${execs.length}` : ""}${o.exec && o.pm ? " — " : ""}${o.pm ? `رؤساء الأقسام والموظفون: ${pms.length}` : ""}</div>
       ${execs.length ? `<div class="dirp-sec">مدراء الدوائر (${execs.length})</div>${table(execs, "أهداف الدوائر المسؤول عنها")}` : ""}
-      ${pms.length ? `<div class="dirp-sec">مدراء المشاريع (${pms.length})</div>${table(pms, "المشاريع المُسنَدة إليه")}` : ""}
+      ${pms.length ? `<div class="dirp-sec">رؤساء الأقسام والموظفون (${pms.length})</div>${table(pms, "القسم والدور")}` : ""}
     </div>`;
 }
 function renderManagerDirectory(){
@@ -8695,7 +8715,7 @@ function renderProgramsAdminList(){
         <div>
           <div class="pa-name">${p.code} — ${escapeHtml(p.name)} <span style="font-weight:400;color:var(--text-muted);">(${p.year||"—"})</span></div>
           <div style="margin:4px 0;">${metricsChipHTML(programMetrics(p), true)}</div>
-          <div class="pa-meta">ينعكس على: ${escapeHtml(programGoalsLabel(p))} | المسؤول: ${escapeHtml(p.govManager||"— لا يوجد مدير للدائرة —")} | ${ALL_PROJECTS.filter(pr=>pr.programCode===p.code).length} مشروعًا</div>
+          <div class="pa-meta">ينعكس على: ${escapeHtml(programGoalsLabel(p))} | المسؤول: ${escapeHtml(p.govManager||"— لا يوجد مدير للدائرة —")} | ${okrKRs(p).length} نتائج رئيسية</div>
         </div>
         <div class="pa-actions">
           <button class="pa-edit-btn" data-code="${p.code}" data-action="edit">✎ تعديل</button>
@@ -8735,7 +8755,7 @@ function renderProjectManagersAdminList(){
       <div class="program-admin-row">
         <div>
           <div class="pa-name">👤 ${escapeHtml(pm.name)} <span style="background:${pm.role==="head"?"#E2F1F2":"#EEF2F7"};color:${pm.role==="head"?"#1E5A60":"#3A4656"};border-radius:999px;padding:1px 8px;font-size:11px;">${ROLE_LABELS[pm.role]||"موظف"}</span> <span style="font-weight:400;color:var(--text-muted);">— رقم وظيفي: ${escapeHtml(pm.employeeId)}${pm.jobTitle?" — "+escapeHtml(pm.jobTitle):""}</span></div>
-          <div class="pa-meta">${pm.deptId ? `🏢 ${escapeHtml(deptName(pm.deptId))}${pm.sectionId ? " › "+escapeHtml(sectionName(pm.sectionId)) : ""}` : `<span style="color:#B3261E;font-weight:700;">⚠️ غير مرتبط بدائرة</span>`} | ${assignedProjects.length} مشروعًا${assignedProjects.length? ": "+assignedProjects.map(p=>escapeHtml(p.projectName)).join("، ") : ""}</div>
+          <div class="pa-meta">${pm.deptId ? `🏢 ${escapeHtml(deptName(pm.deptId))}${pm.sectionId ? " › "+escapeHtml(sectionName(pm.sectionId)) : ""}` : `<span style="color:#B3261E;font-weight:700;">⚠️ غير مرتبط بدائرة</span>`} | ${pm.role==="head" ? "رئيس قسم" : "موظف"}</div>
         </div>
         <div class="pa-actions">
           <button class="pa-edit-btn" data-id="${escapeAttr(pm.employeeId)}" data-action="editpm">✎ تعديل</button>
@@ -9095,7 +9115,7 @@ function renderRequestsScreen(){
   });
   list.querySelectorAll(".request-delete-btn").forEach(btn=>{
     btn.onclick = ()=>{
-      if(!confirm("هل أنت متأكد من حذف هذا الطلب نهائيًا؟ سيُحذف من عرض مدير الدائرة ومدير المشروع أيضًا، ولا يمكن التراجع عن هذا الإجراء.")) return;
+      if(!confirm("هل أنت متأكد من حذف هذا الطلب نهائيًا؟ سيُحذف من عرض مدير الدائرة ورئيس القسم أيضًا، ولا يمكن التراجع عن هذا الإجراء.")) return;
       deleteRequest(btn.dataset.id);
     };
   });
@@ -9340,7 +9360,7 @@ function renderDecisionLogScreen(){
   });
   list.querySelectorAll(".decision-delete-btn").forEach(btn=>{
     btn.onclick = ()=>{
-      if(!confirm("هل أنت متأكد من حذف هذا القرار/الملاحظة نهائيًا؟ سيُحذف من عرض مدير الدائرة ومدير المشروع أيضًا، ولا يمكن التراجع عن هذا الإجراء.")) return;
+      if(!confirm("هل أنت متأكد من حذف هذا القرار/الملاحظة نهائيًا؟ سيُحذف من عرض مدير الدائرة ورئيس القسم أيضًا، ولا يمكن التراجع عن هذا الإجراء.")) return;
       deleteDecision(btn.dataset.id);
     };
   });
@@ -9438,7 +9458,7 @@ function renderPasswordsScreen(){
   if(pmList){
     const filteredPMs = ALL_PROJECT_MANAGERS.filter(pm=> !goalFilter || getPMGoalIds(pm.employeeId).has(Number(goalFilter)));
     pmList.innerHTML = filteredPMs.length===0
-      ? `<div class="empty-note">لا يوجد مدراء مشاريع مطابقون لهذا الاختيار.</div>`
+      ? `<div class="empty-note">لا يوجد رؤساء أقسام أو موظفون مطابقون لهذا الاختيار.</div>`
       : filteredPMs.map(pm=>{
           const emailText = pm.email ? pm.email : "لا يوجد بريد مسجَّل";
           const phoneText = pm.phone ? pm.phone : "لا يوجد جوال مسجَّل";
@@ -9449,7 +9469,7 @@ function renderPasswordsScreen(){
           return `
             <div class="mgr-auth-row">
               <div>
-                <div class="mname">${escapeHtml(pm.name)} <span style="font-weight:400;color:var(--text-muted);">— ${escapeHtml(pm.employeeId)} — ${myPrograms||"بدون مشاريع"}</span></div>
+                <div class="mname">${escapeHtml(pm.name)} <span style="font-weight:400;color:var(--text-muted);">— ${escapeHtml(pm.employeeId)} — ${escapeHtml([pm.role==="head"?"رئيس قسم":"موظف", sectionName(pm.sectionId)||deptName(pm.deptId)||""].filter(Boolean).join(" — "))}</span></div>
                 <div class="mupdated">📧 ${escapeHtml(emailText)} | 📱 ${escapeHtml(phoneText)}</div>
                 ${sentText ? `<div class="mupdated" style="color:#1E7A3D;">${sentText}</div>` : ""}
               </div>
@@ -9509,7 +9529,7 @@ function buildActivityFilters(){
     PROGRAMS.map(p=>`<option value="${p.code}">${p.code} — ${escapeHtml(p.name)} (${escapeHtml(p.govManager)})</option>`).join("");
   pf.onchange = renderActivityScreen;
   const pmf = document.getElementById("activityPMFilter");
-  pmf.innerHTML = "<option value=''>كل مدراء المشاريع</option>" +
+  pmf.innerHTML = "<option value=''>كل رؤساء الأقسام والموظفين</option>" +
     ALL_PROJECT_MANAGERS.map(pm=>`<option value="${escapeAttr(pm.name)}">${escapeHtml(pm.name)}</option>`).join("");
   pmf.onchange = renderActivityScreen;
   document.getElementById("activityActionFilter").onchange = renderActivityScreen;
@@ -9533,11 +9553,11 @@ const ACTION_LABELS = {
   fill_project_detail:"📋 تعبئة خطة تفصيلية", fill_program_card:"🪪 تعبئة بطاقة هدف", change_password:"🔑 تغيير كلمة المرور",
   send_reminder:"📧 إرسال تذكير تأخر", backup_export:"💾 تصدير نسخة احتياطية", add_decision:"📝 تسجيل قرار/ملاحظة", send_request:"📮 إرسال طلب لقسم التخطيط", weekly_report:"📊 إنشاء تقرير أسبوعي", confirm_reminder_sent:"✓ تأكيد إرسال تذكير", bulk_export_plans:"📑 تصدير مجمّع للخطط التفصيلية", change_admin_password:"🔑 تغيير كلمة مرور حساب التخطيط", delete_decision:"🗑️ حذف قرار/ملاحظة", delete_request:"🗑️ حذف طلب", delete_announcement:"🗑️ حذف رسالة تنبيه", view_competition_report:"🏆 عرض تقرير المنافسة", add_planning_note:"📝 إضافة نقطة ملاحظة", mark_planning_note_edited:"🟡 تعليم نقطة كمُعدَّلة", confirm_planning_note:"🟢 تأكيد تنفيذ نقطة", revert_planning_note:"↩️ إرجاع نقطة لغير مُنفَّذة", delete_planning_note:"🗑️ حذف نقطة ملاحظة", add_challenge:"🚨 تسجيل تحدٍّ جديد", resolve_challenge:"✅ حل تحدٍّ داخليًا", escalate_challenge:"⬆️ تصعيد تحدٍّ للمدير العام", dg_respond_challenge:"💬 رد المدير العام على تحدٍّ", delete_challenge:"🗑️ حذف تحدٍّ", change_dg_password:"🔑 تغيير كلمة مرور المدير العام", set_spi_baseline:"🎯 تحديد خط أساس SPI", request_spi_unlock:"🔓 طلب إعادة تحديد خط أساس SPI", approve_spi_unlock:"✅ سماح بإعادة تحديد خط أساس SPI", view_spi_screen:"📈 عرض صفحة مؤشر الأداء الزمني SPI", view_analytics_screen:"🔬 عرض صفحة التحليلات المتقدمة", send_custom_message:"✉️ إرسال مراسلة مخصصة", delete_custom_message:"🗑️ حذف مراسلة من السجل", send_challenge_whatsapp_alert:"📤 تنبيه واتساب بتحدٍّ للمدير التنفيذي", resolve_request:"✅ تنفيذ طلب مع تعليق", edit_request_note:"✎ تعديل تعليق تنفيذ طلب",
   add_announcement:"📢 إضافة رسالة تنبيه منبثقة", add_challenge_action:"➕ إضافة إجراء على تحدٍّ", add_manager:"👤 إضافة مدير دائرة",
-  add_program:"📂 إضافة هدف دائرة", add_project_manager:"🧑‍💼 إضافة مدير مشروع", close_challenge:"🔒 إغلاق تحدٍّ نهائيًا",
-  delete_manager:"🗑️ حذف مدير دائرة", delete_program:"🗑️ حذف هدف دائرة", delete_project_manager:"🗑️ حذف مدير مشروع",
-  edit_manager:"✎ تحديث الرقم الوظيفي لمدير", edit_program:"✎ تعديل هدف دائرة", edit_project_manager_assignments:"🔗 تعديل مشاريع مدير مشروع",
+  add_program:"📂 إضافة هدف دائرة", add_project_manager:"🧑‍💼 إضافة رئيس قسم/موظف", close_challenge:"🔒 إغلاق تحدٍّ نهائيًا",
+  delete_manager:"🗑️ حذف مدير دائرة", delete_program:"🗑️ حذف هدف دائرة", delete_project_manager:"🗑️ حذف رئيس قسم/موظف",
+  edit_manager:"✎ تحديث الرقم الوظيفي لمدير", edit_program:"✎ تعديل هدف دائرة", edit_project_manager_assignments:"✎ تعديل بيانات رئيس قسم/موظف",
   reassign_manager:"🔁 إعادة تعيين مدير دائرة", recalculate_step_durations:"🔄 إعادة حساب مدد الخطوات", rename_manager:"✎ إعادة تسمية مدير",
-  reset_project_manager_password:"🔑 إعادة تعيين كلمة مرور مدير مشروع", send_credentials_whatsapp:"📤 إرسال بيانات الدخول بواتساب",
+  reset_project_manager_password:"🔑 إعادة تعيين كلمة مرور رئيس قسم/موظف", send_credentials_whatsapp:"📤 إرسال بيانات الدخول بواتساب",
   start_challenge_progress:"📝 تسجيل الإجراءات الأولى على تحدٍّ", view_full_matrix:"📐 عرض المصفوفة الشاملة"
 };
 function getActorName(){ return currentManager || currentProjectManagerName || ADMIN_NAME; }
@@ -9680,13 +9700,13 @@ function renderActivityScreen(){
   // الملخص يعكس دائمًا النتائج المفلترة الحالية
   const summary = document.getElementById("activitySummaryGrid");
   const totalLogins = rows.filter(a=>a.action==="login").length;
-  const totalAdds = rows.filter(a=>a.action==="add_project").length;
+  const totalAdds = rows.filter(a=>a.action==="add_program").length;
   const activeManagers = new Set(rows.map(a=>a.managerName)).size;
   const hasFilters = programFilter || pmFilter || actionFilter || dateFrom || dateTo || searchQ;
   summary.innerHTML = `
     <div class="summary-card"><div class="num">${rows.length}</div><div class="lbl">${hasFilters?"إجمالي الأحداث (ضمن الفلاتر المختارة)":"إجمالي الأحداث المسجّلة"}</div></div>
     <div class="summary-card"><div class="num">${totalLogins}</div><div class="lbl">مرات الدخول</div></div>
-    <div class="summary-card"><div class="num">${totalAdds}</div><div class="lbl">المشاريع المُضافة</div></div>
+    <div class="summary-card"><div class="num">${totalAdds}</div><div class="lbl">الأهداف المُضافة</div></div>
     <div class="summary-card"><div class="num">${activeManagers}</div><div class="lbl">أشخاص لديهم نشاط ضمن هذا الاختيار</div></div>
   `;
 
@@ -9792,8 +9812,22 @@ function followPeople(events){
   return [...map.values()];
 }
 // عدد المشاريع المتأخرة حاليًا لكل مدير — لربط حجم المتابعة بالحاجة الفعلية إليها
+// تسمية دور حساب القسم حسب سجله: رئيس قسم أو موظف (بدل «مدير مشروع» من النظام السابق)
+function pmRoleLabel(name, withIcon){
+  const rec = ALL_PROJECT_MANAGERS.find(x=> x.name===name || x.employeeId===name);
+  const head = rec ? rec.role==="head" : null;
+  const t = head===null ? "رئيس قسم / موظف" : head ? "رئيس قسم" : "موظف";
+  return withIcon ? (head===false ? "👤 " : "🧑‍💼 ") + t : t;
+}
 function followLateCounts(){
   const exec = {}, pm = {};
+  if(typeof OKR_MODE!=="undefined" && OKR_MODE){
+    // النتائج الرئيسية المتأخرة: لأهداف الدائرة تُحسب لمديرها، ولأهداف القسم تُحسب لرئيس القسم
+    const lateN = p=> okrKRs(p).filter(k=> krAch(k).late).length;
+    PROGRAMS.forEach(p=>{ const n = lateN(p); if(!n) return; const m = managerOfDept(p.deptId) || p.govManager; if(m) exec[m] = (exec[m]||0) + n; });
+    SEC_GOALS.forEach(p=>{ const n = lateN(p); if(!n) return; ALL_PROJECT_MANAGERS.filter(x=> x.role==="head" && x.sectionId===p.sectionId).forEach(x=>{ pm[x.name] = (pm[x.name]||0) + n; }); });
+    return { exec, pm };
+  }
   ALL_PROJECTS.filter(p=>!p.closed).forEach(pr=>{
     if(findLateSteps(pr).length===0) return;
     exec[pr.govManager] = (exec[pr.govManager]||0)+1;
@@ -9831,7 +9865,7 @@ function followBuildSelects(people, events){
   const optHtml = arr=> arr.map(p=>`<option value="${escapeAttr(p.key)}">${escapeHtml(p.name)}${p.orphan?" (غير مسجَّل حاليًا)":""}</option>`).join("");
   personSel.innerHTML = `<option value="">كل المدراء</option>` +
     (execs.length ? `<optgroup label="مدراء الدوائر">${optHtml(execs)}</optgroup>` : "") +
-    (pms.length ? `<optgroup label="مدراء المشاريع">${optHtml(pms)}</optgroup>` : "");
+    (pms.length ? `<optgroup label="رؤساء الأقسام والموظفون">${optHtml(pms)}</optgroup>` : "");
   personSel.value = visible.some(p=>p.key===prevP) ? prevP : "";
 
   const chanSel = document.getElementById("followChannel");
@@ -9881,14 +9915,14 @@ function renderFollowUpTab(){
     <div class="summary-card"><div class="num">${filtered.length}</div><div class="lbl">إجمالي الرسائل المُرسَلة (ضمن الفلاتر)</div></div>
     <div class="summary-card" style="border-right-color:#1E7A3D;"><div class="num">${followed} <span style="font-size:14px;font-weight:400;color:var(--text-muted);">من ${rows.length}</span></div><div class="lbl">مدراء تمت مراسلتهم</div></div>
     <div class="summary-card"><div class="num">${notFollowed.length}</div><div class="lbl">مدراء لم تتم مراسلتهم ضمن هذا الاختيار</div></div>
-    <div class="summary-card" style="border-right-color:var(--red);"><div class="num">${gap}</div><div class="lbl">منهم لديهم مشاريع متأخرة حاليًا ⚠️</div></div>`;
+    <div class="summary-card" style="border-right-color:var(--red);"><div class="num">${gap}</div><div class="lbl">منهم لديهم نتائج رئيسية متأخرة حاليًا ⚠️</div></div>`;
 
   const status = r=>{
     if(r.total===0) return r.lateNow>0
-      ? `<span style="color:#B3202E;font-weight:700;">⚠️ لم يُتابَع رغم تأخر ${r.lateNow} من مشاريعه</span>`
+      ? `<span style="color:#B3202E;font-weight:700;">⚠️ لم يُتابَع رغم تأخر ${r.lateNow} من النتائج الرئيسية</span>`
       : `<span style="color:var(--text-muted);">— لم تتم مراسلته</span>`;
     if(r.lateNow>0 && r.daysSince!==null && r.daysSince>FOLLOWUP_STALE_DAYS)
-      return `<span style="color:#8a6d1f;font-weight:700;">🟡 آخر متابعة قبل ${r.daysSince} يومًا ومشاريعه ما زالت متأخرة</span>`;
+      return `<span style="color:#8a6d1f;font-weight:700;">🟡 آخر متابعة قبل ${r.daysSince} يومًا ونتائجه ما زالت متأخرة</span>`;
     return `<span style="color:#1E7A3D;font-weight:700;">✓ تمت المتابعة</span>`;
   };
   const statsBody = document.getElementById("followStatsBody");
@@ -9897,7 +9931,7 @@ function renderFollowUpTab(){
     : rows.map(r=>`
       <tr class="follow-person-row" data-key="${escapeAttr(r.key)}" style="cursor:pointer;${r.total===0 && r.lateNow>0 ? "background:#FDEAEA;" : ""}">
         <td><b>${escapeHtml(r.name)}</b></td>
-        <td>${r.type==="pm" ? "🧑‍💼 مدير مشروع" : "👤 مدير دائرة"}</td>
+        <td>${r.type==="pm" ? pmRoleLabel(r.name, true) : "👤 مدير دائرة"}</td>
         <td><b>${r.total}</b></td><td>${r.wa}</td><td>${r.em}</td><td>${r.popup}</td>
         <td>${r.last ? r.last.toLocaleDateString("ar-OM",{dateStyle:"medium"}) : "—"}</td>
         <td>${r.daysSince===null ? "—" : r.daysSince}</td>
@@ -9936,10 +9970,10 @@ function followExportCSV(){
   if(evs.length===0){ alert("لا توجد رسائل ضمن الفلاتر الحالية لتصديرها."); return; }
   const q = v=> `"${String(v==null ? "" : v).replace(/"/g,'""')}"`;
   const pad = n=> String(n).padStart(2,"0");
-  const head = ["التاريخ","الوقت","أرسلها","المستلم","الدور","القناة","نوع الرسالة","المشروع","الملخص"];
+  const head = ["التاريخ","الوقت","أرسلها","المستلم","الدور","القناة","نوع الرسالة","الهدف","الملخص"];
   const lines = [head.map(q).join(",")].concat(evs.map(e=> [
     followLocalDateStr(e.at), `${pad(e.at.getHours())}:${pad(e.at.getMinutes())}`, e.by, e.targetName,
-    e.targetType==="pm" ? "مدير مشروع" : "مدير دائرة",
+    e.targetType==="pm" ? pmRoleLabel(e.targetName) : "مدير دائرة",
     String(FOLLOWUP_CHANNEL_LABELS[e.channel]||e.channel||"").replace(/^[^\u0600-\u06FFA-Za-z]+/,""),
     e.kindLabel, e.projectName||"", e.summary||""
   ].map(q).join(",")));
@@ -11683,10 +11717,14 @@ async function exportBackupExcel(){
     let sheetCount = 0;
 
     if(checked("perProgram")){
-      PROGRAMS.forEach(program=>{
-        addProgramBackupSheet(wb, program);
-        sheetCount++;
+      const head = ["السنة","الدائرة","القسم","رمز الهدف","الهدف","التصنيف","وزن الهدف %","حالة الاعتماد","إنجاز الهدف %","النتيجة الرئيسية","نوع المؤشر","وزن النتيجة %","منخفض","متوقع","عالي","المتحقق","إنجاز النتيجة %","عدد الأنشطة"];
+      const rowsOf = (list, isSec)=> list.slice().sort((a,b)=> (Number(a.year)||0)-(Number(b.year)||0) || dirCodeCmp(a.code,b.code)).flatMap(p=>{
+        const m = okrGoalMetrics(p), krs = okrKRs(p);
+        const base = [p.year||"", deptName(p.deptId)||"", isSec ? (sectionName(p.sectionId)||"") : "", p.code, p.name, p.category||"", Number(p.weight)||0, (OKR_STATUS[okrStatus(p)]||{}).label||"", m.noData ? "" : m.actual];
+        return krs.length ? krs.map(k=>{ const a = krAch(k); return base.concat([k.name||"", KR_TYPES[k.type]||"", Number(k.weight)||0, k.low??"", k.expected??"", k.high??"", k.actual??"", a.pct==null ? "" : a.pct, (k.activities||[]).length]); }) : [base.concat(["","","","","","","","",""])];
       });
+      addBackupSheet(wb, "أهداف الدوائر ونتائجها", head, rowsOf(PROGRAMS, false)); sheetCount++;
+      addBackupSheet(wb, "أهداف الأقسام ونتائجها", head, rowsOf(SEC_GOALS, true)); sheetCount++;
     }
 
     if(checked("reference")){
@@ -14381,13 +14419,13 @@ function renderOrgHome(){
     const n = projs.filter(p=>p.deptId===d.id).length;
     return `<button type="button" class="org-card org-dept" data-dept="${d.id}">
       <div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start;width:100%;"><span class="org-dept-name">${escapeHtml(d.name)}</span>${dp.length ? metricsChipHTML(m, true).replace(/محقق [0-9]+% من [0-9]+% · /,"") : `<span class="perf-chip" style="background:#EEF2F7;color:#566476;">لا أهداف بعد</span>`}</div>
-      <span class="note-meta">${secs ? secs+" أقسام · " : ""}${dp.length} ${dp.length===1?"هدف":"أهداف"} · ${n} مشروعًا</span>
+      <span class="note-meta">${secs ? secs+" أقسام · " : ""}${dp.length} ${dp.length===1?"هدف":"أهداف"}</span>
       <div style="display:flex;align-items:center;gap:10px;width:100%;"><div style="flex:1;">${metricsBarHTML(m)}</div><b style="font-size:14px;color:#0D2B47;">${m.noData?"—":m.actual+"%"}</b></div>
       <span class="note-meta">مدير الدائرة: ${escapeHtml(managerOfDept(d.id)||"—")}</span>
     </button>`;
   };
   document.getElementById("orgDepts").innerHTML = `
-    <h2 class="org-h2">دوائر المديرية (${DEPARTMENTS.length}) <small>اضغط على الدائرة لعرض أقسامها وأهدافها ومشاريعها</small></h2>
+    <h2 class="org-h2">دوائر المديرية (${DEPARTMENTS.length}) <small>اضغط على الدائرة لعرض أقسامها وأهدافها</small></h2>
     ${groups.map(g=>`<div class="org-group-title">${escapeHtml(g)} <span class="note-meta" style="font-weight:400;">${DEPARTMENTS.filter(d=>d.group===g).length}</span></div><div class="org-grid">${DEPARTMENTS.filter(d=>d.group===g).map(deptCard).join("")}</div>`).join("")}
     ${DEPARTMENTS.some(d=>!d.group) ? `<div class="org-group-title">أخرى</div><div class="org-grid">${DEPARTMENTS.filter(d=>!d.group).map(deptCard).join("")}</div>` : ""}`;
   document.querySelectorAll("#orgDepts [data-dept]").forEach(b=> b.onclick = ()=> openDeptScreen(b.dataset.dept));
