@@ -6709,7 +6709,7 @@ function switchMgrTab(tab){
   document.getElementById("mgrTabSPI").classList.toggle("active", tab==="spi");
   document.getElementById("mgrTabGoals").classList.toggle("active", tab==="goals");
   document.getElementById("mgrGoalsView").classList.toggle("hidden", tab!=="goals");
-  if(tab==="goals"){ fillYearSelect("mgrGoalsFilterYear", renderManagerGoalsTab); renderManagerGoalsTab(); logActivity(currentManager, "view_overview", "تحقق أهداف الدائرة"); }
+  if(tab==="goals"){ fillYearSelect("mgrGoalsFilterYear", renderManagerGoalsTab, true); renderManagerGoalsTab(); logActivity(currentManager, "view_overview", "تحقق أهداف الدائرة"); }
   document.getElementById("mgrTabAnalytics").classList.toggle("active", tab==="analytics");
   document.getElementById("mgrInputView").classList.toggle("hidden", tab!=="input");
   document.getElementById("mgrOverviewView").classList.toggle("hidden", tab!=="overview");
@@ -7828,7 +7828,7 @@ function switchDGTab(tab){
 }
 document.getElementById("dgTabGoalsBtn").onclick = ()=>{
   switchDGTab("goals");
-  fillYearSelect("dgGoalsFilterYear", renderDGGoalsTab);
+  fillYearSelect("dgGoalsFilterYear", renderDGGoalsTab, true);
   fillDeptSelect("dgGoalsFilterDept", renderDGGoalsTab);
   renderDGGoalsTab();
 };
@@ -11459,11 +11459,12 @@ function defaultPlanYear(){
   const y = new Date().getFullYear();
   return YEARS.includes(y) ? y : YEARS[0];
 }
-function fillYearSelect(id, onchange){
+function fillYearSelect(id, onchange, withAll){
   const el = document.getElementById(id);
   const prev = el.value;
-  el.innerHTML = YEARS.map(y=>`<option value="${y}">خطة ${y}</option>`).join("");
-  el.value = prev || String(defaultPlanYear());
+  el.innerHTML = (withAll ? `<option value="">كل السنوات</option>` : "") + YEARS.map(y=>`<option value="${y}">خطة ${y}</option>`).join("");
+  el.value = el.dataset.filled && (prev || withAll) ? prev : String(defaultPlanYear());
+  el.dataset.filled = "1";
   el.onchange = onchange;
 }
 function fillDeptSelect(id, onchange){
@@ -11475,10 +11476,10 @@ function fillDeptSelect(id, onchange){
 }
 // ملخص الدوائر: إنجاز كل دائرة لسنة الخطة مرتبًا من الأقل إنجازًا نسبيًا (SPI)
 function deptSummaryHTML(year){
-  const rows = DEPARTMENTS.map(d=>({ d, m: deptMetrics(d.id, year), n: PROGRAMS.filter(p=>p.deptId===d.id && (!p.year || Number(p.year)===Number(year))).length }));
+  const rows = DEPARTMENTS.map(d=>({ d, m: deptMetrics(d.id, year), n: PROGRAMS.filter(p=>p.deptId===d.id && (!year || !p.year || Number(p.year)===Number(year))).length }));
   if(!rows.some(r=>r.n)) return "";
   rows.sort((a,b)=> (a.m.noData?1:0)-(b.m.noData?1:0) || (a.m.spi??9)-(b.m.spi??9));
-  return `<div class="section-title" style="font-size:16px;margin-top:6px;">🏢 الدوائر (${year})</div>
+  return `<div class="section-title" style="font-size:16px;margin-top:6px;">🏢 الدوائر (${year || "كل السنوات"})</div>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;margin-bottom:18px;">
     ${rows.map(r=>`<div class="ga-goal" style="margin:0;padding:12px 14px;">
         <div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px;align-items:center;"><b style="font-size:13.5px;color:var(--navy);">${escapeHtml(r.d.name)}</b>${r.n ? metricsChipHTML(r.m, true) : `<span class="perf-chip" style="background:#EEF2F7;color:#566476;">لا أهداف بعد</span>`}</div>
@@ -11492,11 +11493,11 @@ function renderGoalsScreen(){
   const deptId = document.getElementById("goalsFilterDept").value;
   document.getElementById("goalsLegend").innerHTML = goalsAchievementLegendHTML();
   document.getElementById("goalsDeptSummary").innerHTML = deptId ? "" : deptSummaryHTML(year);
-  document.getElementById("goalsContent").innerHTML = `<div class="section-title" style="font-size:16px;">🎯 أهداف المديرية (${year})</div>` + goalsAchievementHTML({ year, deptId, showProjects: document.getElementById("goalsShowProjects").checked });
+  document.getElementById("goalsContent").innerHTML = `<div class="section-title" style="font-size:16px;">🎯 أهداف المديرية (${year || "كل السنوات"})</div>` + goalsAchievementHTML({ year, deptId, showProjects: document.getElementById("goalsShowProjects").checked });
 }
 document.getElementById("navGoalsBtn").onclick = ()=>{
   showScreen("goalsScreen");
-  fillYearSelect("goalsFilterYear", renderGoalsScreen);
+  fillYearSelect("goalsFilterYear", renderGoalsScreen, true);
   fillDeptSelect("goalsFilterDept", renderGoalsScreen);
   document.getElementById("goalsShowProjects").onchange = renderGoalsScreen;
   renderGoalsScreen();
@@ -11514,7 +11515,7 @@ function renderManagerGoalsTab(){
   const deptId = deptOfManager(currentManager);
   document.getElementById("mgrGoalsLegend").innerHTML = goalsAchievementLegendHTML();
   document.getElementById("mgrGoalsContent").innerHTML = deptId
-    ? `<div class="ga-goal"><div class="ga-goal-head"><div class="ga-goal-name">🏢 ${escapeHtml(deptName(deptId))} — خطة ${year}</div>${metricsChipHTML(deptMetrics(deptId, year))}</div>${metricsBarHTML(deptMetrics(deptId, year))}</div>` + goalsAchievementHTML({ year, deptId })
+    ? `<div class="ga-goal"><div class="ga-goal-head"><div class="ga-goal-name">🏢 ${escapeHtml(deptName(deptId))} — ${year ? "خطة " + year : "كل السنوات"}</div>${metricsChipHTML(deptMetrics(deptId, year))}</div>${metricsBarHTML(deptMetrics(deptId, year))}</div>` + goalsAchievementHTML({ year, deptId })
     : `<div class="empty-note">حسابك غير مُسنَد لدائرة بعد.</div>`;
 }
 function refreshGoalsViewsIfVisible(){
@@ -14142,7 +14143,7 @@ document.getElementById("pdAllYears").onclick = ()=>{ pdYearsAvailable().forEach
 let ORG_YEAR = null;
 let SHELL_ACTIVE_KEY = null;
 let TL_SCOPE = "all"; // all | dept | pm
-function orgYear(){ if(!ORG_YEAR) ORG_YEAR = defaultPlanYear(); return ORG_YEAR; }
+function orgYear(){ if(ORG_YEAR==null) ORG_YEAR = defaultPlanYear(); return ORG_YEAR; }
 function currentRole(){
   if(currentDG) return "dg";
   if(currentManager) return "manager";
@@ -14339,7 +14340,7 @@ setInterval(()=>{ if(document.body.classList.contains("shell-on")) syncShellBadg
 
 /* ---------------- الرئيسية (الهيكل التنظيمي) ---------------- */
 function orgYearsHTML(onPickName){
-  return YEARS.map(y=>`<button type="button" data-year="${y}" class="${y===orgYear()?"active":""}">${y}</button>`).join("");
+  return `<button type="button" data-year="0" class="${!orgYear()?"active":""}">كل السنوات</button>` + YEARS.map(y=>`<button type="button" data-year="${y}" class="${y===orgYear()?"active":""}">${y}</button>`).join("");
 }
 function wireYearButtons(containerId, rerender){
   document.querySelectorAll(`#${containerId} [data-year]`).forEach(b=> b.onclick = ()=>{ ORG_YEAR = Number(b.dataset.year); rerender(); });
@@ -14354,12 +14355,12 @@ function openOrgHome(){
 }
 function renderOrgHome(){
   const y = orgYear();
-  document.getElementById("orgHomeTitle").textContent = `الخطة السنوية للمديرية ${y}`;
+  document.getElementById("orgHomeTitle").textContent = `الخطة السنوية للمديرية ${y || "— كل السنوات"}`;
   document.getElementById("orgYears").innerHTML = orgYearsHTML();
   wireYearButtons("orgYears", renderOrgHome);
-  const progs = PROGRAMS.filter(p=> !p.year || Number(p.year)===y);
-  const goals = STRATEGIC_GOALS.filter(g=> !g.year || Number(g.year)===y);
-  const projs = ALL_PROJECTS.filter(p=> Number(p.year)===y);
+  const progs = PROGRAMS.filter(p=> !y || !p.year || Number(p.year)===y);
+  const goals = STRATEGIC_GOALS.filter(g=> !y || !g.year || Number(g.year)===y);
+  const projs = ALL_PROJECTS.filter(p=> !y || Number(p.year)===y);
   const overall = aggregateMetrics(DEPARTMENTS.map(d=> deptMetrics(d.id, y)).filter(m=>!m.noData));
   const projMs = projs.map(projectMetrics);
   const lateCount = projMs.filter(m=> m.status==="late" || m.status==="slight").length;
@@ -14408,7 +14409,7 @@ function renderOrgHome(){
         ${metricsBarHTML(gm)}
         <div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px;align-items:center;"><span class="note-meta">${nd ? `${nd} ${nd===1?"دائرة مساهمة":(nd===2?"دائرتان مساهمتان":"دوائر مساهمة")}` : "لا توجد دوائر مساهمة بعد"}</span>${metricsChipHTML(gm, true)}</div>
       </div>`;
-    }).join("")}</div>` : `<div class="empty-note" style="margin-bottom:20px;">لم تُضف أهداف للمديرية لسنة ${y} بعد${currentRole()==="admin" ? " — أضفها من «الهيكل والحسابات» ← «أهداف المديرية»" : ""}.</div>`}`;
+    }).join("")}</div>` : `<div class="empty-note" style="margin-bottom:20px;">لم تُضف أهداف للمديرية ${y ? "لسنة " + y : ""} بعد${currentRole()==="admin" ? " — أضفها من «الهيكل والحسابات» ← «أهداف المديرية»" : ""}.</div>`}`;
   }
   // الدوائر حسب المجموعات
   const groups = deptGroupsInUse().filter(g=> DEPARTMENTS.some(d=>d.group===g));
@@ -14467,15 +14468,15 @@ function renderDeptScreen(){
   const role = currentRole();
   document.getElementById("deptCrumbs").innerHTML = (role==="manager" ? "" : `<button type="button" id="deptBackHome">المديرية</button><span aria-hidden="true">‹</span>${d.group ? `<span>${escapeHtml(d.group)}</span><span aria-hidden="true">‹</span>` : ""}`) + `<b style="color:#1B2733;">${escapeHtml(d.name)}</b>`;
   const back = document.getElementById("deptBackHome"); if(back) back.onclick = openOrgHome;
-  const progs = PROGRAMS.filter(p=> p.deptId===d.id && (!p.year || Number(p.year)===y));
-  const projs = ALL_PROJECTS.filter(p=> p.deptId===d.id && Number(p.year)===y);
+  const progs = PROGRAMS.filter(p=> p.deptId===d.id && (!y || !p.year || Number(p.year)===y));
+  const projs = ALL_PROJECTS.filter(p=> p.deptId===d.id && (!y || Number(p.year)===y));
   const m = deptMetrics(d.id, y);
   const staff = ALL_PROJECT_MANAGERS.filter(pm=>pm.deptId===d.id).length;
   document.getElementById("deptHeader").innerHTML = `
     <div class="org-card org-summary" style="margin-bottom:16px;">
       <div style="flex:1 1 320px;">
         <h1 class="org-title" style="font-size:24px;">${escapeHtml(d.name)}</h1>
-        <div class="note-meta" style="font-size:13.5px;margin-top:4px;">مدير الدائرة: ${escapeHtml(managerOfDept(d.id)||"—")} · ${sectionsOfDept(d.id).length} أقسام · ${staff} حسابًا مشاركًا · الخطة السنوية ${y}</div>
+        <div class="note-meta" style="font-size:13.5px;margin-top:4px;">مدير الدائرة: ${escapeHtml(managerOfDept(d.id)||"—")} · ${sectionsOfDept(d.id).length} أقسام · ${staff} حسابًا مشاركًا · ${y ? "الخطة السنوية " + y : "كل السنوات"}</div>
         <div style="margin-top:8px;">${metricsChipHTML(m)}</div>
       </div>
       <div class="org-years" id="deptYears" role="group" aria-label="السنة">${orgYearsHTML()}</div>
@@ -14490,8 +14491,8 @@ function renderDeptScreen(){
   if(OKR_MODE){
     const goalsBox = document.getElementById("deptGoals");
     const own = role==="admin" || (role==="manager" && deptOfManager(currentManager)===d.id);
-    goalsBox.innerHTML = (progs.length ? `<div style="margin-bottom:8px;">${okrWeightWarn(d.id, y)}</div>` + progs.sort((a,b)=>dirCodeCmp(a.code,b.code)).map(p=> okrGoalCardHTML(p, { readOnly: !own })).join("") + goalsAchievementLegendHTML()
-      : `<div class="empty-note">لا توجد أهداف لهذه الدائرة في ${y} بعد.</div>`);
+    goalsBox.innerHTML = (progs.length ? `<div style="margin-bottom:8px;">${okrWeightWarn(d.id, y)}</div>` + progs.sort((a,b)=> (y ? 0 : (Number(a.year)||0)-(Number(b.year)||0)) || dirCodeCmp(a.code,b.code)).map(p=> okrGoalCardHTML(p, { readOnly: !own })).join("") + goalsAchievementLegendHTML()
+      : `<div class="empty-note">لا توجد أهداف لهذه الدائرة في ${y ? y : "أي سنة"} بعد.</div>`);
     bindOkrCards(goalsBox, renderDeptScreen);
     const secs = sectionsOfDept(d.id);
     document.getElementById("deptSections").className = "org-dept-side org-card";
@@ -15432,7 +15433,7 @@ function prioYears(){ return [...new Set([...YEARS, ...PRIORITIES.map(p=>Number(
 function prioDefaultView(){ return currentRole()==="manager" && myDeptIdForPrio() ? "mine" : "all"; }
 function prioScope(){
   const y = PRIO_STATE.year;
-  let list = PRIORITIES.filter(p=> Number(p.year)===y && prioVisible(p));
+  let list = PRIORITIES.filter(p=> (!y || Number(p.year)===y) && prioVisible(p));
   if(PRIO_STATE.view==="mine"){ const md = myDeptIdForPrio(); list = list.filter(p=> p.deptId===md || prioIsPartner(p, md)); }
   else{
     if(PRIO_STATE.view==="all" && currentRole()==="manager" && myDeptIdForPrio()) list = list.filter(p=> p.deptId!==myDeptIdForPrio());
@@ -15446,20 +15447,20 @@ function renderPriorities(){
   const who = currentRole() + "|" + (currentManager||"");
   if(PRIO_STATE.who!==who){ PRIO_STATE.who = who; PRIO_STATE.view = ""; PRIO_STATE.dept = ""; }
   if(!PRIO_STATE.view) PRIO_STATE.view = prioDefaultView();
-  if(!PRIO_STATE.year) PRIO_STATE.year = defaultPlanYear();
+  if(PRIO_STATE.year==null) PRIO_STATE.year = defaultPlanYear();
   const role = currentRole();
   const myDept = myDeptIdForPrio();
   const views = [ ...(role==="manager" && myDept ? [["mine","أولويات دائرتي"]] : []), ["all", role==="manager" ? "أولويات الدوائر الأخرى" : "أولويات الدوائر"], ["dir","حسب الاتجاهات الخمسة"] ];
   if(!views.some(v=>v[0]===PRIO_STATE.view)) PRIO_STATE.view = views[0][0];
   const list = prioScope();
-  const deptsUsed = [...new Set(PRIORITIES.filter(p=>Number(p.year)===PRIO_STATE.year && prioVisible(p)).map(p=>p.deptId))];
+  const deptsUsed = [...new Set(PRIORITIES.filter(p=>(!PRIO_STATE.year || Number(p.year)===PRIO_STATE.year) && prioVisible(p)).map(p=>p.deptId))];
   let h = `<div class="pr-intro"><div><h3>🧭 مصفوفة تحديد الأولويات</h3>
       <p>يسجّل مدير الدائرة التحديات والفجوات ويقيّمها بخمسة معايير من 1 إلى 5، فتُرتَّب حسب الدرجة من 25 وتُوزَّع على المصفوفة الرباعية حسب الأثر والجدوى، ثم تُربط بها الأهداف التي تعالجها.</p></div>
       <div class="crit">${PRIO_CRITERIA.map(c=>`<span>${c.name}</span>`).join("")}</div></div>
     <div class="pr-bar">
       <div class="ind-views" style="margin:0;">${views.map(v=>`<button class="ind-view ${PRIO_STATE.view===v[0]?"active":""}" data-pv="${v[0]}">${v[1]}</button>`).join("")}</div>
       <span class="sp"></span>
-      <select id="prioYear" class="org-select" aria-label="سنة الخطة">${prioYears().map(y=>`<option value="${y}" ${y===PRIO_STATE.year?"selected":""}>خطة ${y}</option>`).join("")}</select>
+      <select id="prioYear" class="org-select" aria-label="سنة الخطة"><option value="0" ${!PRIO_STATE.year?"selected":""}>كل السنوات</option>${prioYears().map(y=>`<option value="${y}" ${y===PRIO_STATE.year?"selected":""}>خطة ${y}</option>`).join("")}</select>
       ${PRIO_STATE.view!=="mine" ? `<select id="prioDept" class="org-select" aria-label="الدائرة"><option value="">كل الدوائر</option>${DEPARTMENTS.filter(d=> !(role==="manager" && d.id===myDept)).map(d=>`<option value="${d.id}" ${d.id===PRIO_STATE.dept?"selected":""}>${escapeHtml(d.name)}${deptsUsed.includes(d.id)?"":" (لا أولويات)"}</option>`).join("")}</select>` : ""}
       ${prioCanCreate() ? `<button class="pr-add" id="prioAddBtn">＋ إضافة أولوية</button>` : ""}
     </div>`;
@@ -15470,7 +15471,7 @@ function renderPriorities(){
   const avg = ranked.length ? ranked.reduce((a,p)=>a+prioTotal(p),0)/ranked.length : 0;
   let noPrioProjects = null;
   if(PRIO_STATE.view==="mine"){
-    noPrioProjects = OKR_MODE ? PROGRAMS.filter(g=> g.deptId===myDept && (!g.year || Number(g.year)===PRIO_STATE.year) && !(g.priorityIds||[]).length).length
+    noPrioProjects = OKR_MODE ? PROGRAMS.filter(g=> g.deptId===myDept && (!PRIO_STATE.year || !g.year || Number(g.year)===PRIO_STATE.year) && !(g.priorityIds||[]).length).length
       : ALL_PROJECTS.filter(pr=> pr.deptId===myDept && Number(pr.year)===PRIO_STATE.year && !pr.closed && !(pr.priorityIds||[]).length).length;
   }
   h += `<div class="pr-kpis">
@@ -15479,10 +15480,10 @@ function renderPriorities(){
     <div class="pr-kpi" style="border-inline-start:4px solid #C2410C;"><div class="k">تحتاج دعمًا</div><div class="v">${q("q2")}</div><div class="s">تظهر للمدير العام</div></div>
     <div class="pr-kpi"><div class="k">مرتبطة بأهداف</div><div class="v">${linked}<span style="font-size:14px;color:#8593A3;"> / ${list.length}</span></div><div class="s">${list.length-linked} بلا هدف بعد</div></div>
     <div class="pr-kpi"><div class="k">أولويات مشتركة</div><div class="v">${list.filter(p=> prioPartners(p).some(x=>x.status==="accepted")).length}</div><div class="s">بشراكة بين دائرتين أو أكثر</div></div>
-    ${noPrioProjects!==null ? `<div class="pr-kpi"><div class="k">أهداف الدائرة بلا أولوية</div><div class="v">${noPrioProjects}</div><div class="s">أهداف خطة ${PRIO_STATE.year}</div></div>` : ""}
+    ${noPrioProjects!==null ? `<div class="pr-kpi"><div class="k">أهداف الدائرة بلا أولوية</div><div class="v">${noPrioProjects}</div><div class="s">أهداف ${okrYLabel(PRIO_STATE.year)}</div></div>` : ""}
   </div>`;
   if(!list.length){
-    h += `<div class="empty-note">${PRIO_STATE.view==="mine" ? `لم تُسجَّل أولويات لدائرتك لخطة ${PRIO_STATE.year} بعد. ابدأ بزر «إضافة أولوية».` : `لا توجد أولويات منشورة لخطة ${PRIO_STATE.year}${PRIO_STATE.dept ? " لهذه الدائرة" : ""}.`}</div>`;
+    h += `<div class="empty-note">${PRIO_STATE.view==="mine" ? `لم تُسجَّل أولويات لدائرتك في ${okrYLabel(PRIO_STATE.year)} بعد. ابدأ بزر «إضافة أولوية».` : `لا توجد أولويات منشورة في ${okrYLabel(PRIO_STATE.year)}${PRIO_STATE.dept ? " لهذه الدائرة" : ""}.`}</div>`;
   }else if(PRIO_STATE.view==="dir"){
     const groups = DIRECTIONS.map(d=>({ d, items: list.filter(p=> (p.directionIds||[]).map(String).includes(String(d.id))) }));
     const none = list.filter(p=> !(p.directionIds||[]).length);
@@ -15518,7 +15519,7 @@ function prioRowHTML(p, rank, showDept){
     <div class="pr-rank ${imp ? "" : qk}" ${imp ? `style="background:#5B3EAF;" title="مفروضة من الوزارة"` : ""}>${imp ? "🏛️" : (rank||"•")}</div>
     <div><div class="pr-t">${escapeHtml(p.title)}</div>
       <div class="pr-m">
-        ${showDept ? `<span>🏢 ${escapeHtml(deptName(p.deptId)||"—")}</span>` : ""}
+        ${!PRIO_STATE.year && p.year ? `<span>📅 ${p.year}</span>` : ""}${showDept ? `<span>🏢 ${escapeHtml(deptName(p.deptId)||"—")}</span>` : ""}
         ${p.type ? `<span>${escapeHtml(p.type)}</span>` : ""}
         ${(p.directionIds||[]).map(d=>`<span class="pr-chip dir">${escapeHtml(directionName(d))}</span>`).join("")}
         <span class="pr-chip">${projs ? `🔗 ${projs} ${projs===1?"هدف":"أهداف"}` : "بلا هدف"}</span>
@@ -15584,7 +15585,7 @@ function openPriorityForm(id, opts){
     <div class="pr-fld"><label>نوع الأولوية</label><div class="pr-chips" id="pfType">${PRIO_TYPES.map(t=>`<button type="button" class="pr-pick ${st.type===t?"on":""}" data-v="${escapeAttr(t)}">${t}</button>`).join("")}</div></div>
     <div class="pr-2col">
       <div class="pr-fld"><label for="pfDomain">المجال</label><select id="pfDomain"><option value="">— اختر المجال —</option>${PRIO_DOMAINS.map(d=>`<option ${p&&p.domain===d?"selected":""}>${d}</option>`).join("")}</select></div>
-      <div class="pr-fld"><label for="pfYear">سنة الخطة</label><select id="pfYear">${prioYears().map(y=>`<option value="${y}" ${(p?Number(p.year):(opts.year ? Number(opts.year) : PRIO_STATE.year))===y?"selected":""}>${y}</option>`).join("")}</select></div>
+      <div class="pr-fld"><label for="pfYear">سنة الخطة</label><select id="pfYear">${prioYears().map(y=>`<option value="${y}" ${(p?Number(p.year):(opts.year ? Number(opts.year) : (PRIO_STATE.year || defaultPlanYear())))===y?"selected":""}>${y}</option>`).join("")}</select></div>
     </div>
     <div class="pr-fld"><label for="pfDesc">الوصف والأسباب المحتملة</label><textarea id="pfDesc" placeholder="ما المشكلة؟ ما أسبابها المحتملة؟ من يتأثر بها؟">${escapeHtml(p?p.description||"":"")}</textarea></div>
     <div class="pr-fld"><label>الاتجاهات الاستراتيجية للمديرية التي تخدمها</label><div class="pr-chips" id="pfDirs">${DIRECTIONS.map(d=>`<button type="button" class="pr-pick dir ${st.dirs.includes(String(d.id))?"on":""}" data-v="${d.id}">${escapeHtml(d.name)}</button>`).join("")}</div></div>
@@ -16023,8 +16024,8 @@ function prioSimilar(title, deptId, year, excludeId){
 }
 function prioPartnershipsHTML(year){
   const rows = [];
-  PRIORITIES.filter(p=> Number(p.year)===year).forEach(p=> prioPartners(p).filter(x=>x.status==="accepted").forEach(x=> rows.push({ p, x })));
-  const pend = prioAllPending().filter(({p})=> Number(p.year)===year);
+  PRIORITIES.filter(p=> !year || Number(p.year)===year).forEach(p=> prioPartners(p).filter(x=>x.status==="accepted").forEach(x=> rows.push({ p, x })));
+  const pend = prioAllPending().filter(({p})=> !year || Number(p.year)===year);
   if(!rows.length && !pend.length) return "";
   return `<div class="pr-card" style="margin-top:14px;"><div class="pr-card-h"><b>🤝 الشراكات بين الدوائر</b><span class="note-meta">${rows.length} شراكة قائمة${pend.length ? ` • ${pend.length} طلب معلّق` : ""}</span></div>
     ${rows.map(({p,x})=>`<div class="pr-proj" data-prio="${p.id}" style="cursor:pointer;"><span style="flex:1;"><b>${escapeHtml(deptName(p.deptId))}</b> ⇄ <b>${escapeHtml(deptName(x.deptId))}</b> <span class="note-meta">— ${escapeHtml(x.role||"")}</span><br>«${escapeHtml(p.title)}»</span><span class="pr-chip">🔗 ${projectsOfPriority(p.id).length}</span></div>`).join("")}
@@ -16246,7 +16247,7 @@ Object.assign(PERF_STATUS, {
   okrnotstarted: { label:"لم يُسجَّل إنجاز بعد", color:"#566476", bg:"#EEF2F7" },
   okrnone:       { label:"بلا نتائج رئيسية", color:"#566476", bg:"#EEF2F7" }
 });
-function okrDeptGoals(deptId, year){ return PROGRAMS.filter(p=> p.deptId===deptId && (!year || !p.year || Number(p.year)===Number(year))).sort((a,b)=> dirCodeCmp(a.code,b.code)); }
+function okrDeptGoals(deptId, year){ return PROGRAMS.filter(p=> p.deptId===deptId && (!year || !p.year || Number(p.year)===Number(year))).sort((a,b)=> (year ? 0 : (Number(a.year)||0)-(Number(b.year)||0)) || dirCodeCmp(a.code,b.code)); }
 const SECTION_GOALS_COLLECTION = "nsh_yearly_section_goals"; // أهداف أقسام الدوائر ونتائجها الرئيسية
 let SEC_GOALS = [];
 function okrMyHeadRec(){ if(currentRole()!=="pm") return null; const me = ALL_PROJECT_MANAGERS.find(m=>m.employeeId===currentProjectManagerId); return me || null; }
@@ -16277,7 +16278,7 @@ function okrGoalLabel(p){ const n = okrGoalNo(p); return n ? `الهدف ${n}` :
 function okrFindGoal(code){ return PROGRAMS.find(p=>p.code===code) || SEC_GOALS.find(p=>p.code===code); }
 function okrSecGoals(sectionId, year){
   const yr = p=> !year || Number(p.year)===Number(year);
-  const own = SEC_GOALS.filter(p=> p.sectionId===sectionId && yr(p)).sort((a,b)=> dirCodeCmp(a.code,b.code));
+  const own = SEC_GOALS.filter(p=> p.sectionId===sectionId && yr(p)).sort((a,b)=> (year ? 0 : (Number(a.year)||0)-(Number(b.year)||0)) || dirCodeCmp(a.code,b.code));
   const shared = SEC_GOALS.filter(p=> p.sectionId!==sectionId && yr(p) && Array.isArray(p.partners) && p.partners.some(x=> x.sectionId===sectionId && x.status==="active"))
     .sort((a,b)=> dirCodeCmp(a.code,b.code)).map(p=>{ const x = p.partners.find(z=> z.sectionId===sectionId); return { ...p, weight: Number(x.weight)||0, _shared:true, _for:sectionId }; });
   return own.concat(shared);
@@ -16349,7 +16350,7 @@ function okrGoalCardHTML(p, ctx){
     <div class="ij-head" data-okr-toggle="${p.code}">
       <div class="ij-lab"></div><div class="ij-lab">الهدف</div><div class="ij-lab">تصنيف الهدف</div><div class="ij-lab">وزن الهدف</div><div class="ij-lab">الحالة</div><div class="ij-lab">الإنجاز</div>
       <div class="ij-val ij-togc"><span class="okr-tog">${open ? "−" : "+"}</span></div>
-      <div class="ij-val ij-name"><span class="okr-code">${okrGoalLabel(p)}</span>${escapeHtml(p.name)}${p._shared ? `<span class="ij-tag ex" style="margin-inline-start:6px;">🤝 مشترك مع ${escapeHtml(sectionName(p.sectionId))}</span>` : (p._sec && secPartners(p).some(x=>x.status==="active") ? `<span class="ij-tag ex" style="margin-inline-start:6px;">🤝 هدف مشترك</span>` : "")}${ctx.showDept || (p._sec && ctx.showSection) ? `<div class="okr-sub">${ctx.showDept ? `🏢 ${escapeHtml(deptName(p.deptId)||"—")}` : ""}${p._sec && ctx.showSection ? ` 🏷️ ${escapeHtml(sectionName(p.sectionId)||"—")}` : ""}</div>` : ""}</div>
+      <div class="ij-val ij-name"><span class="okr-code">${okrGoalLabel(p)}${!OKR_UI.year && p.year ? " • " + p.year : ""}</span>${escapeHtml(p.name)}${p._shared ? `<span class="ij-tag ex" style="margin-inline-start:6px;">🤝 مشترك مع ${escapeHtml(sectionName(p.sectionId))}</span>` : (p._sec && secPartners(p).some(x=>x.status==="active") ? `<span class="ij-tag ex" style="margin-inline-start:6px;">🤝 هدف مشترك</span>` : "")}${ctx.showDept || (p._sec && ctx.showSection) ? `<div class="okr-sub">${ctx.showDept ? `🏢 ${escapeHtml(deptName(p.deptId)||"—")}` : ""}${p._sec && ctx.showSection ? ` 🏷️ ${escapeHtml(sectionName(p.sectionId)||"—")}` : ""}</div>` : ""}</div>
       <div class="ij-val">${escapeHtml(p.category||OKR_CATEGORIES[0])}</div>
       <div class="ij-val">${indNum(Number(p.weight)||0,2)} %</div>
       <div class="ij-val">${okrStatusChip(p)}</div>
@@ -16414,6 +16415,7 @@ function bindOkrCards(root, rerender){
 
 /* ---------- نافذة الهدف ونتائجه ---------- */
 function openOkrGoalModal(deptId, year, p, rerender, so){
+  year = Number(year) || defaultPlanYear();
   const isNew = !p;
   const SEC = !!(so && so.sec) || !!(p && p._sec);
   const headMode = SEC && currentRole()==="pm";
@@ -16596,10 +16598,13 @@ function openKrActivitiesModal(p, idx, rerender){
 }
 
 /* ---------- شاشة مدير الدائرة ---------- */
+// 0 = كل السنوات (للأهداف الممتدة لأكثر من سنة أو للعرض الشامل)
+function okrYLabel(y){ return y ? `خطة ${y}` : "كل السنوات"; }
 function okrYearTabsHTML(cur, onAttr){
-  return `<div class="ind-views" style="margin:0;">${YEARS.map(y=>`<button type="button" class="ind-view ${y===cur?"active":""}" ${onAttr}="${y}">خطة ${y}</button>`).join("")}</div>`;
+  return `<div class="ind-views" style="margin:0;"><button type="button" class="ind-view ${!cur?"active":""}" ${onAttr}="0">كل السنوات</button>${YEARS.map(y=>`<button type="button" class="ind-view ${y===cur?"active":""}" ${onAttr}="${y}">خطة ${y}</button>`).join("")}</div>`;
 }
 function okrWeightWarn(deptId, year){
+  if(!year) return ""; // مجموع الأوزان يُراجَع لكل سنة على حدة
   const goals = okrDeptGoals(deptId, year);
   if(!goals.length) return "";
   const s = goals.reduce((a,p)=> a + (Number(p.weight)||0), 0);
@@ -16609,7 +16614,7 @@ function renderOkrManager(){
   const container = document.getElementById("programsContainer");
   if(!container) return;
   const deptId = deptOfManager(currentManager);
-  if(!OKR_UI.year) OKR_UI.year = defaultPlanYear();
+  if(OKR_UI.year==null) OKR_UI.year = defaultPlanYear();
   const y = OKR_UI.year;
   if(!deptId){ container.innerHTML = `<div class="empty-note">حسابك غير مُسنَد لدائرة بعد — تواصل مع قسم التخطيط والدراسات.</div>`; return; }
   const goals = okrDeptGoals(deptId, y);
@@ -16629,7 +16634,7 @@ function renderOkrManager(){
     <div class="okr-secstrip">${sectionsOfDept(deptId).map(x=>{ const g = okrSecGoals(x.id, y); const sm = okrAggregate(g.map(okrGoalMetrics)); const pend = g.filter(p=>okrStatus(p)==="pending").length;
       return `<button type="button" class="okr-secchip" data-secjump="1"><b>${escapeHtml(x.name)}</b><span>${g.length} أهداف • ${sm.noData ? "—" : sm.actual + "%"}${pend ? ` • <i>${pend} بانتظار اعتمادك</i>` : ""}</span></button>`; }).join("") || `<span class="note-meta">لا توجد أقسام مسجّلة للدائرة.</span>`}</div>
     <div class="okr-bar"><button type="button" class="pr-add" id="okrAddGoal">＋ إضافة هدف</button>${okrWeightWarn(deptId, y)}</div>
-    <div id="okrGoalsList">${goals.length ? goals.map(p=> okrGoalCardHTML(p)).join("") : `<div class="empty-note">لا توجد أهداف لدائرتك في خطة ${y} بعد. ابدأ بزر «إضافة هدف».</div>`}</div>`;
+    <div id="okrGoalsList">${goals.length ? goals.map(p=> okrGoalCardHTML(p)).join("") : `<div class="empty-note">لا توجد أهداف لدائرتك في ${okrYLabel(y)} بعد. ابدأ بزر «إضافة هدف».</div>`}</div>`;
   container.querySelectorAll("[data-okr-year]").forEach(b=> b.onclick = ()=>{ OKR_UI.year = Number(b.dataset.okrYear); renderOkrManager(); });
   document.getElementById("okrAddGoal").onclick = ()=> openOkrGoalModal(deptId, y, null, renderOkrManager);
   container.querySelectorAll("[data-secjump]").forEach(b=> b.onclick = ()=> openSecGoals());
@@ -16639,9 +16644,9 @@ function renderOkrManager(){
 function okrPendingCount(){ return PROGRAMS.filter(p=> okrStatus(p)==="pending").length; }
 function renderOkrAdmin(){
   const box = document.getElementById("okrAdminBox"); if(!box) return;
-  if(!OKR_UI.year) OKR_UI.year = defaultPlanYear();
+  if(OKR_UI.year==null) OKR_UI.year = defaultPlanYear();
   const y = OKR_UI.year;
-  const all = PROGRAMS.filter(p=> !p.year || Number(p.year)===y);
+  const all = PROGRAMS.filter(p=> !y || !p.year || Number(p.year)===y);
   const list = all.filter(p=> (!OKR_UI.adminDept || p.deptId===OKR_UI.adminDept) && (!OKR_UI.adminStatus || okrStatus(p)===OKR_UI.adminStatus));
   const cnt = k=> all.filter(p=> okrStatus(p)===k).length;
   const depts = DEPARTMENTS.filter(d=> list.some(p=>p.deptId===d.id));
@@ -16660,7 +16665,7 @@ function renderOkrAdmin(){
     </div>
     ${depts.length ? depts.map(d=>{ const g = list.filter(p=>p.deptId===d.id).sort((a,b)=>dirCodeCmp(a.code,b.code)); const dm = okrAggregate(okrDeptGoals(d.id, y).map(okrGoalMetrics));
       return `<section class="okr-dept"><div class="okr-dept-h"><b>🏢 ${escapeHtml(d.name)}</b><span class="note-meta">مدير الدائرة: ${escapeHtml(managerOfDept(d.id)||"—")} • إنجاز الدائرة ${dm.noData ? "—" : dm.actual + "%"}</span>${okrWeightWarn(d.id, y)}</div>
-        ${g.map(p=> okrGoalCardHTML(p, { review:true })).join("")}</section>`; }).join("") : `<div class="empty-note">لا توجد أهداف مطابقة لخطة ${y}.</div>`}`;
+        ${g.map(p=> okrGoalCardHTML(p, { review:true })).join("")}</section>`; }).join("") : `<div class="empty-note">لا توجد أهداف مطابقة لـ${okrYLabel(y)}.</div>`}`;
   box.querySelectorAll("[data-okra-year]").forEach(b=> b.onclick = ()=>{ OKR_UI.year = Number(b.dataset.okraYear); renderOkrAdmin(); });
   document.getElementById("okraDept").onchange = e=>{ OKR_UI.adminDept = e.target.value; renderOkrAdmin(); };
   document.getElementById("okraStatus").onchange = e=>{ OKR_UI.adminStatus = e.target.value; renderOkrAdmin(); };
@@ -16876,7 +16881,7 @@ function okrSecWeightWarn(sectionId, year){
 }
 function renderSecGoals(){
   const box = document.getElementById("secGoalsBox"); if(!box) return;
-  if(!OKR_UI.year) OKR_UI.year = defaultPlanYear();
+  if(OKR_UI.year==null) OKR_UI.year = defaultPlanYear();
   const y = OKR_UI.year, r = currentRole();
   const deptId = secGoalsDeptForRole();
   const me = okrMyHeadRec();
@@ -16902,7 +16907,7 @@ function renderSecGoals(){
     ${ICH_UI.view==="chart" && all.length ? "" : (secs.length ? secs.map(x=>{ const g = okrSecGoals(x.id, y); const sm = okrAggregate(g.map(okrGoalMetrics)); const heads = ALL_PROJECT_MANAGERS.filter(pm=> pm.role==="head" && pm.sectionId===x.id).map(pm=>pm.name);
       return `<section class="okr-dept"><div class="okr-dept-h"><b>🏷️ ${escapeHtml(x.name)}</b><span class="note-meta">رئيس القسم: ${heads.length ? heads.map(escapeHtml).join("، ") : "—"} • الإنجاز ${sm.noData ? "—" : sm.actual + "%"}</span>${okrSecWeightWarn(x.id, y)}
         ${canAddFor(x.id) ? `<button type="button" class="pr-tag-btn" style="margin-inline-start:auto;padding:6px 12px;font-size:13px;" data-secg-add="${x.id}">＋ إضافة هدف للقسم</button>` : ""}</div>
-        ${g.length ? g.map(p=> okrGoalCardHTML(p, { review:true })).join("") : `<div class="empty-note">لا توجد أهداف لهذا القسم في خطة ${y}.</div>`}</section>`; }).join("")
+        ${g.length ? g.map(p=> okrGoalCardHTML(p, { review:true })).join("") : `<div class="empty-note">لا توجد أهداف لهذا القسم في ${okrYLabel(y)}.</div>`}</section>`; }).join("")
       : `<div class="empty-note">${deptId ? "لا توجد أقسام مسجّلة لهذه الدائرة." : "حسابك غير مُسنَد لدائرة أو قسم بعد."}</div>`)}
     ${ICH_UI.view==="chart" && all.length ? `<div style="display:flex;flex-wrap:wrap;gap:8px;">${secs.filter(x=>canAddFor(x.id)).map(x=>`<button type="button" class="pr-tag-btn" style="padding:7px 14px;font-size:13px;" data-secg-add="${x.id}">＋ إضافة هدف لـ${escapeHtml(x.name)}</button>`).join("")}</div>` : ""}
     ${goalsAchievementLegendHTML()}`;
@@ -16964,7 +16969,7 @@ function boardKrCards(goals){
 function openPerfBoard(){ showScreen("perfBoardScreen"); renderPerfBoard(); }
 function renderPerfBoard(){
   const box = document.getElementById("perfBoardBox"); if(!box) return;
-  if(!OKR_UI.year) OKR_UI.year = defaultPlanYear();
+  if(OKR_UI.year==null) OKR_UI.year = defaultPlanYear();
   const y = OKR_UI.year, r = currentRole();
   const yearTabs = okrYearTabsHTML(y, "data-bd-year");
   let h = "";
@@ -16974,8 +16979,8 @@ function renderPerfBoard(){
     const goals = sec ? okrSecGoals(sec.id, y) : [];
     const m = okrAggregate(goals.map(okrGoalMetrics));
     h = `<div class="okr-top"><div><h1 class="org-title" style="font-size:22px;">📈 لوحة أداء القسم</h1><div class="note-meta" style="font-size:13.5px;">${escapeHtml(sec ? sec.name : "—")} — ${escapeHtml(deptName(me.deptId)||"")}</div></div>${yearTabs}</div>`
-      + (sec ? boardSummary(`إنجاز ${escapeHtml(sec.name)} ${badgeChipsFor(y, null, sec.id)}`, m, goals, `خطة ${y} • مرجّح بأوزان الأهداف`, sn=> (sn.sections||{})[sec.id])
-        + `<h2 class="bd-h">🏅 ترتيب أهداف القسم حسب نسبة الإنجاز</h2>` + (goals.length ? boardCards(goals.map(p=>({ title:p.name, sub:`${okrGoalLabel(p)} • الوزن ${Number(p.weight)||0}% • ${okrKRs(p).length} نتائج`, pct: okrGoalMetrics(p).noData ? null : okrGoalMetrics(p).actual }))) : `<div class="empty-note">لا توجد أهداف للقسم في خطة ${y}.</div>`)
+      + (sec ? boardSummary(`إنجاز ${escapeHtml(sec.name)} ${badgeChipsFor(y, null, sec.id)}`, m, goals, `${okrYLabel(y)} • مرجّح بأوزان الأهداف`, sn=> (sn.sections||{})[sec.id])
+        + `<h2 class="bd-h">🏅 ترتيب أهداف القسم حسب نسبة الإنجاز</h2>` + (goals.length ? boardCards(goals.map(p=>({ title:p.name, sub:`${okrGoalLabel(p)} • الوزن ${Number(p.weight)||0}% • ${okrKRs(p).length} نتائج`, pct: okrGoalMetrics(p).noData ? null : okrGoalMetrics(p).actual }))) : `<div class="empty-note">لا توجد أهداف للقسم في ${okrYLabel(y)}.</div>`)
         + `<h2 class="bd-h">🎯 ترتيب النتائج الرئيسية (مؤشرات الأداء)</h2>` + (goals.some(p=>okrKRs(p).length) ? boardKrCards(goals) : `<div class="empty-note">لا توجد نتائج رئيسية بعد.</div>`)
         : `<div class="empty-note">حسابك غير مُسنَد لقسم.</div>`);
   }else if(r==="manager" || ((r==="admin" || r==="dg") && BOARD_UI.dept)){
@@ -16985,11 +16990,11 @@ function renderPerfBoard(){
     const secs = sectionsOfDept(deptId);
     h = `<div class="okr-top"><div><h1 class="org-title" style="font-size:22px;">📈 لوحة أداء الدائرة</h1><div class="note-meta" style="font-size:13.5px;">${escapeHtml(deptName(deptId)||"—")}</div></div>
         <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;">${r!=="manager" ? `<button type="button" class="org-btn" id="bdBack">← كل الدوائر</button>` : ""}${yearTabs}</div></div>`
-      + boardSummary(`إنجاز ${escapeHtml(deptName(deptId))} ${badgeChipsFor(y, deptId, null)}`, m, goals, `خطة ${y} • مرجّح بأوزان أهداف الدائرة • ${secs.length} أقسام`, sn=> (sn.depts||{})[deptId])
+      + boardSummary(`إنجاز ${escapeHtml(deptName(deptId))} ${badgeChipsFor(y, deptId, null)}`, m, goals, `${okrYLabel(y)} • مرجّح بأوزان أهداف الدائرة • ${secs.length} أقسام`, sn=> (sn.depts||{})[deptId])
       + `<h2 class="bd-h">🏷️ ترتيب الأقسام حسب نسبة الإنجاز</h2>` + (secs.length ? boardCards(secs.map(x=>{ const g = okrSecGoals(x.id, y); const sm = okrAggregate(g.map(okrGoalMetrics)); const heads = ALL_PROJECT_MANAGERS.filter(pm=> pm.role==="head" && pm.sectionId===x.id).map(pm=>pm.name);
           const live = sm.noData ? null : sm.actual;
           return { title:x.name, sub:`${g.length} أهداف${heads.length ? " • 👤 " + escapeHtml(heads.join("، ")) : ""}`, pct: live, medals: badgeChipsFor(y, null, x.id), delta: deltaVsLast(y, sn=> (sn.sections||{})[x.id], live) }; })) : `<div class="empty-note">لا توجد أقسام مسجّلة.</div>`)
-      + `<h2 class="bd-h">🏅 ترتيب أهداف الدائرة حسب نسبة الإنجاز</h2>` + (goals.length ? boardCards(goals.map(p=>({ title:p.name, sub:`${okrGoalLabel(p)} • الوزن ${Number(p.weight)||0}% • ${okrKRs(p).length} نتائج`, pct: okrGoalMetrics(p).noData ? null : okrGoalMetrics(p).actual }))) : `<div class="empty-note">لا توجد أهداف للدائرة في خطة ${y}.</div>`)
+      + `<h2 class="bd-h">🏅 ترتيب أهداف الدائرة حسب نسبة الإنجاز</h2>` + (goals.length ? boardCards(goals.map(p=>({ title:p.name, sub:`${okrGoalLabel(p)} • الوزن ${Number(p.weight)||0}% • ${okrKRs(p).length} نتائج`, pct: okrGoalMetrics(p).noData ? null : okrGoalMetrics(p).actual }))) : `<div class="empty-note">لا توجد أهداف للدائرة في ${okrYLabel(y)}.</div>`)
       + `<h2 class="bd-h">🎯 ترتيب النتائج الرئيسية للدائرة</h2>` + (goals.some(p=>okrKRs(p).length) ? boardKrCards(goals) : `<div class="empty-note">لا توجد نتائج رئيسية بعد.</div>`);
   }else{
     const depts = DEPARTMENTS;
@@ -16997,7 +17002,7 @@ function renderPerfBoard(){
     const m = okrAggregate(depts.map(d=> okrAggregate(okrDeptGoals(d.id, y).map(okrGoalMetrics))).filter(x=>!x.noData));
     h = `<div class="okr-top"><div><h1 class="org-title" style="font-size:22px;">🏆 لوحة أداء الدوائر</h1><div class="note-meta" style="font-size:13.5px;">اضغط على أي دائرة لعرض لوحة أدائها التفصيلية</div></div>${yearTabs}</div>`
       + quarterBadgesBannerHTML(y)
-      + boardSummary("إنجاز المديرية", m, all, `خطة ${y} • ${depts.length} دائرة`, sn=> sn.overall)
+      + boardSummary("إنجاز المديرية", m, all, `${okrYLabel(y)} • ${depts.length} دائرة`, sn=> sn.overall)
       + `<h2 class="bd-h">🏢 ترتيب الدوائر حسب نسبة الإنجاز</h2>`
       + `<div class="bd-grid">${depts.map(d=>{ const dm = okrAggregate(okrDeptGoals(d.id, y).map(okrGoalMetrics)); return { d, pct: dm.noData ? null : dm.actual, n: okrDeptGoals(d.id, y).length }; })
           .sort((a,b)=> (b.pct==null?-1:b.pct) - (a.pct==null?-1:a.pct))
@@ -17120,6 +17125,7 @@ function badgeChipsFor(year, deptId, secId){
 }
 // شريط الأرباع: قيمة كل لقطة + الحالي المباشر
 function quarterTrendHTML(year, getter, liveVal){
+  if(!year) return `<div class="note-meta">اختر سنة محددة لعرض الإنجاز الربعي.</div>`;
   const cells = QUARTER_DATES.map((q,qi)=>{ if(qi<snapFirstQ(year)) return `<div class="qt-cell qt-future"><span>${q[0]}</span><b>—</b><i>قبل التشغيل</i></div>`; const s = snapOf(year, qi); const v = s ? getter(s) : undefined; const pv = qi>0 && snapOf(year, qi-1) ? getter(snapOf(year, qi-1)) : null;
     const d = v!=null && pv!=null ? v-pv : null;
     return `<div class="qt-cell ${s ? "" : "qt-future"}"><span>${q[0]}</span><b>${v==null ? "—" : v + "%"}</b>${d!=null ? `<i class="${d>=0?"up":"dn"}">${d>=0?"▲":"▼"} ${Math.abs(d)}</i>` : `<i>${s ? "" : "يُلتقط " + q[1].split("-").reverse().join("/")}</i>`}</div>`; }).join("");
@@ -17296,7 +17302,7 @@ function ichRowsHTML(goals){
     <div class="ich-head"><div class="ich-hn">الهدف</div><div class="ich-ht"><span class="ich-zl l1">أقل من 60%</span><span class="ich-zl l2">60–79%</span><span class="ich-zl l3">80% فأكثر</span></div><div class="ich-hs">الحالة</div></div>
     ${rows.map(({p,m},i)=>{ const pct = m.noData ? null : m.actual; const col = boardColor(pct); const st = PERF_STATUS[m.status];
       return `<div class="ich-row" data-ich="${p.code}" data-ichfor="${p._for||""}" tabindex="0" role="button" aria-label="${escapeAttr(p.name)}">
-        <div class="ich-n"><b>${escapeHtml(p.name)}</b><span>${okrGoalLabel(p)} • ${escapeHtml(sectionName(p._for || p.sectionId))}${p._shared ? " • 🤝 مشترك" : ""} • الوزن ${Number(p.weight)||0}%</span></div>
+        <div class="ich-n"><b>${escapeHtml(p.name)}</b><span>${okrGoalLabel(p)}${!OKR_UI.year && p.year ? " (" + p.year + ")" : ""} • ${escapeHtml(sectionName(p._for || p.sectionId))}${p._shared ? " • 🤝 مشترك" : ""} • الوزن ${Number(p.weight)||0}%</span></div>
         <div class="ich-t">${zones}<div class="ich-ticks"><i style="right:60%"></i><i style="right:80%"></i></div>
           <div class="ich-bar" style="--w:${pct==null?0:Math.min(100,pct)}%;--c:${col};--d:${i*70}ms;"></div>
           <span class="ich-pill" style="--w:${pct==null?0:Math.min(100,pct)}%;--c:${col};--d:${i*70}ms;">${pct==null ? "—" : pct + "%"}</span></div>
