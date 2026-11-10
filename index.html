@@ -578,6 +578,16 @@ body.shell-on .dg-topbar{display:none !important;}
 .okr-kr-owner select{border:1px solid #CFDCE8;border-radius:9px;padding:7px 8px;font-family:inherit;font-size:13.5px;background:#fff;}
 /* ===== إخفاء عناصر نظام المشاريع السابق ===== */
 #dlTabNotes,#dlTabChallenges,#mgrCommsSubTabChallenges,#pmCommsSubTabChallenges,#mgrRequestProject,#pmRequestProject,#decisionProjectSelect{display:none!important;}
+/* ===== تفويض الإدخال ===== */
+.okr-deleg{display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:#F6F9FC;border:1px solid #E2E8F0;border-radius:12px;padding:9px 12px;margin-bottom:10px;font-size:13px;color:#33475B;}
+.okr-deleg-t{font-weight:700;color:#0D2B47;}
+.okr-deleg .pr-tag-btn{margin-inline-start:auto;}
+.okr-deleg-list{display:flex;flex-direction:column;gap:6px;}
+.okr-deleg-row{display:flex;gap:10px;align-items:center;padding:9px 12px;border:1px solid #E2E8F0;border-radius:10px;cursor:pointer;}
+.okr-deleg-row:has(input:checked){background:#E3F2E8;border-color:#BFE0CA;}
+.okr-deleg-row input{width:18px;height:18px;}
+.okr-deleg-row b{display:block;color:#0D2B47;font-size:14px;}
+.okr-deleg-row small{color:#6B7A8A;font-size:12px;}
 /* ===== العرض التفاعلي للأهداف ===== */
 .ich{position:relative;}
 .ich-head,.ich-row,.ich-axisrow{display:grid;grid-template-columns:minmax(180px,30%) minmax(0,1fr) 130px;gap:14px;align-items:center;}
@@ -8754,7 +8764,7 @@ function renderProjectManagersAdminList(){
     return `
       <div class="program-admin-row">
         <div>
-          <div class="pa-name">👤 ${escapeHtml(pm.name)} <span style="background:${pm.role==="head"?"#E2F1F2":"#EEF2F7"};color:${pm.role==="head"?"#1E5A60":"#3A4656"};border-radius:999px;padding:1px 8px;font-size:11px;">${ROLE_LABELS[pm.role]||"موظف"}</span> <span style="font-weight:400;color:var(--text-muted);">— رقم وظيفي: ${escapeHtml(pm.employeeId)}${pm.jobTitle?" — "+escapeHtml(pm.jobTitle):""}</span></div>
+          <div class="pa-name">👤 ${escapeHtml(pm.name)} <span style="background:${pm.role==="head"?"#E2F1F2":"#EEF2F7"};color:${pm.role==="head"?"#1E5A60":"#3A4656"};border-radius:999px;padding:1px 8px;font-size:11px;">${ROLE_LABELS[pm.role]||"موظف"}</span>${pm.role!=="head" && pm.delegate===true ? ` <span style="background:#E3F2E8;color:#1E7A3D;border-radius:999px;padding:1px 8px;font-size:11px;">✍️ مفوَّض بالإدخال</span>` : ""} <span style="font-weight:400;color:var(--text-muted);">— رقم وظيفي: ${escapeHtml(pm.employeeId)}${pm.jobTitle?" — "+escapeHtml(pm.jobTitle):""}</span></div>
           <div class="pa-meta">${pm.deptId ? `🏢 ${escapeHtml(deptName(pm.deptId))}${pm.sectionId ? " › "+escapeHtml(sectionName(pm.sectionId)) : ""}` : `<span style="color:#B3261E;font-weight:700;">⚠️ غير مرتبط بدائرة</span>`} | ${pm.role==="head" ? "رئيس قسم" : "موظف"}</div>
         </div>
         <div class="pa-actions">
@@ -8894,7 +8904,10 @@ document.getElementById("pmEditSave").onclick = async ()=>{
     ok = await addProjectManager(name, employeeId, password, selectedProjectIds, jobTitle, gender, org);
   }else{
     const oldEmployeeId = modal.dataset.employeeId;
-    await db.collection(PROJECT_MANAGERS_COLLECTION).doc(oldEmployeeId).update({ name, jobTitle, password, gender: gender||null, role: org.role, deptId: org.deptId, sectionId: org.sectionId });
+    const prevRec = ALL_PROJECT_MANAGERS.find(m=>m.employeeId===oldEmployeeId) || {};
+    const upd = { name, jobTitle, password, gender: gender||null, role: org.role, deptId: org.deptId, sectionId: org.sectionId };
+    if(prevRec.delegate && (org.role==="head" || org.sectionId!==prevRec.sectionId)) upd.delegate = false; // التفويض مرتبط بالقسم: يسقط عند النقل أو الترقية لرئيس قسم
+    await db.collection(PROJECT_MANAGERS_COLLECTION).doc(oldEmployeeId).update(upd);
     await updateProjectManagerAssignments(oldEmployeeId, selectedProjectIds);
     ok = true;
   }
@@ -9557,7 +9570,7 @@ const ACTION_LABELS = {
   delete_manager:"🗑️ حذف مدير دائرة", delete_program:"🗑️ حذف هدف دائرة", delete_project_manager:"🗑️ حذف رئيس قسم/موظف",
   edit_manager:"✎ تحديث الرقم الوظيفي لمدير", edit_program:"✎ تعديل هدف دائرة", edit_project_manager_assignments:"✎ تعديل بيانات رئيس قسم/موظف",
   reassign_manager:"🔁 إعادة تعيين مدير دائرة", recalculate_step_durations:"🔄 إعادة حساب مدد الخطوات", rename_manager:"✎ إعادة تسمية مدير",
-  reset_project_manager_password:"🔑 إعادة تعيين كلمة مرور رئيس قسم/موظف", send_credentials_whatsapp:"📤 إرسال بيانات الدخول بواتساب",
+  reset_project_manager_password:"🔑 إعادة تعيين كلمة مرور رئيس قسم/موظف", okr_delegate:"✍️ تفويض إدخال أهداف القسم", send_credentials_whatsapp:"📤 إرسال بيانات الدخول بواتساب",
   start_challenge_progress:"📝 تسجيل الإجراءات الأولى على تحدٍّ", view_full_matrix:"📐 عرض المصفوفة الشاملة"
 };
 function getActorName(){ return currentManager || currentProjectManagerName || ADMIN_NAME; }
@@ -16252,21 +16265,26 @@ const SECTION_GOALS_COLLECTION = "nsh_yearly_section_goals"; // أهداف أق�
 let SEC_GOALS = [];
 function okrMyHeadRec(){ if(currentRole()!=="pm") return null; const me = ALL_PROJECT_MANAGERS.find(m=>m.employeeId===currentProjectManagerId); return me || null; }
 function okrIsHeadOf(sectionId){ const me = okrMyHeadRec(); return !!(me && me.role==="head" && me.sectionId===sectionId); }
+// المفوَّض بالإدخال: موظف (ليس رئيس قسم) يمنحه رئيس القسم أو مدير الدائرة أو قسم التخطيط صلاحيات الإدخال نفسها لرئيس القسم في قسمه
+function okrIsDelegateOf(sectionId){ const me = okrMyHeadRec(); return !!(me && me.role!=="head" && me.delegate===true && me.sectionId===sectionId); }
+function okrIsEntrantOf(sectionId){ return okrIsHeadOf(sectionId) || okrIsDelegateOf(sectionId); }
+function okrCanManageDelegates(sectionId){ const sec = getSection(sectionId); return currentRole()==="admin" || (sec && okrIsDeptMgr(sec.deptId)) || okrIsHeadOf(sectionId); }
+function okrDelegatesOf(sectionId){ return ALL_PROJECT_MANAGERS.filter(x=> x.sectionId===sectionId && x.role!=="head" && x.delegate===true); }
 function okrIsDeptMgr(deptId){ return currentRole()==="manager" && deptOfManager(currentManager)===deptId; }
 function okrCanEditGoal(p){
   if(p._shared) return false;
   const r = currentRole();
   if(r==="admin") return true;
-  if(p._sec) return okrIsDeptMgr(p.deptId) || okrIsHeadOf(p.sectionId);
+  if(p._sec) return okrIsDeptMgr(p.deptId) || okrIsEntrantOf(p.sectionId);
   return r==="manager" && p.deptId===deptOfManager(currentManager);
 }
 function okrCanProgress(p){
   if(currentRole()==="admin") return true;
   if(okrStatus(p)!=="approved") return false;
-  if(p._sec) return okrIsDeptMgr(p.deptId) || okrIsHeadOf(p.sectionId);
+  if(p._sec) return okrIsDeptMgr(p.deptId) || okrIsEntrantOf(p.sectionId);
   return okrIsDeptMgr(p.deptId);
 }
-function okrIsSubmitter(p){ return p._sec ? okrIsHeadOf(p.sectionId) : currentRole()==="manager"; }
+function okrIsSubmitter(p){ return p._sec ? okrIsEntrantOf(p.sectionId) : currentRole()==="manager"; }
 function okrCanApprove(p){ return currentRole()==="admin" || (p._sec && okrIsDeptMgr(p.deptId)); }
 function okrGoalNo(p){
   if(!p) return "";
@@ -16879,6 +16897,39 @@ function okrSecWeightWarn(sectionId, year){
   const s = g.reduce((a,p)=>a+(Number(p.weight)||0),0);
   return s===100 ? `<span class="perf-chip" style="background:#E3F2E8;color:#1E7A3D;">مجموع الأوزان 100%</span>` : `<span class="perf-chip" style="background:#FCE9D6;color:#A24A08;">⚠️ مجموع الأوزان ${indNum(s,1)}%</span>`;
 }
+function okrDelegStripHTML(secs){
+  const rows = secs.map(x=>{ const ds = okrDelegatesOf(x.id), can = okrCanManageDelegates(x.id);
+    if(!ds.length && !can) return "";
+    return `<div class="okr-deleg"><span class="okr-deleg-t">✍️ المفوَّضون بإدخال أهداف ${secs.length>1 ? escapeHtml(x.name) : "القسم"}:</span>
+      ${ds.length ? ds.map(d=>`<span class="org-chip">👤 ${escapeHtml(d.name)}</span>`).join("") : `<span class="note-meta">لا يوجد — رئيس القسم فقط</span>`}
+      ${can ? `<button type="button" class="pr-tag-btn" data-deleg="${x.id}">👥 إدارة التفويض</button>` : ""}</div>`; }).join("");
+  const me = okrMyHeadRec();
+  const note = me && me.role!=="head" && me.delegate===true ? `<div class="okr-deleg" style="background:#E3F2E8;border-color:#BFE0CA;">✅ أنت مفوَّض بإدخال أهداف القسم ونتائجها وتحديث إنجازها وإرسالها لاعتماد مدير الدائرة.</div>` : "";
+  return note + rows;
+}
+function openOkrDelegModal(sectionId){
+  if(!okrCanManageDelegates(sectionId)) return;
+  const emps = ALL_PROJECT_MANAGERS.filter(x=> x.sectionId===sectionId && x.role!=="head").sort((a,b)=> String(a.name).localeCompare(String(b.name),"ar"));
+  const body = `<p class="note-meta" style="margin:0 0 10px;line-height:1.8;">المفوَّض يملك صلاحيات رئيس القسم في الإدخال: إضافة أهداف القسم ونتائجها وتعديلها، وإرسالها للاعتماد، وتحديث المتحقق والأنشطة. يبقى الاعتماد لمدير الدائرة، والرد على طلبات الشراكة لرئيس القسم.</p>
+    ${emps.length ? `<div class="okr-deleg-list">${emps.map(e=>`<label class="okr-deleg-row"><input type="checkbox" value="${escapeAttr(e.employeeId)}" ${e.delegate===true?"checked":""}><span><b>${escapeHtml(e.name)}</b><small>${escapeHtml(e.jobTitle||"")} ${e.employeeId ? "• " + escapeHtml(e.employeeId) : ""}</small></span></label>`).join("")}</div>`
+      : `<div class="empty-note">لا يوجد موظفون مسجّلون في ${escapeHtml(sectionName(sectionId))}. يُضاف الموظفون من «الهيكل والحسابات».</div>`}`;
+  const ov = prioModalShell(`👥 تفويض الإدخال — ${escapeHtml(sectionName(sectionId))}`, body, emps.length ? `<button type="button" class="pr-btn" id="dlgCancel">إلغاء</button><button type="button" class="pr-btn pri" id="dlgSave">حفظ التفويض</button>` : "");
+  const c = ov.querySelector("#dlgCancel"); if(c) c.onclick = prioCloseModal;
+  const sv = ov.querySelector("#dlgSave"); if(!sv) return;
+  sv.onclick = async ()=>{
+    sv.disabled = true;
+    const who = currentRole()==="admin" ? ADMIN_NAME : currentRole()==="manager" ? currentManager : currentProjectManagerName;
+    const changes = [...ov.querySelectorAll(".okr-deleg-row input")].map(i=>({ id:i.value, on:i.checked })).filter(x=>{ const e = emps.find(m=>m.employeeId===x.id); return e && (e.delegate===true)!==x.on; });
+    try{
+      for(const x of changes){
+        await db.collection(PROJECT_MANAGERS_COLLECTION).doc(x.id).set({ delegate:x.on, delegateBy: x.on ? who : "", delegateAt: x.on ? new Date().toISOString() : "" }, { merge:true });
+        const e = ALL_PROJECT_MANAGERS.find(m=>m.employeeId===x.id); if(e) e.delegate = x.on;
+        logActivity(who, "okr_delegate", `${x.on ? "تفويض" : "إلغاء تفويض"} ${(e||{}).name||x.id} — ${sectionName(sectionId)}`);
+      }
+      prioCloseModal(); renderSecGoals();
+    }catch(err){ console.error(err); alert("تعذّر حفظ التفويض: " + err.message); sv.disabled = false; }
+  };
+}
 function renderSecGoals(){
   const box = document.getElementById("secGoalsBox"); if(!box) return;
   if(OKR_UI.year==null) OKR_UI.year = defaultPlanYear();
@@ -16890,10 +16941,10 @@ function renderSecGoals(){
   const all = secs.flatMap(x=> okrSecGoals(x.id, y));
   const m = okrAggregate(secs.map(x=>{ const a = okrAggregate(okrSecGoals(x.id, y).map(okrGoalMetrics)); return a; }).filter(a=>!a.noData));
   const cnt = k=> all.filter(p=> okrStatus(p)===k).length;
-  const canAddFor = sid=> r==="admin" || okrIsDeptMgr(deptId) || okrIsHeadOf(sid);
+  const canAddFor = sid=> r==="admin" || okrIsDeptMgr(deptId) || okrIsEntrantOf(sid);
   box.innerHTML = `
     <div class="okr-top"><div><h1 class="org-title" style="font-size:22px;">🏷️ ${r==="pm" && secs.length===1 ? "أهداف القسم" : "أهداف أقسام الدائرة"}</h1>
-      <div class="note-meta" style="font-size:13.5px;">${escapeHtml(deptName(deptId)||"—")} — يضيف رئيس القسم أهداف قسمه ونتائجها ويربطها بأهداف الدائرة، ويعتمدها مدير الدائرة</div></div>
+      <div class="note-meta" style="font-size:13.5px;">${escapeHtml(deptName(deptId)||"—")} — يضيف رئيس القسم (أو الموظف المفوَّض) أهداف القسم ونتائجها ويربطها بأهداف الدائرة، ويعتمدها مدير الدائرة</div></div>
       <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;">${r==="admin"||r==="dg" ? `<select id="secgDept" class="org-select">${DEPARTMENTS.filter(d=>sectionsOfDept(d.id).length).map(d=>`<option value="${d.id}" ${d.id===deptId?"selected":""}>${escapeHtml(d.name)}</option>`).join("")}</select>` : ""}${okrYearTabsHTML(y, "data-secg-year")}</div></div>
     ${spPendingBoxHTML()}
     <div class="pr-kpis">
@@ -16902,6 +16953,7 @@ function renderSecGoals(){
       <div class="pr-kpi" style="border-inline-start:4px solid #1D6FAD;"><div class="k">بانتظار اعتماد مدير الدائرة</div><div class="v">${cnt("pending")}</div></div>
       <div class="pr-kpi" style="border-inline-start:4px solid #1E7A3D;"><div class="k">معتمدة</div><div class="v">${cnt("approved")}</div><div class="s">${cnt("returned")} مُعاد • ${cnt("draft")} مسودة</div></div>
     </div>
+    ${okrDelegStripHTML(secs)}
     ${all.length ? `<div class="ind-views" style="margin-bottom:12px;"><button type="button" class="ind-view ${ICH_UI.view==="chart"?"active":""}" data-ichv="chart">📊 العرض التفاعلي</button><button type="button" class="ind-view ${ICH_UI.view==="table"?"active":""}" data-ichv="table">🗂️ جدول الأهداف والنتائج</button></div>` : ""}
     ${all.length && ICH_UI.view==="chart" ? `<div class="pr-card" style="margin-bottom:16px;"><div class="pr-card-h"><b>نسب أداء أهداف ${secs.length===1 ? "القسم" : "الأقسام"}</b><span class="note-meta">مرّر على الهدف لعرض تفاصيله ونتائجه • اضغط لفتحه</span></div>${ichRowsHTML(secs.flatMap(x=> okrSecGoals(x.id, y).map(p=> p._shared ? p : { ...p, _for: x.id })).filter((p,i,arr)=> arr.findIndex(z=>z.code===p.code && z._for===p._for)===i))}</div>` : ""}
     ${ICH_UI.view==="chart" && all.length ? "" : (secs.length ? secs.map(x=>{ const g = okrSecGoals(x.id, y); const sm = okrAggregate(g.map(okrGoalMetrics)); const heads = ALL_PROJECT_MANAGERS.filter(pm=> pm.role==="head" && pm.sectionId===x.id).map(pm=>pm.name);
@@ -16911,6 +16963,7 @@ function renderSecGoals(){
       : `<div class="empty-note">${deptId ? "لا توجد أقسام مسجّلة لهذه الدائرة." : "حسابك غير مُسنَد لدائرة أو قسم بعد."}</div>`)}
     ${ICH_UI.view==="chart" && all.length ? `<div style="display:flex;flex-wrap:wrap;gap:8px;">${secs.filter(x=>canAddFor(x.id)).map(x=>`<button type="button" class="pr-tag-btn" style="padding:7px 14px;font-size:13px;" data-secg-add="${x.id}">＋ إضافة هدف لـ${escapeHtml(x.name)}</button>`).join("")}</div>` : ""}
     ${goalsAchievementLegendHTML()}`;
+  box.querySelectorAll("[data-deleg]").forEach(b=> b.onclick = ()=> openOkrDelegModal(b.dataset.deleg));
   box.querySelectorAll("[data-ichv]").forEach(b=> b.onclick = ()=>{ ICH_UI.view = b.dataset.ichv; renderSecGoals(); });
   bindIch(box, code=>{ ICH_UI.view = "table"; OKR_UI.open[code] = true; renderSecGoals(); setTimeout(()=>{ const c = document.querySelector(`#secGoalsBox [data-okr-card="${CSS.escape(code)}"]`); if(c) c.scrollIntoView({ behavior:"smooth", block:"start" }); }, 60); });
   box.querySelectorAll("[data-secg-year]").forEach(b=> b.onclick = ()=>{ OKR_UI.year = Number(b.dataset.secgYear); renderSecGoals(); });
@@ -17213,7 +17266,7 @@ function okrCanProgressKr(p, k){
   if(!p._sec) return okrIsDeptMgr(p.deptId);
   const owner = krOwnerSection(p, k);
   const dept = owner===p.sectionId ? p.deptId : (secPartnerActive(p, owner)||{}).deptId;
-  return okrIsHeadOf(owner) || okrIsDeptMgr(dept);
+  return okrIsEntrantOf(owner) || okrIsDeptMgr(dept);
 }
 function spInvitesForMe(){ const me = okrMyHeadRec(); if(!me || me.role!=="head") return []; const out = []; SEC_GOALS.forEach(p=> secPartners(p).forEach(x=>{ if(x.sectionId===me.sectionId && x.status==="invited") out.push({ p, x }); })); return out; }
 function spApprovalsForMe(){ if(currentRole()!=="manager") return []; const d = deptOfManager(currentManager); const out = []; SEC_GOALS.forEach(p=> secPartners(p).forEach(x=>{ if(x.deptId===d && x.status==="pending_mgr") out.push({ p, x }); })); return out; }
