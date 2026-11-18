@@ -791,6 +791,12 @@ body.shell-on .dg-topbar{display:none !important;}
 .okr-pull-k{display:flex;gap:6px;align-items:flex-start;padding:4px 8px;border-radius:8px;font-size:13px;cursor:pointer;}
 .okr-pull-k:hover{background:#fff;}
 .okr-pull-k.used{opacity:.55;}
+.okr-pull-k[hidden],.okr-pull-gw[hidden],.okr-pull-sec[hidden]{display:none !important;}
+.okr-pull-f{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:6px;}
+.okr-pull-f select,.okr-pull-f input[type=search]{flex:1 1 180px;min-width:0;padding:7px 10px;border:1px solid #C9D9E3;border-radius:9px;font-family:inherit;font-size:13px;background:#fff;}
+.okr-pull-f label{font-size:12.5px;font-weight:700;color:#1E5A60;display:flex;gap:4px;align-items:center;white-space:nowrap;}
+.okr-pull-cnt{font-size:12px;color:#6B7A8A;margin-bottom:4px;}
+.okr-pull-list{max-height:46vh;overflow-y:auto;background:#fff;border:1px solid #DCEAEE;border-radius:10px;padding:6px 8px;}
 .okr-secchip:hover{border-color:#237EC2;background:#F5F9FC;}
 .okr-secchip b{color:#0D2B47;font-size:13.5px;}
 .okr-secchip span{color:#6B7A8A;font-size:12px;}
@@ -16806,11 +16812,47 @@ function openOkrGoalModal(deptId, year, p, rerender, so){
     const used = new Set(st.krs.filter(k=>k.src).map(k=> k.src.code + "|" + k.src.kid));
     const secs = sectionsOfDept(curDept()).map(x=>({ x, goals: SEC_GOALS.filter(g=> g.sectionId===x.id && okrStatus(g)==="approved" && (!g.year || Number(g.year)===Number(st.year)) && okrKRs(g).length) })).filter(o=>o.goals.length);
     box.hidden = false;
+    const totalK = secs.reduce((t,o)=> t + o.goals.reduce((u,g)=> u + okrKRs(g).length, 0), 0);
     box.innerHTML = secs.length ? `<div class="okr-pull-h"><b>📥 اختر النتائج من أهداف الأقسام المعتمدة (${st.year})</b><label><input type="checkbox" id="ogPullAuto" checked> سحب المتحقق تلقائيًا من القسم</label></div>
-      ${secs.map(o=>`<div class="okr-pull-sec"><div class="okr-pull-sn">🏷️ ${escapeHtml(o.x.name)}</div>${o.goals.map(g=>`<div class="okr-pull-g">${okrGoalLabel(g)}: ${escapeHtml(g.name)}</div>${okrKRs(g).map(k=>{ const key = g.code + "|" + k.id; return `<label class="okr-pull-k ${used.has(key)?"used":""}"><input type="checkbox" data-pull="${escapeAttr(key)}" ${used.has(key)?"disabled checked":""}> ${escapeHtml(k.name)} <span class="note-meta">— ${KR_TYPES[k.type]||""} • متوقع ${escapeHtml(okrFmtVal(k,k.expected))} • المتحقق ${escapeHtml(okrFmtVal(k,k.actual))}${used.has(key) ? " • مضافة" : ""}</span></label>`; }).join("")}`).join("")}</div>`).join("")}
-      <div style="display:flex;gap:8px;margin-top:8px;"><button type="button" class="pr-btn pri" id="ogPullAdd">إضافة المحدد</button><button type="button" class="pr-btn" id="ogPullClose">إغلاق</button></div>`
+      <div class="okr-pull-f">
+        <select id="ogPullSec" aria-label="القسم"><option value="">كل الأقسام (${secs.length})</option>${secs.map(o=>`<option value="${o.x.id}">${escapeHtml(o.x.name)} (${o.goals.length})</option>`).join("")}</select>
+        <select id="ogPullGoal" aria-label="الهدف"><option value="">كل الأهداف</option></select>
+        <input type="search" id="ogPullQ" placeholder="🔍 بحث في نص الهدف أو النتيجة..." aria-label="بحث">
+        <label><input type="checkbox" id="ogPullSel"> المحدد فقط</label>
+      </div>
+      <div class="okr-pull-cnt" id="ogPullCnt"></div>
+      <div class="okr-pull-list">${secs.map(o=>`<div class="okr-pull-sec" data-psid="${o.x.id}"><div class="okr-pull-sn">🏷️ ${escapeHtml(o.x.name)}</div>${o.goals.map(g=>`<div class="okr-pull-gw" data-pgc="${escapeAttr(g.code)}"><div class="okr-pull-g">${okrGoalLabel(g)}: ${escapeHtml(g.name)}</div>${okrKRs(g).map(k=>{ const key = g.code + "|" + k.id; return `<label class="okr-pull-k ${used.has(key)?"used":""}" data-ptxt="${escapeAttr((g.name + " " + (k.name||"")).toLowerCase())}"><input type="checkbox" data-pull="${escapeAttr(key)}" ${used.has(key)?"disabled checked":""}> <span>${escapeHtml(k.name)} <span class="note-meta">— ${KR_TYPES[k.type]||""} • متوقع ${escapeHtml(okrFmtVal(k,k.expected))} • المتحقق ${escapeHtml(okrFmtVal(k,k.actual))}${used.has(key) ? " • مضافة" : ""}</span></span></label>`; }).join("")}</div>`).join("")}</div>`).join("")}
+        <div class="note-meta okr-pull-none" hidden>لا توجد نتائج مطابقة للفلترة.</div></div>
+      <div style="display:flex;gap:8px;margin-top:8px;align-items:center;"><button type="button" class="pr-btn pri" id="ogPullAdd">إضافة المحدد</button><button type="button" class="pr-btn" id="ogPullClose">إغلاق</button><span class="note-meta" id="ogPullN"></span></div>`
       : `<div class="note-meta">لا توجد أهداف أقسام معتمدة فيها نتائج رئيسية لدائرتك في ${st.year}.</div>`;
     const cl = box.querySelector("#ogPullClose"); if(cl) cl.onclick = ()=>{ box.hidden = true; };
+    // فلترة القائمة: القسم ← الهدف ← نص البحث ← المحدد فقط (التحديد يبقى محفوظًا عند تغيير الفلترة)
+    const fSec = box.querySelector("#ogPullSec"), fGoal = box.querySelector("#ogPullGoal"), fQ = box.querySelector("#ogPullQ"), fSel = box.querySelector("#ogPullSel");
+    const fillGoals = ()=>{ if(!fGoal) return; const gs = secs.filter(o=> !fSec.value || o.x.id===fSec.value).flatMap(o=> o.goals.map(g=>({ g, sn:o.x.name })));
+      fGoal.innerHTML = `<option value="">كل الأهداف (${gs.length})</option>` + gs.map(({g,sn})=>`<option value="${escapeAttr(g.code)}">${fSec.value ? "" : escapeHtml(sn) + " — "}${okrGoalLabel(g)}: ${escapeHtml(String(g.name).slice(0,70))}${String(g.name).length>70 ? "…" : ""}</option>`).join(""); };
+    const applyF = ()=>{
+      if(!fSec) return;
+      const q = (fQ.value||"").trim().toLowerCase(), sv = fSec.value, gv = fGoal.value, onlySel = fSel.checked;
+      let shown = 0;
+      box.querySelectorAll(".okr-pull-sec").forEach(sec=>{
+        let secAny = false;
+        sec.querySelectorAll(".okr-pull-gw").forEach(gw=>{
+          let gAny = false;
+          gw.querySelectorAll(".okr-pull-k").forEach(k=>{
+            const cb = k.querySelector("input");
+            const ok = (!sv || sec.dataset.psid===sv) && (!gv || gw.dataset.pgc===gv) && (!q || k.dataset.ptxt.includes(q)) && (!onlySel || (cb.checked && !cb.disabled));
+            k.hidden = !ok; if(ok){ gAny = true; shown++; }
+          });
+          gw.hidden = !gAny; if(gAny) secAny = true;
+        });
+        sec.hidden = !secAny;
+      });
+      box.querySelector(".okr-pull-none").hidden = shown>0;
+      box.querySelector("#ogPullCnt").textContent = `يظهر ${shown} من ${totalK} نتيجة`;
+    };
+    const countSel = ()=>{ const n = box.querySelectorAll("[data-pull]:checked:not(:disabled)").length; const el = box.querySelector("#ogPullN"); if(el) el.textContent = n ? `محدد: ${n}` : ""; };
+    if(fSec){ fillGoals(); fSec.onchange = ()=>{ fillGoals(); applyF(); }; fGoal.onchange = applyF; fQ.oninput = applyF; fSel.onchange = applyF; applyF();
+      box.querySelectorAll("[data-pull]").forEach(c=> c.addEventListener("change", ()=>{ countSel(); if(fSel.checked) applyF(); })); }
     const ad = box.querySelector("#ogPullAdd"); if(ad) ad.onclick = ()=>{
       const auto = box.querySelector("#ogPullAuto").checked;
       const picks = [...box.querySelectorAll("[data-pull]:checked:not(:disabled)")].map(c=> c.dataset.pull);
@@ -16950,7 +16992,7 @@ function renderOkrManager(){
     <div id="okrGoalsList">${goals.length ? goals.map(p=> okrGoalCardHTML(p)).join("") : `<div class="empty-note">لا توجد أهداف لدائرتك في ${okrYLabel(y)} بعد. ابدأ بزر «إضافة هدف».</div>`}</div>`;
   container.querySelectorAll("[data-okr-year]").forEach(b=> b.onclick = ()=>{ OKR_UI.year = Number(b.dataset.okrYear); renderOkrManager(); });
   document.getElementById("okrAddGoal").onclick = ()=> openOkrGoalModal(deptId, y, null, renderOkrManager);
-  container.querySelectorAll("[data-secjump]").forEach(b=> b.onclick = ()=> openSecGoals());
+  container.querySelectorAll("[data-secjump]").forEach(b=> b.onclick = ()=>{ SECG_UI.sec = b.dataset.secjump; openSecGoals(); window.scrollTo(0,0); document.body.scrollTop = 0; const m = document.querySelector("main, .app-main"); if(m) m.scrollTop = 0; });
   bindOkrCards(container, renderOkrManager);
 }
 /* ---------- شاشة قسم التخطيط: مراجعة واعتماد الأهداف ---------- */
@@ -17320,6 +17362,8 @@ function renderSecGoals(){
   const me = okrMyHeadRec();
   let secs = sectionsOfDept(deptId);
   if(r==="pm" && me && me.sectionId) secs = secs.filter(x=> x.id===me.sectionId);
+  const allSecs = secs;
+  if(r!=="pm" && SECG_UI.sec && secs.some(x=>x.id===SECG_UI.sec)) secs = secs.filter(x=> x.id===SECG_UI.sec);
   const all = secs.flatMap(x=> okrSecGoals(x.id, y));
   const m = okrAggregate(secs.map(x=>{ const a = okrAggregate(okrSecGoals(x.id, y).map(okrGoalMetrics)); return a; }).filter(a=>!a.noData));
   const cnt = k=> all.filter(p=> okrStatus(p)===k).length;
@@ -17327,7 +17371,7 @@ function renderSecGoals(){
   box.innerHTML = `
     <div class="okr-top"><div><h1 class="org-title" style="font-size:22px;">🏷️ ${r==="pm" && secs.length===1 ? "أهداف القسم" : "أهداف أقسام الدائرة"}</h1>
       <div class="note-meta" style="font-size:13.5px;">${escapeHtml(deptName(deptId)||"—")} — يضيف رئيس القسم (أو الموظف المفوَّض) أهداف القسم ونتائجها ويربطها بأهداف الدائرة، ويعتمدها مدير الدائرة</div></div>
-      <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;">${all.length ? `<button type="button" class="org-btn" id="secgPrint" title="طباعة أهداف القسم بكل حالاتها (مسودة، بانتظار الاعتماد، معتمدة) لمناقشتها ورقيًا">🖨️ طباعة للمناقشة</button>` : ""}${r==="admin"||r==="dg" ? `<select id="secgDept" class="org-select">${DEPARTMENTS.filter(d=>sectionsOfDept(d.id).length).map(d=>`<option value="${d.id}" ${d.id===deptId?"selected":""}>${escapeHtml(d.name)}</option>`).join("")}</select>` : ""}${okrYearTabsHTML(y, "data-secg-year")}</div></div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;">${r!=="pm" && allSecs.length>1 ? `<select id="secgSec" class="org-select" aria-label="القسم"><option value="">كل الأقسام (${allSecs.length})</option>${allSecs.map(x=>`<option value="${x.id}" ${secs.length===1 && x.id===secs[0].id ? "selected" : ""}>${escapeHtml(x.name)}</option>`).join("")}</select>` : ""}${all.length ? `<button type="button" class="org-btn" id="secgPrint" title="طباعة أهداف القسم بكل حالاتها (مسودة، بانتظار الاعتماد، معتمدة) لمناقشتها ورقيًا">🖨️ طباعة للمناقشة</button>` : ""}${r==="admin"||r==="dg" ? `<select id="secgDept" class="org-select">${DEPARTMENTS.filter(d=>sectionsOfDept(d.id).length).map(d=>`<option value="${d.id}" ${d.id===deptId?"selected":""}>${escapeHtml(d.name)}</option>`).join("")}</select>` : ""}${okrYearTabsHTML(y, "data-secg-year")}</div></div>
     ${spPendingBoxHTML()}
     <div class="pr-kpis">
       <div class="pr-kpi"><div class="k">إنجاز ${secs.length===1 ? "القسم" : "الأقسام"}</div><div class="v">${m.noData ? "—" : m.actual + "%"}</div><div class="s">${secs.length===1 ? "مرجّح بأوزان الأهداف" : "متوسط الأقسام"}</div></div>
@@ -17350,7 +17394,8 @@ function renderSecGoals(){
   box.querySelectorAll("[data-ichv]").forEach(b=> b.onclick = ()=>{ ICH_UI.view = b.dataset.ichv; renderSecGoals(); });
   bindIch(box, code=>{ ICH_UI.view = "table"; OKR_UI.open[code] = true; renderSecGoals(); setTimeout(()=>{ const c = document.querySelector(`#secGoalsBox [data-okr-card="${CSS.escape(code)}"]`); if(c) c.scrollIntoView({ behavior:"smooth", block:"start" }); }, 60); });
   box.querySelectorAll("[data-secg-year]").forEach(b=> b.onclick = ()=>{ OKR_UI.year = Number(b.dataset.secgYear); renderSecGoals(); });
-  const ds = document.getElementById("secgDept"); if(ds) ds.onchange = e=>{ SECG_UI.dept = e.target.value; renderSecGoals(); };
+  const ds = document.getElementById("secgDept"); if(ds) ds.onchange = e=>{ SECG_UI.dept = e.target.value; SECG_UI.sec = ""; renderSecGoals(); };
+  const ss = document.getElementById("secgSec"); if(ss) ss.onchange = e=>{ SECG_UI.sec = e.target.value; renderSecGoals(); };
   box.querySelectorAll("[data-secg-add]").forEach(b=> b.onclick = ()=>{
     openOkrGoalModal(deptId, y, null, renderSecGoals, { sec:true, sectionId: b.dataset.secgAdd });
   });
