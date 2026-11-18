@@ -9577,7 +9577,7 @@ const ACTION_LABELS = {
   delete_manager:"🗑️ حذف مدير دائرة", delete_program:"🗑️ حذف هدف دائرة", delete_project_manager:"🗑️ حذف رئيس قسم/موظف",
   edit_manager:"✎ تحديث الرقم الوظيفي لمدير", edit_program:"✎ تعديل هدف دائرة", edit_project_manager_assignments:"✎ تعديل بيانات رئيس قسم/موظف",
   reassign_manager:"🔁 إعادة تعيين مدير دائرة", recalculate_step_durations:"🔄 إعادة حساب مدد الخطوات", rename_manager:"✎ إعادة تسمية مدير",
-  reset_project_manager_password:"🔑 إعادة تعيين كلمة مرور رئيس قسم/موظف", okr_delegate:"✍️ تفويض إدخال أهداف القسم", send_credentials_whatsapp:"📤 إرسال بيانات الدخول بواتساب",
+  reset_project_manager_password:"🔑 إعادة تعيين كلمة مرور رئيس قسم/موظف", okr_delegate:"✍️ تفويض إدخال أهداف القسم", okr_secgoals_print:"🖨️ طباعة أهداف القسم للمناقشة", send_credentials_whatsapp:"📤 إرسال بيانات الدخول بواتساب",
   start_challenge_progress:"📝 تسجيل الإجراءات الأولى على تحدٍّ", view_full_matrix:"📐 عرض المصفوفة الشاملة"
 };
 function getActorName(){ return currentManager || currentProjectManagerName || ADMIN_NAME; }
@@ -17072,6 +17072,93 @@ function openOkrDelegModal(sectionId){
     }catch(err){ console.error(err); alert("تعذّر حفظ التفويض: " + err.message); sv.disabled = false; }
   };
 }
+/* ---------- طباعة أهداف الأقسام للمناقشة الورقية (تشمل المسودات وما ينتظر الاعتماد) ---------- */
+const SECPRINT = { acts:true, actual:false, notes:true, sign:true };
+function openSecPrintModal(secIds, year){
+  if(!secIds.length){ alert("لا توجد أهداف للطباعة."); return; }
+  const anyActual = secIds.some(id=> okrSecGoals(id, year).some(p=> okrKRs(p).some(k=> k.actual!=null && k.actual!=="")));
+  const opt = (k,l)=> `<label class="okr-deleg-row"><input type="checkbox" data-spo="${k}" ${SECPRINT[k] ? "checked" : ""}><span><b>${l}</b></span></label>`;
+  const body = `<p class="note-meta" style="margin:0 0 10px;line-height:1.8;">تُطبع الأهداف بكل حالاتها مع حالة كل هدف، وتُعلَّم الصفحات بعبارة «مسودة للمناقشة» ما دامت فيها أهداف غير معتمدة.</p>
+    ${secIds.length>1 ? `<div class="pr-sec-h" style="margin-bottom:6px;"><b>الأقسام</b></div><div class="okr-deleg-list" style="margin-bottom:12px;">${secIds.map(id=>`<label class="okr-deleg-row"><input type="checkbox" data-sps="${id}" checked><span><b>${escapeHtml(sectionName(id))}</b><small>${okrSecGoals(id, year).length} أهداف</small></span></label>`).join("")}</div>` : ""}
+    <div class="pr-sec-h" style="margin-bottom:6px;"><b>محتوى الطباعة</b></div>
+    <div class="okr-deleg-list">${opt("acts","أنشطة كل نتيجة رئيسية")}${anyActual ? opt("actual","المتحقق ونسبة الإنجاز") : ""}${opt("notes","مساحة لملاحظات المناقشة تحت كل هدف")}${opt("sign","جدول التوقيعات (أعدّه، رئيس القسم، مدير الدائرة)")}</div>`;
+  const ov = prioModalShell("🖨️ طباعة أهداف القسم للمناقشة", body, `<button type="button" class="pr-btn" id="spCancel">إلغاء</button><button type="button" class="pr-btn pri" id="spGo">🖨️ طباعة / حفظ PDF</button>`);
+  ov.querySelector("#spCancel").onclick = prioCloseModal;
+  ov.querySelector("#spGo").onclick = ()=>{
+    ov.querySelectorAll("[data-spo]").forEach(c=> SECPRINT[c.dataset.spo] = c.checked);
+    if(!anyActual) SECPRINT.actual = false;
+    const chosen = secIds.length>1 ? [...ov.querySelectorAll("[data-sps]")].filter(c=>c.checked).map(c=>c.dataset.sps) : secIds;
+    if(!chosen.length){ alert("اختر قسمًا واحدًا على الأقل."); return; }
+    prioCloseModal();
+    secGoalsPrint(chosen, year);
+  };
+}
+function secPrintHTML(secIds, year){
+  const o = SECPRINT, today = okrFmtDate(new Date().toISOString());
+  const stLabel = p=> (OKR_STATUS[okrStatus(p)]||{}).label || "";
+  const stColor = k=> (OKR_STATUS[k]||{}).color || "#566476";
+  let anyDraft = false;
+  const pages = secIds.map(sid=>{
+    const sec = getSection(sid) || {}, goals = okrSecGoals(sid, year);
+    if(goals.some(p=> okrStatus(p)!=="approved")) anyDraft = true;
+    const w = goals.filter(p=>!p._shared).reduce((t,p)=> t + (Number(p.weight)||0), 0);
+    const heads = ALL_PROJECT_MANAGERS.filter(m=> m.role==="head" && m.sectionId===sid).map(m=>m.name);
+    const cnt = k=> goals.filter(p=> okrStatus(p)===k).length;
+    return `<section class="sgp-page">
+      <div class="sgp-head"><img src="moh-logo.png" alt="وزارة الصحة"><div class="sgp-org">سلطنة عُمان — وزارة الصحة<br>المديرية العامة للخدمات الصحية بمحافظة شمال الشرقية<br>${escapeHtml(deptName(sec.deptId)||"")}</div>
+        <div class="sgp-ttl"><b>أهداف ${escapeHtml(sec.name||"القسم")} ونتائجها الرئيسية</b><span>${year ? "خطة " + year : "كل السنوات"} • ${anyDraftLabel(goals)}</span></div></div>
+      <div class="sgp-meta"><span>رئيس القسم: <b>${escapeHtml(heads.join("، ")||"—")}</b></span><span>عدد الأهداف: <b>${goals.length}</b></span><span>مجموع الأوزان: <b class="${goals.length && w!==100 ? "sgp-warn" : ""}">${w}%</b>${goals.length && w!==100 ? " (يجب أن يكون 100%)" : ""}</span><span>معتمدة ${cnt("approved")} • بانتظار الاعتماد ${cnt("pending")} • مُعادة ${cnt("returned")} • مسودة ${cnt("draft")}</span><span>تاريخ الطباعة: ${escapeHtml(today)} • طبعه: ${escapeHtml(getActorName()||"")}</span></div>
+      ${goals.map(p=>{
+        const krs = okrKRs(p), ws = krWeightSum(krs), m = okrGoalMetrics(p), st = okrStatus(p);
+        const pg = p.parentCode ? PROGRAMS.find(x=>x.code===p.parentCode) : null;
+        const partners = secPartners(p).filter(x=> x.status==="active").map(x=> sectionName(x.sectionId));
+        const span = 6 + (o.actual ? 2 : 0);
+        return `<div class="sgp-goal">
+          <div class="sgp-gh"><span class="orp-code">${okrGoalLabel(p)}${!year && p.year ? " • " + p.year : ""}</span><b>${escapeHtml(p.name)}</b><span class="sgp-st" style="color:${stColor(st)};border-color:${stColor(st)};">${escapeHtml(stLabel(p))}</span></div>
+          <div class="orp-gm">التصنيف: ${escapeHtml(p.category||OKR_CATEGORIES[0])} • وزن الهدف: <b>${Number(p.weight)||0}%</b> • ينعكس على هدف الدائرة: ${pg ? escapeHtml(pg.name) : "غير مرتبط"}${p._shared ? ` • 🤝 هدف مشترك من ${escapeHtml(sectionName(p.sectionId))}` : ""}${partners.length ? ` • 🤝 الأقسام الشريكة: ${escapeHtml(partners.join("، "))}` : ""}${o.actual ? ` • الإنجاز: <b>${m.noData ? "—" : m.actual + "%"}</b>` : ""}</div>
+          ${st==="returned" && p.reviewNote ? `<div class="orp-gm sgp-warn">↩️ ملاحظة الإعادة: ${escapeHtml(p.reviewNote)}</div>` : ""}
+          ${krs.length ? `<table class="orp-t"><thead><tr><th style="width:4%;">#</th><th>النتيجة الرئيسية</th><th>نوع المؤشر</th><th>الوزن</th><th>منخفض</th><th>متوقع</th><th>عالي</th>${o.actual ? "<th>المتحقق</th><th>الإنجاز</th>" : ""}</tr></thead><tbody>
+            ${krs.map((k,i)=>{ const a = krAch(k); const acts = k.activities||[];
+              return `<tr><td>${i+1}</td><td style="text-align:start;">${escapeHtml(k.name||"")}${p._sec && partners.length ? ` <small>(${escapeHtml(sectionName(krOwnerSection(p,k)))})</small>` : ""}</td><td>${KR_TYPES[k.type]||""}</td><td>${Number(k.weight)||0}%</td><td>${escapeHtml(okrFmtVal(k,k.low))}</td><td><b>${escapeHtml(okrFmtVal(k,k.expected))}</b></td><td>${escapeHtml(okrFmtVal(k,k.high))}</td>${o.actual ? `<td>${escapeHtml(okrFmtVal(k,k.actual))}</td><td><b>${a.pct==null ? "—" : a.pct + "%"}</b></td>` : ""}</tr>
+              ${o.acts && acts.length ? `<tr class="orp-cm"><td></td><td colspan="${span+1}">🗂️ الأنشطة: ${acts.map(x=>`${escapeHtml(x.name||"")}${x.end ? " (حتى " + escapeHtml(okrFmtDate(x.end)) + ")" : ""}${o.actual ? " — " + (x.done ? "تم التنفيذ" : (Number(x.progress)||0) + "%") : ""}`).join(" • ")}</td></tr>` : ""}`; }).join("")}
+          </tbody>${ws!==100 ? `<tfoot><tr><td colspan="${span+2}" class="sgp-warn" style="text-align:start;">⚠️ مجموع أوزان النتائج ${ws}% (يجب أن يكون 100%)</td></tr></tfoot>` : ""}</table>` : `<div class="orp-gm">لم تُضف نتائج رئيسية لهذا الهدف بعد.</div>`}
+          ${o.notes ? `<div class="sgp-notes"><span>ملاحظات المناقشة:</span><i></i><i></i><i></i></div>` : ""}
+        </div>`; }).join("") || `<div class="orp-gm">لا توجد أهداف لهذا القسم.</div>`}
+      ${o.sign ? `<table class="sgp-sign"><thead><tr><th></th><th>أعدّه</th><th>رئيس القسم</th><th>مدير الدائرة</th></tr></thead><tbody>
+        <tr><td>الاسم</td><td></td><td>${escapeHtml(heads[0]||"")}</td><td>${escapeHtml(managerOfDept(sec.deptId)||"")}</td></tr><tr><td>التوقيع</td><td></td><td></td><td></td></tr><tr><td>التاريخ</td><td></td><td></td><td></td></tr></tbody></table>` : ""}
+    </section>`; }).join("");
+  return `<style>${OKRREP_CSS}${SECPRINT_CSS}</style>${anyDraft ? `<div class="sgp-wm">مسودة للمناقشة</div>` : ""}<div class="orp" style="--orp-f:1.05;">${pages}</div>`;
+}
+function anyDraftLabel(goals){ return goals.length && goals.every(p=> okrStatus(p)==="approved") ? "معتمدة من مدير الدائرة" : "نسخة للمناقشة"; }
+const SECPRINT_CSS = `.sgp-page{break-after:page;}
+.sgp-page:last-child{break-after:auto;}
+.sgp-head{display:flex;align-items:center;gap:14px;border-bottom:3px solid #133D64;padding-bottom:8px;margin-bottom:8px;}
+.sgp-head img{width:62px;height:auto;}
+.sgp-org{font-size:.85em;color:#33475B;line-height:1.6;}
+.sgp-ttl{margin-inline-start:auto;text-align:end;}
+.sgp-ttl b{display:block;font-size:1.35em;color:#133D64;}
+.sgp-ttl span{color:#2F7F86;font-weight:700;}
+.sgp-meta{display:flex;flex-wrap:wrap;gap:6px 16px;background:#F2F6FA;border:1px solid #D7E2EC;border-radius:8px;padding:6px 10px;margin-bottom:10px;font-size:.92em;color:#33475B;}
+.sgp-goal{border:1px solid #D7E2EC;border-radius:10px;padding:8px 10px;margin-bottom:10px;break-inside:avoid;}
+.sgp-gh{display:flex;align-items:center;gap:6px;font-size:1.1em;color:#0D2B47;}
+.sgp-st{margin-inline-start:auto;border:1.5px solid;border-radius:999px;padding:0 10px;font-size:.8em;font-weight:800;white-space:nowrap;}
+.sgp-warn{color:#A24A08 !important;font-weight:800;}
+.sgp-notes{margin-top:8px;font-size:.9em;color:#566476;font-weight:700;}
+.sgp-notes i{display:block;border-bottom:1px dotted #9AA7B4;height:22px;}
+.sgp-sign{width:100%;border-collapse:collapse;margin-top:14px;break-inside:avoid;font-size:.95em;}
+.sgp-sign th,.sgp-sign td{border:1px solid #CFDCE8;padding:8px;text-align:center;height:26px;}
+.sgp-sign th{background:#E9F1F8;color:#133D64;}
+.sgp-sign td:first-child{background:#F2F6FA;font-weight:700;width:14%;}
+.sgp-wm{position:fixed;top:45%;left:0;right:0;text-align:center;font-size:72px;font-weight:800;color:rgba(179,32,46,.07);transform:rotate(-24deg);pointer-events:none;z-index:0;font-family:Cairo,sans-serif;}`;
+function secGoalsPrint(secIds, year){
+  const cont = document.getElementById("okrRepPrintContainer");
+  cont.innerHTML = secPrintHTML(secIds, year);
+  document.body.classList.add("printing-okrrep");
+  const done = ()=>{ document.body.classList.remove("printing-okrrep"); cont.innerHTML = ""; window.removeEventListener("afterprint", done); };
+  window.addEventListener("afterprint", done);
+  logActivity(getActorName(), "okr_secgoals_print", secIds.map(sectionName).join("، ") + " — " + (year || "كل السنوات"));
+  setTimeout(()=> window.print(), 300);
+}
 function renderSecGoals(){
   const box = document.getElementById("secGoalsBox"); if(!box) return;
   if(OKR_UI.year==null) OKR_UI.year = defaultPlanYear();
@@ -17087,7 +17174,7 @@ function renderSecGoals(){
   box.innerHTML = `
     <div class="okr-top"><div><h1 class="org-title" style="font-size:22px;">🏷️ ${r==="pm" && secs.length===1 ? "أهداف القسم" : "أهداف أقسام الدائرة"}</h1>
       <div class="note-meta" style="font-size:13.5px;">${escapeHtml(deptName(deptId)||"—")} — يضيف رئيس القسم (أو الموظف المفوَّض) أهداف القسم ونتائجها ويربطها بأهداف الدائرة، ويعتمدها مدير الدائرة</div></div>
-      <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;">${r==="admin"||r==="dg" ? `<select id="secgDept" class="org-select">${DEPARTMENTS.filter(d=>sectionsOfDept(d.id).length).map(d=>`<option value="${d.id}" ${d.id===deptId?"selected":""}>${escapeHtml(d.name)}</option>`).join("")}</select>` : ""}${okrYearTabsHTML(y, "data-secg-year")}</div></div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;">${all.length ? `<button type="button" class="org-btn" id="secgPrint" title="طباعة أهداف القسم بكل حالاتها (مسودة، بانتظار الاعتماد، معتمدة) لمناقشتها ورقيًا">🖨️ طباعة للمناقشة</button>` : ""}${r==="admin"||r==="dg" ? `<select id="secgDept" class="org-select">${DEPARTMENTS.filter(d=>sectionsOfDept(d.id).length).map(d=>`<option value="${d.id}" ${d.id===deptId?"selected":""}>${escapeHtml(d.name)}</option>`).join("")}</select>` : ""}${okrYearTabsHTML(y, "data-secg-year")}</div></div>
     ${spPendingBoxHTML()}
     <div class="pr-kpis">
       <div class="pr-kpi"><div class="k">إنجاز ${secs.length===1 ? "القسم" : "الأقسام"}</div><div class="v">${m.noData ? "—" : m.actual + "%"}</div><div class="s">${secs.length===1 ? "مرجّح بأوزان الأهداف" : "متوسط الأقسام"}</div></div>
@@ -17106,6 +17193,7 @@ function renderSecGoals(){
     ${ICH_UI.view==="chart" && all.length ? `<div style="display:flex;flex-wrap:wrap;gap:8px;">${secs.filter(x=>canAddFor(x.id)).map(x=>`<button type="button" class="pr-tag-btn" style="padding:7px 14px;font-size:13px;" data-secg-add="${x.id}">＋ إضافة هدف لـ${escapeHtml(x.name)}</button>`).join("")}</div>` : ""}
     ${goalsAchievementLegendHTML()}`;
   box.querySelectorAll("[data-deleg]").forEach(b=> b.onclick = ()=> openOkrDelegModal(b.dataset.deleg));
+  const spb = document.getElementById("secgPrint"); if(spb) spb.onclick = ()=> openSecPrintModal(secs.filter(x=> okrSecGoals(x.id, y).length).map(x=>x.id), y);
   box.querySelectorAll("[data-ichv]").forEach(b=> b.onclick = ()=>{ ICH_UI.view = b.dataset.ichv; renderSecGoals(); });
   bindIch(box, code=>{ ICH_UI.view = "table"; OKR_UI.open[code] = true; renderSecGoals(); setTimeout(()=>{ const c = document.querySelector(`#secGoalsBox [data-okr-card="${CSS.escape(code)}"]`); if(c) c.scrollIntoView({ behavior:"smooth", block:"start" }); }, 60); });
   box.querySelectorAll("[data-secg-year]").forEach(b=> b.onclick = ()=>{ OKR_UI.year = Number(b.dataset.secgYear); renderSecGoals(); });
