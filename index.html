@@ -787,7 +787,8 @@ body.shell-on .dg-topbar{display:none !important;}
 .okr-pull-h label{font-size:12.5px;font-weight:700;color:#1E5A60;display:flex;gap:4px;align-items:center;}
 .okr-pull-sec{margin-bottom:8px;}
 .okr-pull-sn{font-weight:800;color:#0D2B47;margin-bottom:2px;}
-.okr-pull-g{font-size:12.5px;color:#2F7F86;font-weight:700;margin:4px 0 2px;}
+.okr-pull-g{font-size:12.5px;color:#2F7F86;font-weight:700;margin:6px 0 2px;display:flex;gap:8px;align-items:flex-start;justify-content:space-between;}
+.okr-pull-g .pr-tag-btn{flex:none;font-size:11.5px;padding:3px 10px;}
 .okr-pull-k{display:flex;gap:6px;align-items:flex-start;padding:4px 8px;border-radius:8px;font-size:13px;cursor:pointer;}
 .okr-pull-k:hover{background:#fff;}
 .okr-pull-k.used{opacity:.55;}
@@ -16821,7 +16822,7 @@ function openOkrGoalModal(deptId, year, p, rerender, so){
         <label><input type="checkbox" id="ogPullSel"> المحدد فقط</label>
       </div>
       <div class="okr-pull-cnt" id="ogPullCnt"></div>
-      <div class="okr-pull-list">${secs.map(o=>`<div class="okr-pull-sec" data-psid="${o.x.id}"><div class="okr-pull-sn">🏷️ ${escapeHtml(o.x.name)}</div>${o.goals.map(g=>`<div class="okr-pull-gw" data-pgc="${escapeAttr(g.code)}"><div class="okr-pull-g">${okrGoalLabel(g)}: ${escapeHtml(g.name)}</div>${okrKRs(g).map(k=>{ const key = g.code + "|" + k.id; return `<label class="okr-pull-k ${used.has(key)?"used":""}" data-ptxt="${escapeAttr((g.name + " " + (k.name||"")).toLowerCase())}"><input type="checkbox" data-pull="${escapeAttr(key)}" ${used.has(key)?"disabled checked":""}> <span>${escapeHtml(k.name)} <span class="note-meta">— ${KR_TYPES[k.type]||""} • متوقع ${escapeHtml(okrFmtVal(k,k.expected))} • المتحقق ${escapeHtml(okrFmtVal(k,k.actual))}${used.has(key) ? " • مضافة" : ""}</span></span></label>`; }).join("")}</div>`).join("")}</div>`).join("")}
+      <div class="okr-pull-list">${secs.map(o=>`<div class="okr-pull-sec" data-psid="${o.x.id}"><div class="okr-pull-sn">🏷️ ${escapeHtml(o.x.name)}</div>${o.goals.map(g=>`<div class="okr-pull-gw" data-pgc="${escapeAttr(g.code)}"><div class="okr-pull-g"><span>${okrGoalLabel(g)}: ${escapeHtml(g.name)}</span><button type="button" class="pr-tag-btn" data-pullwhole="${escapeAttr(g.code)}" title="يُضاف الهدف بكل نتائجه وأوزانها، ويُعبّأ نص الهدف وتصنيفه إن كانا فارغين">📥 سحب الهدف كاملًا</button></div>${okrKRs(g).map(k=>{ const key = g.code + "|" + k.id; return `<label class="okr-pull-k ${used.has(key)?"used":""}" data-ptxt="${escapeAttr((g.name + " " + (k.name||"")).toLowerCase())}"><input type="checkbox" data-pull="${escapeAttr(key)}" ${used.has(key)?"disabled checked":""}> <span>${escapeHtml(k.name)} <span class="note-meta">— ${KR_TYPES[k.type]||""} • متوقع ${escapeHtml(okrFmtVal(k,k.expected))} • المتحقق ${escapeHtml(okrFmtVal(k,k.actual))}${used.has(key) ? " • مضافة" : ""}</span></span></label>`; }).join("")}</div>`).join("")}</div>`).join("")}
         <div class="note-meta okr-pull-none" hidden>لا توجد نتائج مطابقة للفلترة.</div></div>
       <div style="display:flex;gap:8px;margin-top:8px;align-items:center;"><button type="button" class="pr-btn pri" id="ogPullAdd">إضافة المحدد</button><button type="button" class="pr-btn" id="ogPullClose">إغلاق</button><span class="note-meta" id="ogPullN"></span></div>`
       : `<div class="note-meta">لا توجد أهداف أقسام معتمدة فيها نتائج رئيسية لدائرتك في ${st.year}.</div>`;
@@ -16853,6 +16854,20 @@ function openOkrGoalModal(deptId, year, p, rerender, so){
     const countSel = ()=>{ const n = box.querySelectorAll("[data-pull]:checked:not(:disabled)").length; const el = box.querySelector("#ogPullN"); if(el) el.textContent = n ? `محدد: ${n}` : ""; };
     if(fSec){ fillGoals(); fSec.onchange = ()=>{ fillGoals(); applyF(); }; fGoal.onchange = applyF; fQ.oninput = applyF; fSel.onchange = applyF; applyF();
       box.querySelectorAll("[data-pull]").forEach(c=> c.addEventListener("change", ()=>{ countSel(); if(fSel.checked) applyF(); })); }
+    // سحب هدف القسم كاملًا: كل نتائجه بأوزانها الأصلية، مع تعبئة نص الهدف وتصنيفه إن كانا فارغين
+    box.querySelectorAll("[data-pullwhole]").forEach(b=> b.onclick = ()=>{
+      const g = SEC_GOALS.find(x=>x.code===b.dataset.pullwhole); if(!g) return;
+      const auto = box.querySelector("#ogPullAuto").checked;
+      const krsG = (g.keyResults||[]).filter(k=> !used.has(g.code + "|" + k.id));
+      if(!krsG.length){ $("#ogErr").textContent = "كل نتائج هذا الهدف مضافة مسبقًا."; return; }
+      if(st.krs.length===1 && !String(st.krs[0].name||"").trim()) st.krs = [];
+      const fresh = !st.krs.length;
+      krsG.forEach(k=> st.krs.push({ id:"k"+Date.now()+Math.random().toString(36).slice(2,5), name:k.name, type:k.type||"percent", weight: fresh ? (Number(k.weight)||0) : 0, low:k.low??"", expected:k.expected??"", high:k.high??"", actual: auto ? null : (k.actual ?? null), comments: [], src:{ code:g.code, kid:k.id }, srcAuto: auto }));
+      if(!$("#ogName").value.trim()) $("#ogName").value = g.name;
+      if(g.category && [...$("#ogCat").options].some(o=>o.value===g.category || o.text===g.category) && fresh) $("#ogCat").value = g.category;
+      box.hidden = true; renderKrs();
+      $("#ogErr").textContent = fresh ? `سُحب الهدف «${g.name}» بنتائجه (${krsG.length}) وأوزانها — راجع النص ووزن الهدف.` : `أُضيفت نتائج الهدف (${krsG.length}) — حدّد أوزانها ليصبح المجموع 100%.`;
+    });
     const ad = box.querySelector("#ogPullAdd"); if(ad) ad.onclick = ()=>{
       const auto = box.querySelector("#ogPullAuto").checked;
       const picks = [...box.querySelectorAll("[data-pull]:checked:not(:disabled)")].map(c=> c.dataset.pull);
